@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand-tuned shadcn tokens — warm beige canvas, off-white cards, sharp black ink */
+    --background: 44 43% 93%;
+    --foreground: 0 0% 7%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 7%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 7%;
+
+    --primary: 0 0% 7%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 44 30% 88%;
+    --secondary-foreground: 0 0% 7%;
+
+    --muted: 44 25% 90%;
+    --muted-foreground: 0 0% 38%;
+
+    --accent: 44 32% 85%;
+    --accent-foreground: 0 0% 7%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 44 20% 82%;
+    --input: 44 20% 82%;
+    --ring: 0 0% 7%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Subtle grain/section helpers */
+  .section-padding {
+    @apply py-20 md:py-28;
+  }
+}

@@ -1,0 +1,38 @@
+-- ============================================================================
+--  SEED DATA — keep in sync with lib/config/salonData.ts
+-- ============================================================================
+--  Run AFTER schema.sql. Safe to re-run (upserts on primary key).
+-- ============================================================================
+
+-- Technicians ---------------------------------------------------------------
+insert into public.technicians (id, name, role, is_active, display_order) values
+  ('tech-linh',  'Linh Tran',   'Founder & Master Nail Technician', true, 1),
+  ('tech-maria', 'Maria Santos','Senior Pedicure Specialist',       true, 2),
+  ('tech-james', 'James Cole',  'Nail Artist',                      true, 3),
+  ('tech-amy',   'Amy Nguyen',  'Nail Technician',                  true, 4)
+on conflict (id) do update
+  set name = excluded.name,
+      role = excluded.role,
+      is_active = excluded.is_active,
+      display_order = excluded.display_order;
+
+-- Services ------------------------------------------------------------------
+insert into public.services (id, category_id, name, description, price, duration_minutes) values
+  ('mani-classic',     'manicures',    'Classic Manicure',         'Nail shaping, cuticle care, hand massage, polish.',          28, 30),
+  ('mani-gel',         'manicures',    'Gel Manicure',             'Long-lasting, chip-resistant gel color.',                    42, 45),
+  ('mani-spa',         'manicures',    'Signature Spa Manicure',   'Classic manicure with scrub, mask, extended massage.',       55, 60),
+  ('pedi-classic',     'pedicures',    'Classic Pedicure',         'Soak, nail care, callus smoothing, massage, polish.',        40, 45),
+  ('pedi-deluxe',      'pedicures',    'Deluxe Spa Pedicure',      'Sea salt scrub, mask, hot towels, extended leg massage.',    65, 60),
+  ('pedi-gel',         'pedicures',    'Gel Pedicure',             'Classic pedicure with durable gel color.',                   55, 60),
+  ('enh-acrylic-full', 'enhancements', 'Acrylic Full Set',         'Custom-sculpted acrylic extensions.',                        60, 75),
+  ('enh-acrylic-fill', 'enhancements', 'Acrylic Fill',             'Maintenance fill for existing acrylic set.',                 45, 60),
+  ('enh-dip',          'enhancements', 'Dip Powder Set',           'Lightweight, durable dip powder color.',                     50, 60),
+  ('addon-art-simple', 'art-addons',   'Nail Art (per nail)',      'Hand-painted designs and accents.',                           5, 15),
+  ('addon-french',     'art-addons',   'French Tip',               'Timeless French finish added to any service.',               10, 15),
+  ('addon-removal',    'art-addons',   'Soak-Off Removal',         'Gentle removal of gel, acrylic, or dip.',                    15, 15)
+on conflict (id) do update
+  set category_id = excluded.category_id,
+      name = excluded.name,
+      description = excluded.description,
+      price = excluded.price,
+      duration_minutes = excluded.duration_minutes;
