@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import {
   Calendar,
@@ -116,14 +116,16 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
   function handleContinue() {
     const errorField = getStepValidationError(step, {
       party,
-      selectedServiceIds,
       selectedTime,
       details,
     });
 
     if (errorField) {
-      setHighlightedField(errorField);
-      requestAnimationFrame(() => scrollToBookingField(errorField));
+      if (highlightedField === errorField) {
+        scrollToBookingField(errorField);
+      } else {
+        setHighlightedField(errorField);
+      }
       return;
     }
 
@@ -210,6 +212,11 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
   function clearFieldHighlight(fieldId: string) {
     setHighlightedField((current) => (current === fieldId ? null : current));
   }
+
+  useLayoutEffect(() => {
+    if (!highlightedField) return;
+    scrollToBookingField(highlightedField);
+  }, [highlightedField]);
 
   if (confirmation) {
     return <BookingConfirmationView confirmation={confirmation} />;
@@ -468,16 +475,15 @@ function ServiceStep({
       <div className="mt-6 space-y-8">
         {party.map((member, memberIndex) => {
           const guestNameFieldId = `booking-guest-name-${member.id}`;
-          const isPrimarySection = memberIndex === 0;
-          const primaryFieldId = "booking-primary-services";
+          const servicesFieldId = memberServicesFieldId(member.id);
           const sectionHighlight =
-            (isPrimarySection && highlightedField === primaryFieldId) ||
-            (!isPrimarySection && highlightedField === guestNameFieldId);
+            highlightedField === guestNameFieldId ||
+            highlightedField === servicesFieldId;
 
           return (
           <div
             key={member.id}
-            id={isPrimarySection ? primaryFieldId : undefined}
+            id={servicesFieldId}
             className={cn(
               "rounded-xl bg-background p-4 transition-shadow",
               sectionHighlight && "ring-2 ring-red-500 ring-offset-2 ring-offset-offwhite"
@@ -527,6 +533,13 @@ function ServiceStep({
               )}
             </div>
 
+            {highlightedField === servicesFieldId && (
+              <p className="mt-3 text-sm font-medium text-red-700">
+                Please select at least one service
+                {memberIndex > 0 ? ` for ${member.label.trim() || "this guest"}` : ""}.
+              </p>
+            )}
+
             <div className="mt-4 space-y-5">
               {serviceCategories.map((category) => (
                 <div key={`${member.id}-${category.id}`}>
@@ -550,7 +563,7 @@ function ServiceStep({
                             checked={checked}
                             className="mt-1 size-4 accent-ink"
                             onChange={() => {
-                              if (isPrimarySection) onFieldEdit(primaryFieldId);
+                              onFieldEdit(servicesFieldId);
                               setParty((current) =>
                                 current.map((item) =>
                                   item.id === member.id
@@ -1166,24 +1179,27 @@ function getStepValidationError(
   currentStep: Step,
   {
     party,
-    selectedServiceIds,
     selectedTime,
     details,
   }: {
     party: PartyMember[];
-    selectedServiceIds: string[];
     selectedTime: string;
     details: { name: string; phone: string; email: string };
   }
 ): string | null {
   if (currentStep === 1) {
-    const guestMissingName = party.find((member, index) => index > 0 && !member.label.trim());
-    if (guestMissingName) {
-      return `booking-guest-name-${guestMissingName.id}`;
+    for (let index = 1; index < party.length; index++) {
+      const member = party[index];
+      if (!member.label.trim()) {
+        return `booking-guest-name-${member.id}`;
+      }
+      if (member.serviceIds.length === 0) {
+        return memberServicesFieldId(member.id);
+      }
     }
 
-    if (selectedServiceIds.length === 0) {
-      return "booking-primary-services";
+    if (!party[0] || party[0].serviceIds.length === 0) {
+      return memberServicesFieldId(party[0]?.id ?? "primary");
     }
 
     return null;
@@ -1201,15 +1217,22 @@ function getStepValidationError(
   return null;
 }
 
+function memberServicesFieldId(memberId: string) {
+  return `booking-member-services-${memberId}`;
+}
+
 function scrollToBookingField(fieldId: string) {
   const element = document.getElementById(fieldId);
   if (!element) return;
 
   element.scrollIntoView({ behavior: "smooth", block: "center" });
 
-  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-    element.focus({ preventScroll: true });
-  }
+  const focusTarget =
+    element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement
+      ? element
+      : element.querySelector<HTMLInputElement>("input, textarea");
+
+  focusTarget?.focus({ preventScroll: true });
 }
 
 function formatReadableDate(date: string) {
