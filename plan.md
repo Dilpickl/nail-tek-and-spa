@@ -1,7 +1,7 @@
 # Nail Tek & Spa — AI Handoff / Context Refresh
 
 > **Purpose:** Give the next Cursor AI session everything needed to continue work without re-discovering the codebase.  
-> **Last updated:** June 2026  
+> **Last updated:** June 27, 2026  
 > **Repo:** https://github.com/Dilpickl/nail-tek-and-spa  
 > **Local path:** `C:\Users\dangi\Projects\nail-tek-and-spa`
 
@@ -49,9 +49,10 @@ Template: `.env.example`
 1. Run `supabase/schema.sql` in Supabase SQL Editor
 2. Run `supabase/migrations/002_completion_analytics.sql`
 3. Run `supabase/migrations/003_any_technician.sql`
-4. Run `supabase/seed.sql`
-5. Create auth user: Dashboard → Authentication → Users → Add user
-6. Grant admin:
+4. Run `supabase/migrations/004_anon_any_technician_grant.sql`
+5. Run `supabase/seed.sql`
+6. Create auth user: Dashboard → Authentication → Users → Add user
+7. Grant admin:
    ```sql
    insert into public.admin_users (user_id, email)
    values ('USER-UUID-FROM-AUTH', 'owner@email.com');
@@ -72,8 +73,12 @@ Template: `.env.example`
 |------|-------|
 | Branch | `master` (tracks `origin/master`) |
 | Remote | `https://github.com/Dilpickl/nail-tek-and-spa.git` |
-| HEAD | `fb64538` — run `git log -1 --oneline` after pull |
-| Primary feature commit | `d59afac` — Add salon operations: completion workflow, analytics, and admin scheduling |
+| HEAD | `4d27dad` — run `git log -1 --oneline` after pull |
+
+**Recent commits (newest first):**
+- `4d27dad` — Fix booking validation scroll-to-error for guest service selection
+- `1c6ac93` — Split multi-guest bookings into per-guest appointments; admin highlights; party UX
+- `2937d86` — Fix booking availability, admin agenda, and UI polish
 
 ---
 
@@ -83,6 +88,8 @@ Template: `.env.example`
 - Premium warm-beige/serif aesthetic (not the brief trendy redesign that was reverted)
 - Keep **30+ years** (established 1994), not 40+
 - Admin uses Agenda | Analytics nav; customer site uses Header/Footer via `SiteChrome` (admin routes hide site chrome)
+- Admin login heading: **"Hello, Travis."**
+- **Complete Appointment** button uses emerald green (`emerald-700`), not black primary
 
 ### Brand palette
 - Background: warm beige `#F5F1E6` / `--background`
@@ -108,23 +115,38 @@ Template: `.env.example`
 ### Booking engine (`/book`)
 **Component:** `components/booking/BookingFlow.tsx`
 
-5 steps: Services → Technician (specific or Any) → Date & Time → Details → Confirm
+5 steps: Services → Technician (specific or "Any") → Date & Time → Details → Confirm
 
-**Recent booking improvements:**
-- Time slot no longer clears when advancing steps (effect only resets on date/service/tech change)
-- Past slots filtered for today (API + client via `filterPastSlots`)
-- Business hours lookup fixed (`getBusinessHoursForDate` matches day **name**, not wrong array index)
-- Closed days (Sunday) dimmed/disabled in picker; auto-skips to next open day
-- Confirmation screen shows booking summary (services, date, time, tech, estimated total)
-- **"Any" technician** bookings set `any_technician: true` and `technician_id: null` — appear in admin "Any Employee" column
+**Multi-guest / party bookings (important):**
+- User can add guests on step 1; each added guest **must type a name** (`Guest name *`)
+- **Each party member must have at least one service** (validated per person, not just globally)
+- Online API creates **one `appointments` row per guest**, linked by `party_group_id`
+- Primary booker: `is_guest: false`; additional guests: `is_guest: true`
+- All guests share the same `starts_at` (parallel scheduling); each row has its own `ends_at` from their services
+- Availability requires enough free techs/chairs for party size (`lib/booking/party-scheduling.ts`)
+- Party JSON passed to `GET /api/availability?party=...`
+
+**Step 1 validation UX:**
+- **Continue** is always clickable (not disabled)
+- On invalid step, scrolls to and highlights the problem field (red ring + inline message)
+- Validates guests in order: name → services, then primary services
+- Uses `useLayoutEffect` + `scrollToBookingField()` for scroll-after-render
+
+**Other booking behavior:**
+- Time slot resets only when date/party/technician changes (not on step advance)
+- Past slots filtered; closed days disabled; auto-skip to next open day
+- Technician step copy uses quoted **"Any"** for the any-tech option
+- Date/time step description is customer-facing (no admin agenda jargon)
 
 **APIs:**
-- `GET /api/availability` — open slots (15-min intervals, time-off, busy windows, past-slot filter)
-- `POST /api/appointments` — validates & creates booking; rejects past times
+- `GET /api/availability` — accepts `party` JSON query param or legacy `serviceId` list
+- `POST /api/appointments` — creates N appointments for party; rollback on failure
 
 **Logic split (important for imports):**
 - `lib/booking/time-utils.ts` — client-safe date/time helpers
-- `lib/booking/service-utils.ts` — client-safe service lookups
+- `lib/booking/service-utils.ts` — client-safe service lookups + `BookingPartyMember` type
+- `lib/booking/party-scheduling.ts` — **server-only** party assignment + validation helpers
+- `lib/booking/slot-capacity.ts` — **server-only** chair/tech usage per slot
 - `lib/booking/availability.ts` — **server-only** slot computation + Supabase queries
 
 ### Admin (`/admin`)
@@ -133,16 +155,19 @@ Template: `.env.example`
 **Nav:** `components/admin/AdminNav.tsx` — **Agenda** | **Analytics**
 
 **Agenda** (`/admin`):
+- **Day navigation:** `?date=YYYY-MM-DD`, prev/next, "Back to today"; heading shows Today / Tomorrow / Agenda
 - Columns: **Any Employee** + each technician
-- Drag-and-drop booked appointments between columns (HTML5 DnD); PATCH updates tech or `any_technician`
-- Walk-In / Phone Booking panels with iOS-style `TimeWheelPicker`; buttons toggle open/close
+- Drag-and-drop booked appointments between columns; PATCH updates tech or `any_technician`
+- **Party bookings** show as separate cards per guest; badge "Party of N" (and "Guest ·" for non-primary)
+- **New booking highlight:** green ring + "New" badge for ~12s (walk-in/phone + realtime online inserts); `lib/admin/highlight-appointments.ts`
+- Walk-In / Phone Booking: multi-service dropdown, default tech Any Employee, walk-in has no phone field
 - Off / Sick toggle per technician
-- Realtime toast on new online booking
 - Click appointment → detail page
 
 **Appointment detail** (`/admin/appointments/[id]`):
 - View original booking snapshot (never overwritten)
-- Complete / Cancel / No-Show / **Edit / Move**
+- **Party section** links to sibling appointments when `party_group_id` set
+- Complete (emerald button) / Cancel / No-Show with **confirmation modals** / Edit / Move
 
 **Completion** (`/admin/appointments/[id]/complete`):
 - Preloads booked services; one-click complete if unchanged
@@ -151,12 +176,12 @@ Template: `.env.example`
 
 **Edit / Move** (`/admin/appointments/[id]/edit`):
 - Reschedule, change tech (including Any Employee), client info, services
+- Technician-only moves allowed without services (walk-in/phone blocks)
 
 **Analytics** (`/admin/analytics`):
 - Owner-friendly simplified default view: Money Made hero, revenue trend, needs-attention alerts
 - Expandable **Full Report**: staff performance, charts, financial breakdown, date ranges
 - Revenue metrics from **completed transactions only**
-- Recharts for pie/line/bar charts
 
 ### Admin APIs
 | Route | Purpose |
@@ -165,7 +190,7 @@ Template: `.env.example`
 | `POST /api/admin/appointments/[id]/complete` | Finalize transaction |
 | `PATCH /api/admin/appointments/[id]/status` | cancel, no_show |
 | `GET /api/admin/analytics` | KPIs + chart data |
-| `POST /api/admin/quick-booking` | walk-in or phone |
+| `POST /api/admin/quick-booking` | walk-in or phone (multi-service, any tech) |
 | `POST /api/admin/time-off` | mark tech off for day |
 
 ---
@@ -173,7 +198,8 @@ Template: `.env.example`
 ## 7. Database Architecture
 
 ### Core (schema.sql)
-- `appointments`, `appointment_services`, `services`, `technicians`, `technician_time_off`, `admin_users`
+- `appointments` — includes `party_group_id uuid`, `is_guest boolean`, `any_technician boolean`
+- `appointment_services`, `services`, `technicians`, `technician_time_off`, `admin_users`
 
 ### Migration 002 — completion & analytics
 - `clients`, `retail_products`, `completed_transactions`, `transaction_line_items`
@@ -182,8 +208,14 @@ Template: `.env.example`
 
 ### Migration 003 — any technician
 - `appointments.any_technician boolean default false`
-- Online "Any" bookings: `any_technician=true`, `technician_id=null`
-- Availability treats any-tech bookings as blocking all technicians for that window
+
+### Migration 004 — anon any-technician grant
+- RLS/grants for anonymous availability reads needed by booking flow
+
+### Slot capacity model (`lib/booking/slot-capacity.ts`)
+- **Assigned** bookings block only that technician
+- **Any employee** bookings consume one chair but do not block named techs until assigned
+- Multi-guest bookings count as **N separate appointments** → N chairs at same start time
 
 ### Status flow
 ```
@@ -202,12 +234,14 @@ Revenue / avg ticket / tips → **`completed_transactions` only**. Scheduling me
 
 | Area | Notes |
 |------|-------|
-| Supabase migrations | Must run 002 + 003 in Supabase if not already applied |
+| Supabase migrations | Must run 002, 003, **004** in Supabase if not already applied |
 | Dev server cache | If white screen / module errors, delete `.next` and restart `npm run dev` |
 | Port conflicts | Kill stale node on :3000 if dev server falls back to :3001 |
+| Legacy party bookings | Old single-row multi-guest bookings (pre `1c6ac93`) may still exist in DB; new bookings split per guest |
+| Sequential vs parallel | Online booking is **parallel same start time** only; no back-to-back party option yet |
 | Gift cards / deposits | Placeholders in analytics breakdown (always $0 until implemented) |
 | SMS confirmations | Alert stubs only — no Twilio integration yet |
-| Payroll / inventory | Not built; dashboard architecture allows future expansion |
+| Payroll / inventory | Not built |
 
 ---
 
@@ -216,48 +250,32 @@ Revenue / avg ticket / tips → **`completed_transactions` only**. Scheduling me
 ```
 app/
   admin/
-    layout.tsx                      # AdminNav wrapper
-    page.tsx                        # Agenda (server)
-    analytics/page.tsx
-    appointments/[id]/page.tsx
-    appointments/[id]/complete/page.tsx
-    appointments/[id]/edit/page.tsx
+    page.tsx                        # Agenda + ?date= nav (server)
+    appointments/[id]/page.tsx        # Detail + party siblings
   api/
-    availability/route.ts
-    appointments/route.ts
-    admin/analytics/route.ts
-    admin/appointments/[id]/route.ts
-    admin/appointments/[id]/complete/route.ts
-    admin/appointments/[id]/status/route.ts
+    availability/route.ts           # party JSON param
+    appointments/route.ts           # multi-row party insert
     admin/quick-booking/route.ts
-    admin/time-off/route.ts
 
 components/
-  booking/BookingFlow.tsx
-  admin/AdminDashboard.tsx          # Agenda + drag-drop + quick booking
-  admin/AppointmentCard.tsx
-  admin/AppointmentDetailView.tsx
-  admin/CompleteAppointmentForm.tsx
-  admin/EditAppointmentForm.tsx
-  admin/analytics/                  # AnalyticsDashboard, HeroStats, etc.
+  booking/BookingFlow.tsx           # Party UI, scroll-to-error validation
+  admin/AdminDashboard.tsx          # Agenda, highlights, quick booking, ServiceMultiSelect
+  admin/AppointmentCard.tsx         # Party badge, isNew highlight
+  admin/AppointmentDetailView.tsx   # Confirm modals, party list, emerald Complete link
   ui/TimeWheelPicker.tsx
-  layout/SiteChrome.tsx
 
 lib/
-  config/salonData.ts
-  booking/time-utils.ts             # Client-safe
-  booking/service-utils.ts          # Client-safe
-  booking/availability.ts         # Server-only
-  admin/update-appointment.ts       # Server-only PATCH logic
-  admin/constants.ts                # ANY_EMPLOYEE_ID, label
-  analytics/                        # date-ranges, queries, types
-  completion/                       # calculate-totals, validate, types
-  clients/resolve-client.ts
+  booking/party-scheduling.ts       # assignTechniciansForParty, parsePartyPayload
+  booking/slot-capacity.ts          # getSlotUsage
+  booking/availability.ts           # getAvailableSlots (party-aware)
+  admin/highlight-appointments.ts   # sessionStorage queue for new card highlights
+  admin/update-appointment.ts       # Allows tech-only moves without services
 
 supabase/
   schema.sql
   migrations/002_completion_analytics.sql
   migrations/003_any_technician.sql
+  migrations/004_anon_any_technician_grant.sql
   seed.sql
 ```
 
@@ -275,6 +293,8 @@ npm run dev
 
 If build/runtime errors after many hot reloads: `Remove-Item -Recurse -Force .next` then `npm run dev`.
 
+**Dev server is currently stopped** (user requested shutdown before context reset).
+
 ### Admin access
 1. `http://localhost:3000/admin/login`
 2. Sign in with user in `admin_users`
@@ -290,6 +310,7 @@ If build/runtime errors after many hot reloads: `Remove-Item -Recurse -Force .ne
 - Use `salonData.ts` for business data — no hardcoded fake services
 - Only commit when user asks
 - Simplified analytics default view; full report collapsed behind toggle
+- Don't expose internal admin concepts in customer-facing copy (e.g. "salon agenda")
 
 ---
 
@@ -298,16 +319,16 @@ If build/runtime errors after many hot reloads: `Remove-Item -Recurse -Force .ne
 ```
 Read plan.md in the project root first.
 
-The completion workflow, analytics dashboard, admin edit/move, drag-drop agenda, and booking fixes are implemented. Check §8 for remaining gaps.
+Recent work (June 2026): multi-guest bookings create one appointment per guest (party_group_id), parallel availability via party-scheduling.ts, admin party badges + new-booking highlights, booking scroll-to-error validation for guest names/services, cancel/no-show confirmation modals, agenda day navigation, quick-booking multi-service panel.
 
-Before new features, confirm Supabase migrations 002 and 003 are applied in the user's project.
+HEAD should be 4d27dad or later on master. Confirm migrations 002–004 applied in Supabase.
 
 Rules:
 - Revenue metrics = completed transactions only
 - Never overwrite original booking data (appointment_services)
-- Match existing design (warm beige, serif headings, sharp black)
+- Match existing design (warm beige, serif headings, sharp black; emerald for Complete)
 - Use salonData.ts for services/retail; server-side validation for financial data
-- Split client vs server imports: time-utils/service-utils (client) vs availability.ts (server-only)
+- Split client vs server imports: time-utils/service-utils (client) vs availability/party-scheduling/slot-capacity (server-only)
 - Only commit when user asks
 ```
 
