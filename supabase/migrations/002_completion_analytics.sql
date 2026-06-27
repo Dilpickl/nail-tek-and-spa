@@ -102,21 +102,36 @@ alter table public.retail_products          enable row level security;
 alter table public.completed_transactions   enable row level security;
 alter table public.transaction_line_items   enable row level security;
 
+drop policy if exists "admin manage clients" on public.clients;
 create policy "admin manage clients"
   on public.clients for all to authenticated
   using (private.is_admin()) with check (private.is_admin());
 
+drop policy if exists "admin manage retail products" on public.retail_products;
 create policy "admin manage retail products"
   on public.retail_products for all to authenticated
   using (private.is_admin()) with check (private.is_admin());
 
+drop policy if exists "admin manage completed transactions" on public.completed_transactions;
 create policy "admin manage completed transactions"
   on public.completed_transactions for all to authenticated
   using (private.is_admin()) with check (private.is_admin());
 
+drop policy if exists "admin manage transaction line items" on public.transaction_line_items;
 create policy "admin manage transaction line items"
   on public.transaction_line_items for all to authenticated
   using (private.is_admin()) with check (private.is_admin());
 
 -- Realtime (optional: notify when appointment completed) --------------------
-alter publication supabase_realtime add table public.completed_transactions;
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'completed_transactions'
+  ) then
+    alter publication supabase_realtime add table public.completed_transactions;
+  end if;
+end $$;

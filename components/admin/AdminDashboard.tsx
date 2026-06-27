@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Phone,
   Plus,
@@ -23,6 +25,7 @@ import {
   getBusinessTimeBounds,
   getNextTimeSlot,
   maxTime,
+  shiftIsoDate,
 } from "@/lib/booking/time-utils";
 import { technicians } from "@/lib/config/salonData";
 import { createClient } from "@/lib/supabase/client";
@@ -44,6 +47,7 @@ export interface AdminAppointment {
 
 interface AdminDashboardProps {
   today: string;
+  agendaDate: string;
   appointments: AdminAppointment[];
   offTechnicianIds: string[];
 }
@@ -59,10 +63,12 @@ interface AgendaColumn {
 
 export function AdminDashboard({
   today,
+  agendaDate,
   appointments,
   offTechnicianIds,
 }: AdminDashboardProps) {
   const router = useRouter();
+  const isToday = agendaDate === today;
   const [notice, setNotice] = useState("");
   const [quickSource, setQuickSource] = useState<QuickSource | null>(null);
   const [pendingOffId, setPendingOffId] = useState("");
@@ -131,7 +137,7 @@ export function AdminDashboard({
       const response = await fetch("/api/admin/time-off", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ technicianId, date: today, off: nextOff }),
+        body: JSON.stringify({ technicianId, date: agendaDate, off: nextOff }),
       });
 
       if (!response.ok) throw new Error("Unable to update technician status.");
@@ -194,14 +200,55 @@ export function AdminDashboard({
     void assignAppointment(appointmentId, targetColumnId);
   }
 
+  function goToAgendaDate(date: string) {
+    const params = new URLSearchParams();
+    if (date !== today) params.set("date", date);
+    const query = params.toString();
+    router.push(query ? `/admin?${query}` : "/admin");
+  }
+
   return (
     <div className="container py-8 md:py-10">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
           Admin Dashboard
         </p>
-        <h1 className="mt-2 text-4xl font-semibold text-ink">Today&apos;s Agenda</h1>
-        <p className="mt-1 text-ink-muted">{formatReadableDate(today)}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <h1 className="text-4xl font-semibold text-ink">
+            {isToday ? "Today's Agenda" : "Agenda"}
+          </h1>
+          {!isToday && (
+            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium uppercase tracking-wider text-ink-muted">
+              Not today
+            </span>
+          )}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="default"
+            aria-label="Previous day"
+            onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, -1))}
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <p className="min-w-[14rem] text-center text-ink-muted">
+            {formatReadableDate(agendaDate)}
+          </p>
+          <Button
+            variant="outline"
+            size="default"
+            aria-label="Next day"
+            onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, 1))}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+          {!isToday && (
+            <Button variant="secondary" onClick={() => goToAgendaDate(today)}>
+              Back to today
+            </Button>
+          )}
+        </div>
       </div>
 
       {notice && (
@@ -287,7 +334,7 @@ export function AdminDashboard({
       {quickSource && (
         <QuickBookingPanel
           source={quickSource}
-          today={today}
+          agendaDate={agendaDate}
           onClose={() => setQuickSource(null)}
         />
       )}
@@ -367,8 +414,8 @@ export function AdminDashboard({
               <div className="mt-5 min-h-24 space-y-3">
                 {isOff && (
                   <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                    Marked off for today. This technician will not show online
-                    availability.
+                    Marked off for {isToday ? "today" : "this day"}. This technician
+                    will not show online availability.
                   </p>
                 )}
 
@@ -410,15 +457,15 @@ export function AdminDashboard({
 
 function QuickBookingPanel({
   source,
-  today,
+  agendaDate,
   onClose,
 }: {
   source: QuickSource;
-  today: string;
+  agendaDate: string;
   onClose: () => void;
 }) {
   const router = useRouter();
-  const bounds = useMemo(() => getBusinessTimeBounds(today), [today]);
+  const bounds = useMemo(() => getBusinessTimeBounds(agendaDate), [agendaDate]);
   const defaultTime = useMemo(
     () =>
       clampTime(
@@ -452,7 +499,7 @@ function QuickBookingPanel({
         body: JSON.stringify({
           source,
           technicianId,
-          date: today,
+          date: agendaDate,
           time,
           durationMinutes: Number(duration),
           customerName: name,

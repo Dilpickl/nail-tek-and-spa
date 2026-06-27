@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Star, Phone } from "lucide-react";
@@ -8,6 +9,21 @@ import { business } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
 
 export function Hero() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  const fadeUp = (delay = 0) =>
+    ready
+      ? {
+          initial: { opacity: 0, y: 20 } as const,
+          animate: { opacity: 1, y: 0 } as const,
+          transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] as const },
+        }
+      : { initial: false as const, animate: { opacity: 1, y: 0 } as const };
+
   return (
     <section className="relative overflow-hidden">
       {/* Soft decorative gradient wash */}
@@ -19,9 +35,7 @@ export function Hero() {
       <div className="container grid items-center gap-12 py-20 md:py-28 lg:grid-cols-2 lg:gap-8">
         <div>
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            {...fadeUp()}
             className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-offwhite px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-ink-soft"
           >
             <Star className="size-3.5 fill-ink text-ink" />
@@ -29,18 +43,14 @@ export function Hero() {
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+            {...fadeUp(0.05)}
             className="mt-6 text-balance text-4xl font-semibold leading-[1.05] text-ink sm:text-5xl lg:text-6xl"
           >
-            Decades of artistry, sanitation &amp; serenity.
+            Decades of artistry, sanitation & serenity.
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+            {...fadeUp(0.12)}
             className="mt-5 max-w-xl text-lg leading-relaxed text-ink-muted"
           >
             Since {business.establishedYear}, {business.name} has set the
@@ -49,9 +59,7 @@ export function Hero() {
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            {...fadeUp(0.2)}
             className="mt-8 flex flex-col gap-3 sm:flex-row"
           >
             <Link href="/book">
@@ -69,9 +77,7 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
+            {...fadeUp(0.3)}
             className="mt-8 flex items-center gap-4 text-sm text-ink-muted"
           >
             <div className="flex">
@@ -85,7 +91,7 @@ export function Hero() {
 
         {/* Visual */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
+          initial={ready ? { opacity: 0, scale: 0.97 } : false}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="relative"

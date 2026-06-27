@@ -22,7 +22,7 @@ export default function TermsPage() {
           booking an appointment or using our website, you agree to these terms.
         </p>
 
-        <Section title="Appointments &amp; Cancellations">
+        <Section title="Appointments & Cancellations">
           When you book an appointment, you agree to provide accurate contact
           information. We kindly ask that you cancel or reschedule at least 24
           hours in advance. Repeated no-shows may require a deposit for future
@@ -36,7 +36,7 @@ export default function TermsPage() {
           replying STOP.
         </Section>
 
-        <Section title="Services &amp; Pricing">
+        <Section title="Services & Pricing">
           Prices listed are starting points and may vary based on nail length,
           design complexity, and product selection. Final pricing will be
           confirmed at your appointment.

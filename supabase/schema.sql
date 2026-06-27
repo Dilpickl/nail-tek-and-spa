@@ -73,6 +73,7 @@ create table if not exists public.appointments (
   source           appointment_source not null default 'online',
   sms_consent      boolean not null default false,
   notes            text,
+  any_technician   boolean not null default false,
   created_at       timestamptz not null default now(),
   constraint appointments_time_valid check (ends_at > starts_at)
 );
@@ -203,7 +204,7 @@ create policy "admin manage admin users"
 
 -- Column-level grants: anon clients can compute availability without PII.
 revoke select on public.appointments from anon;
-grant select (id, technician_id, starts_at, ends_at, status)
+grant select (id, technician_id, any_technician, starts_at, ends_at, status)
   on public.appointments to anon;
 
 revoke select on public.technician_time_off from anon;

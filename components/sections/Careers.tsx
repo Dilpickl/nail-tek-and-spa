@@ -16,7 +16,7 @@ export function Careers() {
             Build your career with us
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-muted">
-            We&apos;re always looking for passionate, talented people to join a
+            We're always looking for passionate, talented people to join a
             team that has thrived for {business.yearsOfExperience} years.
           </p>
         </Reveal>

@@ -380,7 +380,7 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
       </section>
 
       <p className="mt-6 text-center text-sm text-ink-muted">
-        We&apos;ll send reminders to the phone number you provided.
+        We'll send reminders to the phone number you provided.
       </p>
       <p className="mt-3 text-center text-xs text-ink-muted">
         Reference {confirmation.appointmentId.slice(0, 8).toUpperCase()}

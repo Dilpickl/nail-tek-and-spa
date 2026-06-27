@@ -39,7 +39,7 @@ export default function PrivacyPage() {
           information to third parties.
         </Section>
 
-        <Section title="Data Retention &amp; Security">
+        <Section title="Data Retention & Security">
           We retain booking information only as long as necessary to provide our
           services and meet legal obligations. We take reasonable measures to
           protect your data.

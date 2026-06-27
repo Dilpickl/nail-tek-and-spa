@@ -17,7 +17,7 @@ export default function ServicesPage() {
             Our Menu
           </p>
           <h1 className="mt-3 text-4xl font-semibold text-ink sm:text-5xl">
-            Services &amp; Pricing
+            Services & Pricing
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-ink-muted">
             Every treatment is performed with meticulous sanitation, experienced

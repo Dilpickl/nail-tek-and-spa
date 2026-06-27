@@ -2,6 +2,7 @@ import "server-only";
 
 import { ANY_EMPLOYEE_ID } from "@/lib/admin/constants";
 import { getBusinessHoursForDate, toLocalDateTime } from "@/lib/booking/time-utils";
+import { getSlotUsage, type BusyWindow } from "@/lib/booking/slot-capacity";
 import {
   getServicesByIds,
   getTotalDurationMinutes,
@@ -32,10 +33,6 @@ interface ExistingAppointment {
   ends_at: string;
   notes: string | null;
   appointment_services: { service_id: string }[] | null;
-}
-
-function overlaps(start: Date, end: Date, busyStart: Date, busyEnd: Date) {
-  return start < busyEnd && end > busyStart;
 }
 
 export async function validateAndBuildUpdate(
@@ -105,25 +102,58 @@ export async function validateAndBuildUpdate(
     return { error: "The salon is closed on that date.", status: 400 };
   }
 
-  const serviceIds =
-    payload.serviceIds ??
-    row.appointment_services?.map((s) => s.service_id) ??
-    [];
+  const existingEnd = new Date(row.ends_at);
+  const existingDurationMs = existingEnd.getTime() - existingStart.getTime();
 
-  if (serviceIds.length === 0) {
+  const existingServiceIds =
+    row.appointment_services?.map((service) => service.service_id) ?? [];
+  const serviceIds =
+    payload.serviceIds !== undefined ? payload.serviceIds : existingServiceIds;
+
+  if (payload.serviceIds !== undefined && serviceIds.length === 0) {
     return { error: "At least one service is required.", status: 400 };
   }
 
-  let services;
-  try {
-    services = getServicesByIds(serviceIds);
-  } catch {
-    return { error: "One or more selected services are invalid.", status: 400 };
-  }
+  let startsAt: Date;
+  let endsAt: Date;
+  let estimatedTotal: number | undefined;
+  let serviceRows: {
+    service_id: string;
+    price_at_booking: number;
+    duration_at_booking: number;
+  }[] | null = null;
 
-  const duration = getTotalDurationMinutes(serviceIds);
-  const startsAt = toLocalDateTime(date, time);
-  const endsAt = new Date(startsAt.getTime() + duration * 60_000);
+  if (serviceIds.length > 0) {
+    let services;
+    try {
+      services = getServicesByIds(serviceIds);
+    } catch {
+      return { error: "One or more selected services are invalid.", status: 400 };
+    }
+
+    const duration = getTotalDurationMinutes(serviceIds);
+    startsAt = toLocalDateTime(date, time);
+    endsAt = new Date(startsAt.getTime() + duration * 60_000);
+    estimatedTotal = services.reduce((sum, service) => sum + service.price, 0);
+
+    if (payload.serviceIds !== undefined) {
+      serviceRows = services.map((service) => ({
+        service_id: service.id,
+        price_at_booking: service.price,
+        duration_at_booking: service.durationMinutes,
+      }));
+    }
+  } else {
+    // Walk-in / phone blocks may have no services — keep their time window.
+    startsAt =
+      payload.date !== undefined || payload.time !== undefined
+        ? toLocalDateTime(date, time)
+        : existingStart;
+    endsAt =
+      payload.date !== undefined || payload.time !== undefined
+        ? new Date(startsAt.getTime() + existingDurationMs)
+        : existingEnd;
+  }
 
   const open = toLocalDateTime(date, dayHours.open);
   const close = toLocalDateTime(date, dayHours.close);
@@ -141,57 +171,43 @@ export async function validateAndBuildUpdate(
 
   if (overlapError) return { error: overlapError.message, status: 500 };
 
-  const overlapRows = overlapping ?? [];
-  let busyTechCount = 0;
-  let anyCount = 0;
+  const { data: timeOffRows, error: timeOffError } = await supabase
+    .from("technician_time_off")
+    .select("technician_id, full_day")
+    .eq("off_date", date)
+    .eq("full_day", true);
 
-  for (const other of overlapRows) {
-    const otherStart = new Date(other.starts_at);
-    const otherEnd = new Date(other.ends_at);
-    if (!overlaps(startsAt, endsAt, otherStart, otherEnd)) continue;
+  if (timeOffError) return { error: timeOffError.message, status: 500 };
 
-    if (other.any_technician || other.technician_id === null) {
-      anyCount += 1;
-    } else {
-      busyTechCount += 1;
-    }
+  const activeTechCount = technicians.filter(
+    (tech) => !(timeOffRows ?? []).some((row) => row.technician_id === tech.id)
+  ).length;
+
+  if (activeTechCount === 0) {
+    return { error: "No technicians are scheduled to work on that date.", status: 409 };
   }
 
-  const poolUsed = busyTechCount + anyCount;
+  const overlapRows = (overlapping ?? []) as BusyWindow[];
+  const { assignedBusyIds, remainingSeats } = getSlotUsage(
+    overlapRows,
+    startsAt,
+    endsAt,
+    activeTechCount
+  );
 
   if (anyTechnician) {
-    const { data: anyOverlap } = await supabase
-      .from("appointments")
-      .select("id")
-      .eq("status", "booked")
-      .eq("any_technician", true)
-      .neq("id", appointmentId)
-      .lt("starts_at", endsAt.toISOString())
-      .gt("ends_at", startsAt.toISOString())
-      .limit(1);
-
-    if (anyOverlap && anyOverlap.length > 0) {
+    if (remainingSeats <= 0) {
+      return { error: "No open capacity at this time.", status: 409 };
+    }
+  } else if (technicianId) {
+    if (assignedBusyIds.has(technicianId)) {
       return {
-        error: "Another unassigned appointment already exists at this time.",
+        error: "That technician already has a booking at this time.",
         status: 409,
       };
     }
 
-    if (poolUsed >= technicians.length) {
-      return { error: "No open capacity at this time.", status: 409 };
-    }
-  } else if (technicianId) {
-    const techConflict = overlapRows.some(
-      (other) =>
-        other.technician_id === technicianId &&
-        overlaps(startsAt, endsAt, new Date(other.starts_at), new Date(other.ends_at))
-    );
-
-    if (techConflict) {
-      return { error: "That technician already has a booking at this time.", status: 409 };
-    }
-
-    if (poolUsed >= technicians.length) {
+    if (remainingSeats <= 0) {
       return { error: "No open capacity at this time.", status: 409 };
     }
   }
@@ -210,26 +226,24 @@ export async function validateAndBuildUpdate(
     return { error: "Please enter a valid email address.", status: 400 };
   }
 
-  const estimatedTotal = services.reduce((sum, s) => sum + s.price, 0);
-  const serviceRows = services.map((service) => ({
-    service_id: service.id,
-    price_at_booking: service.price,
-    duration_at_booking: service.durationMinutes,
-  }));
+  const updates: Record<string, unknown> = {
+    technician_id: technicianId,
+    any_technician: anyTechnician,
+    customer_name: customerName,
+    customer_phone: customerPhone,
+    customer_email: customerEmail,
+    starts_at: startsAt.toISOString(),
+    ends_at: endsAt.toISOString(),
+    notes: payload.notes !== undefined ? payload.notes?.trim() || null : row.notes,
+  };
+
+  if (estimatedTotal !== undefined) {
+    updates.estimated_total = estimatedTotal;
+  }
 
   return {
-    updates: {
-      technician_id: technicianId,
-      any_technician: anyTechnician,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      customer_email: customerEmail,
-      starts_at: startsAt.toISOString(),
-      ends_at: endsAt.toISOString(),
-      estimated_total: estimatedTotal,
-      notes: payload.notes !== undefined ? payload.notes?.trim() || null : row.notes,
-    },
-    serviceRows: payload.serviceIds !== undefined ? serviceRows : null,
+    updates,
+    serviceRows,
     startsAt,
     endsAt,
     technicianId,

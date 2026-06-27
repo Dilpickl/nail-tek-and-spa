@@ -30,7 +30,7 @@ export default function BookPage({
           {preselected && (
             <p className="mt-4 text-lg text-ink-muted">
               You selected <strong className="text-ink">{preselected.name}</strong>.
-              We&apos;ll carry this into your booking.
+              We'll carry this into your booking.
             </p>
           )}
         </div>

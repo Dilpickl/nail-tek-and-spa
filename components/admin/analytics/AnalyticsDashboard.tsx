@@ -58,7 +58,7 @@ export function AnalyticsDashboard() {
           Your Business
         </p>
         <h1 className="mt-2 font-serif text-4xl font-semibold text-ink md:text-5xl">
-          How&apos;s it going?
+          How's it going?
         </h1>
         {data && (
           <p className="mt-2 text-ink-muted">

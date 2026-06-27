@@ -14,6 +14,7 @@ import {
   SLOT_INTERVAL_MINUTES,
   toLocalDateTime,
 } from "@/lib/booking/time-utils";
+import { getSlotUsage, type BusyWindow } from "@/lib/booking/slot-capacity";
 
 export {
   filterPastSlots,
@@ -40,36 +41,6 @@ export type TechnicianSelection = "any" | string;
 export interface BookingSlot {
   time: string;
   technicianIds: string[];
-}
-
-interface BusyWindow {
-  technician_id: string | null;
-  any_technician: boolean;
-  starts_at: string;
-  ends_at: string;
-}
-
-function getSlotUsage(
-  busyWindows: BusyWindow[] | null,
-  slotStart: Date,
-  slotEnd: Date
-) {
-  const busyTechIds = new Set<string>();
-  let anyCount = 0;
-
-  for (const busy of busyWindows ?? []) {
-    if (!overlaps(slotStart, slotEnd, new Date(busy.starts_at), new Date(busy.ends_at))) {
-      continue;
-    }
-
-    if (busy.any_technician || busy.technician_id === null) {
-      anyCount += 1;
-    } else {
-      busyTechIds.add(busy.technician_id);
-    }
-  }
-
-  return { busyTechIds, anyCount, poolUsed: busyTechIds.size + anyCount };
 }
 
 interface TimeOffWindow {
@@ -157,6 +128,20 @@ export async function getAvailableSlots({
   if (appointmentsError) throw appointmentsError;
   if (timeOffError) throw timeOffError;
 
+  const fullDayOffIds = new Set(
+    ((timeOff as TimeOffWindow[] | null) ?? [])
+      .filter((window) => window.full_day)
+      .map((window) => window.technician_id)
+  );
+  const activeTechnicians = technicians.filter(
+    (technician) => !fullDayOffIds.has(technician.id)
+  );
+  const activeTechCount = activeTechnicians.length;
+
+  if (activeTechCount === 0) {
+    return [];
+  }
+
   const slots: BookingSlot[] = [];
   const open = toLocalDateTime(date, dayHours.open);
   const close = toLocalDateTime(date, dayHours.close);
@@ -168,14 +153,15 @@ export async function getAvailableSlots({
     slotStart = addMinutes(slotStart, SLOT_INTERVAL_MINUTES)
   ) {
     const slotEnd = addMinutes(slotStart, duration);
-    const { busyTechIds, anyCount, poolUsed } = getSlotUsage(
+    const { assignedBusyIds, remainingSeats } = getSlotUsage(
       busyWindows as BusyWindow[] | null,
       slotStart,
-      slotEnd
+      slotEnd,
+      activeTechCount
     );
 
     const availableTechnicians = selectedTechnicians.filter((technician) => {
-      if (busyTechIds.has(technician.id)) return false;
+      if (assignedBusyIds.has(technician.id)) return false;
 
       return !isTechnicianOff(
         technician.id,
@@ -186,23 +172,14 @@ export async function getAvailableSlots({
       );
     });
 
-    if (technicianId === "any") {
-      if (poolUsed < technicians.length && availableTechnicians.length > 0) {
-        slots.push({
-          time: formatTime(slotStart),
-          technicianIds: availableTechnicians.map((technician) => technician.id),
-        });
-      }
+    if (remainingSeats <= 0 || availableTechnicians.length === 0) {
       continue;
     }
 
-    if (poolUsed >= technicians.length) continue;
-
-    const technicianIds = availableTechnicians.map((technician) => technician.id);
-
-    if (technicianIds.length > 0) {
-      slots.push({ time: formatTime(slotStart), technicianIds });
-    }
+    slots.push({
+      time: formatTime(slotStart),
+      technicianIds: availableTechnicians.map((technician) => technician.id),
+    });
   }
 
   return filterPastSlots(date, slots);

@@ -5,6 +5,7 @@ import { AdminDashboard, type AdminAppointment } from "@/components/admin/AdminD
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { getServiceById } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidIsoDate, toIsoDate } from "@/lib/booking/time-utils";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -28,7 +29,11 @@ interface TimeOffRow {
   technician_id: string;
 }
 
-export default async function AdminPage() {
+interface AdminPageProps {
+  searchParams?: { date?: string };
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -51,8 +56,11 @@ export default async function AdminPage() {
   }
 
   const today = toIsoDate(new Date());
-  const start = new Date(`${today}T00:00:00`);
-  const end = new Date(`${today}T23:59:59`);
+  const requestedDate = searchParams?.date;
+  const agendaDate =
+    requestedDate && isValidIsoDate(requestedDate) ? requestedDate : today;
+  const start = new Date(`${agendaDate}T00:00:00`);
+  const end = new Date(`${agendaDate}T23:59:59`);
   const supabase = createAdminClient();
 
   const [{ data: appointmentRows, error: appointmentsError }, { data: timeOffRows, error: timeOffError }] =
@@ -69,7 +77,7 @@ export default async function AdminPage() {
       supabase
         .from("technician_time_off")
         .select("technician_id")
-        .eq("off_date", today)
+        .eq("off_date", agendaDate)
         .eq("full_day", true),
     ]);
 
@@ -113,15 +121,9 @@ export default async function AdminPage() {
   return (
     <AdminDashboard
       today={today}
+      agendaDate={agendaDate}
       appointments={appointments}
       offTechnicianIds={offTechnicianIds}
     />
   );
-}
-
-function toIsoDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }

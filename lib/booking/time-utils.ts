@@ -20,6 +20,18 @@ export function toIsoDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+export function isValidIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = parseLocalDate(value);
+  return toIsoDate(parsed) === value;
+}
+
+export function shiftIsoDate(date: string, days: number): string {
+  const parsed = parseLocalDate(date);
+  parsed.setDate(parsed.getDate() + days);
+  return toIsoDate(parsed);
+}
+
 const DAY_NAMES = [
   "Sunday",
   "Monday",
