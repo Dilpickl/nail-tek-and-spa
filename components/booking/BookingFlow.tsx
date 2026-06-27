@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import {
   Calendar,
@@ -21,6 +21,13 @@ import {
   technicians,
 } from "@/lib/config/salonData";
 import { formatDuration, formatPrice } from "@/lib/utils";
+import {
+  filterPastSlots,
+  getDefaultBookingDate,
+  getNextOpenDate,
+  isSalonClosed,
+  toIsoDate,
+} from "@/lib/booking/time-utils";
 import { Button } from "@/components/ui/button";
 
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -34,6 +41,16 @@ interface PartyMember {
 interface BookingSlot {
   time: string;
   technicianIds: string[];
+}
+
+interface BookingConfirmation {
+  appointmentId: string;
+  technicianName: string;
+  startsAt: string;
+  customerName: string;
+  party: PartyMember[];
+  estimatedTotal: number;
+  durationMinutes: number;
 }
 
 interface BookingFlowProps {
@@ -52,7 +69,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
     },
   ]);
   const [technicianId, setTechnicianId] = useState("any");
-  const [selectedDate, setSelectedDate] = useState(() => toIsoDate(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => getDefaultBookingDate());
   const [selectedTime, setSelectedTime] = useState("");
   const [slots, setSlots] = useState<BookingSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -61,11 +78,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
   const [smsConsent, setSmsConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [confirmation, setConfirmation] = useState<{
-    appointmentId: string;
-    technicianName: string;
-    startsAt: string;
-  } | null>(null);
+  const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
 
   const selectedServiceIds = useMemo(
     () => party.flatMap((member) => member.serviceIds),
@@ -98,9 +111,15 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
       step === 5
   );
 
+  const autoDateAdjusted = useRef(false);
+
+  // Only reset the chosen time when availability inputs change — not when
+  // advancing to the next booking step (which was clearing the selection).
   useEffect(() => {
     setSelectedTime("");
+  }, [selectedDate, selectedServiceIds.join("|"), technicianId]);
 
+  useEffect(() => {
     if (selectedServiceIds.length === 0 || step < 3) {
       setSlots([]);
       return;
@@ -130,7 +149,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
           throw new Error(body.error || "Unable to load availability.");
         }
 
-        setSlots(body.slots ?? []);
+        setSlots(filterPastSlots(selectedDate, body.slots ?? []));
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           setSlots([]);
@@ -145,22 +164,33 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
     return () => controller.abort();
   }, [selectedDate, selectedServiceIds.join("|"), step, technicianId]);
 
+  // On step 3, skip closed days and auto-advance if today has no remaining slots.
+  useEffect(() => {
+    if (step !== 3) {
+      autoDateAdjusted.current = false;
+      return;
+    }
+
+    if (isSalonClosed(selectedDate)) {
+      const fallback = getDefaultBookingDate();
+      if (fallback !== selectedDate) setSelectedDate(fallback);
+      return;
+    }
+
+    if (loadingSlots || slotError || slots.length > 0) return;
+
+    const today = toIsoDate(new Date());
+    if (selectedDate !== today || autoDateAdjusted.current) return;
+
+    const next = getNextOpenDate(selectedDate);
+    if (next) {
+      autoDateAdjusted.current = true;
+      setSelectedDate(next);
+    }
+  }, [step, loadingSlots, slotError, slots.length, selectedDate]);
+
   if (confirmation) {
-    return (
-      <div className="mx-auto max-w-2xl rounded-2xl bg-offwhite p-8 text-center ring-1 ring-ink/5">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-ink text-offwhite">
-          <Check className="size-7" />
-        </div>
-        <h1 className="mt-6 text-3xl font-semibold text-ink">Appointment requested</h1>
-        <p className="mt-3 text-ink-muted">
-          Your booking has been created with {confirmation.technicianName}. We will
-          send appointment reminders to the phone number you provided.
-        </p>
-        <p className="mt-6 rounded-xl bg-background px-4 py-3 text-sm text-ink-soft">
-          Reference: {confirmation.appointmentId.slice(0, 8).toUpperCase()}
-        </p>
-      </div>
-    );
+    return <BookingConfirmationView confirmation={confirmation} />;
   }
 
   return (
@@ -267,6 +297,94 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
           selectedTime={selectedTime}
         />
       </div>
+    </div>
+  );
+}
+
+function BookingConfirmationView({ confirmation }: { confirmation: BookingConfirmation }) {
+  const startsAt = new Date(confirmation.startsAt);
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(startsAt);
+  const timeLabel = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(startsAt);
+
+  return (
+    <div className="mx-auto max-w-2xl rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5 sm:p-8">
+      <div className="text-center">
+        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-ink text-offwhite">
+          <Check className="size-7" />
+        </div>
+        <h1 className="mt-6 text-3xl font-semibold text-ink">Appointment requested</h1>
+        <p className="mt-2 text-ink-muted">
+          Please review your booking details below.
+        </p>
+      </div>
+
+      <section className="mt-8 rounded-xl bg-background p-5 ring-1 ring-ink/5">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
+          Booking summary
+        </p>
+
+        <dl className="mt-4 space-y-3 text-sm">
+          <SummaryRow label="Name" value={confirmation.customerName} />
+          <SummaryRow label="Date" value={dateLabel} />
+          <SummaryRow label="Time" value={timeLabel} />
+          <SummaryRow label="Technician" value={confirmation.technicianName} />
+          <SummaryRow
+            label="Duration"
+            value={formatDuration(confirmation.durationMinutes)}
+          />
+        </dl>
+
+        <div className="mt-5 border-t border-ink/8 pt-4">
+          <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink-muted">
+            Services
+          </p>
+          <ul className="mt-3 space-y-3">
+            {confirmation.party.map((member) =>
+              member.serviceIds.map((id, index) => {
+                const service = getServiceById(id);
+                if (!service) return null;
+                return (
+                  <li
+                    key={`${member.id}-${id}-${index}`}
+                    className="flex items-start justify-between gap-4"
+                  >
+                    <span className="text-ink">
+                      {confirmation.party.length > 1 && (
+                        <span className="text-ink-muted">{member.label}: </span>
+                      )}
+                      {service.name}
+                    </span>
+                    <span className="shrink-0 font-medium text-ink-muted">
+                      {formatPrice(service.price)}
+                    </span>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-ink/8 pt-4">
+          <span className="font-semibold text-ink">Estimated total</span>
+          <span className="text-xl font-semibold text-ink">
+            {formatPrice(confirmation.estimatedTotal)}
+          </span>
+        </div>
+      </section>
+
+      <p className="mt-6 text-center text-sm text-ink-muted">
+        We&apos;ll send reminders to the phone number you provided.
+      </p>
+      <p className="mt-3 text-center text-xs text-ink-muted">
+        Reference {confirmation.appointmentId.slice(0, 8).toUpperCase()}
+      </p>
     </div>
   );
 }
@@ -493,9 +611,18 @@ function DateTimeStep({
     return Array.from({ length: 14 }, (_, index) => {
       const date = new Date(today);
       date.setDate(today.getDate() + index);
-      return toIsoDate(date);
+      const iso = toIsoDate(date);
+      return { iso, closed: isSalonClosed(iso) };
     });
   }, []);
+
+  const isClosed = isSalonClosed(selectedDate);
+  const isToday = selectedDate === toIsoDate(new Date());
+  const emptyMessage = isClosed
+    ? "We're closed this day. Please choose another date."
+    : isToday
+      ? "No times left today. Try tomorrow or another open day."
+      : "No times available for this date. Try another day or choose Any technician.";
 
   return (
     <div>
@@ -508,21 +635,29 @@ function DateTimeStep({
       <div className="mt-6">
         <label className="text-sm font-medium text-ink">Calendar</label>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-          {dateOptions.map((date) => (
+          {dateOptions.map(({ iso, closed }) => (
             <button
-              key={date}
+              key={iso}
               type="button"
+              disabled={closed}
               className={`rounded-xl border px-3 py-3 text-left transition-colors ${
-                selectedDate === date
-                  ? "border-ink bg-ink text-offwhite"
-                  : "border-border bg-background hover:border-ink/40"
+                closed
+                  ? "cursor-not-allowed border-border/60 bg-secondary/50 text-ink-muted opacity-60"
+                  : selectedDate === iso
+                    ? "border-ink bg-ink text-offwhite"
+                    : "border-border bg-background hover:border-ink/40"
               }`}
-              onClick={() => setSelectedDate(date)}
+              onClick={() => !closed && setSelectedDate(iso)}
             >
               <span className="block text-xs uppercase tracking-[0.14em] opacity-70">
-                {formatWeekday(date)}
+                {formatWeekday(iso)}
               </span>
-              <span className="mt-1 block font-semibold">{formatMonthDay(date)}</span>
+              <span className="mt-1 block font-semibold">{formatMonthDay(iso)}</span>
+              {closed && (
+                <span className="mt-1 block text-[10px] font-medium uppercase tracking-wide">
+                  Closed
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -531,7 +666,10 @@ function DateTimeStep({
           type="date"
           min={toIsoDate(new Date())}
           value={selectedDate}
-          onChange={(event) => setSelectedDate(event.target.value)}
+          onChange={(event) => {
+            const value = event.target.value;
+            if (value && !isSalonClosed(value)) setSelectedDate(value);
+          }}
           className="mt-4 h-12 w-full rounded-md border border-input bg-background px-4 text-ink outline-none focus:ring-2 focus:ring-ring sm:max-w-xs"
         />
       </div>
@@ -539,46 +677,54 @@ function DateTimeStep({
       <div className="mt-8">
         <div className="flex items-center justify-between gap-3">
           <label className="text-sm font-medium text-ink">Available times</label>
-          {technicianId === "any" && (
+          {technicianId === "any" && !isClosed && (
             <span className="text-xs text-ink-muted">Shows slots with at least one tech free</span>
           )}
         </div>
 
-        {loadingSlots && (
+        {isClosed && (
+          <p className="mt-4 rounded-lg bg-secondary px-4 py-3 text-sm text-ink-muted">
+            {emptyMessage}
+          </p>
+        )}
+
+        {!isClosed && loadingSlots && (
           <p className="mt-4 flex items-center gap-2 text-sm text-ink-muted">
             <Loader2 className="size-4 animate-spin" />
             Checking availability...
           </p>
         )}
 
-        {slotError && (
+        {!isClosed && slotError && (
           <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
             {slotError}
           </p>
         )}
 
-        {!loadingSlots && !slotError && slots.length === 0 && (
+        {!isClosed && !loadingSlots && !slotError && slots.length === 0 && (
           <p className="mt-4 rounded-lg bg-background px-4 py-3 text-sm text-ink-muted">
-            No times available for this date. Try another day or choose Any technician.
+            {emptyMessage}
           </p>
         )}
 
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-          {slots.map((slot) => (
-            <button
-              key={slot.time}
-              type="button"
-              className={`rounded-lg border px-3 py-3 text-sm font-semibold transition-colors ${
-                selectedTime === slot.time
-                  ? "border-ink bg-ink text-offwhite"
-                  : "border-border bg-background text-ink hover:border-ink/40"
-              }`}
-              onClick={() => setSelectedTime(slot.time)}
-            >
-              {formatTimeLabel(slot.time)}
-            </button>
-          ))}
-        </div>
+        {!isClosed && (
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+            {slots.map((slot) => (
+              <button
+                key={slot.time}
+                type="button"
+                className={`rounded-lg border px-3 py-3 text-sm font-semibold transition-colors ${
+                  selectedTime === slot.time
+                    ? "border-ink bg-ink text-offwhite"
+                    : "border-border bg-background text-ink hover:border-ink/40"
+                }`}
+                onClick={() => setSelectedTime(slot.time)}
+              >
+                {formatTimeLabel(slot.time)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -832,14 +978,18 @@ async function submitBooking({
   details: { name: string; phone: string; email: string };
   setSubmitting: (value: boolean) => void;
   setSubmitError: (value: string) => void;
-  setConfirmation: (value: {
-    appointmentId: string;
-    technicianName: string;
-    startsAt: string;
-  }) => void;
+  setConfirmation: (value: BookingConfirmation) => void;
 }) {
   setSubmitting(true);
   setSubmitError("");
+
+  const services = party.flatMap((member) =>
+    member.serviceIds
+      .map((id) => getServiceById(id))
+      .filter((service): service is NonNullable<typeof service> => Boolean(service))
+  );
+  const estimatedTotal = services.reduce((sum, service) => sum + service.price, 0);
+  const durationMinutes = services.reduce((sum, service) => sum + service.durationMinutes, 0);
 
   try {
     const response = await fetch("/api/appointments", {
@@ -862,7 +1012,13 @@ async function submitBooking({
       throw new Error("error" in body ? body.error : "Unable to create appointment.");
     }
 
-    setConfirmation(body);
+    setConfirmation({
+      ...body,
+      customerName: details.name.trim(),
+      party,
+      estimatedTotal,
+      durationMinutes,
+    });
   } catch (error) {
     setSubmitError((error as Error).message);
   } finally {
@@ -870,12 +1026,6 @@ async function submitBooking({
   }
 }
 
-function toIsoDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 function formatWeekday(date: string) {
   return new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(

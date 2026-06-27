@@ -70,6 +70,13 @@ export interface JobPosting {
   description: string;
 }
 
+export interface RetailProduct {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Business identity                                                  */
 /* ------------------------------------------------------------------ */
@@ -263,6 +270,30 @@ export const allServices: Service[] = serviceCategories.flatMap(
 /** Quick lookup of a service by id. */
 export function getServiceById(id: string): Service | undefined {
   return allServices.find((s) => s.id === id);
+}
+
+export function getServiceCategoryId(serviceId: string): string | undefined {
+  return serviceCategories.find((c) => c.services.some((s) => s.id === serviceId))?.id;
+}
+
+export function isAddonService(serviceId: string): boolean {
+  return getServiceCategoryId(serviceId) === "art-addons";
+}
+
+/* ------------------------------------------------------------------ */
+/*  Retail products (sold at checkout, not booked online)              */
+/* ------------------------------------------------------------------ */
+
+export const retailProducts: RetailProduct[] = [
+  { id: "retail-cuticle-oil", name: "Cuticle Oil", price: 12, category: "Care" },
+  { id: "retail-hand-cream", name: "Hand Cream", price: 18, category: "Care" },
+  { id: "retail-nail-file", name: "Glass Nail File", price: 8, category: "Tools" },
+  { id: "retail-polish", name: "Nail Polish", price: 14, category: "Color" },
+  { id: "retail-gift-card", name: "Gift Card", price: 50, category: "Gift Cards" },
+];
+
+export function getRetailProductById(id: string): RetailProduct | undefined {
+  return retailProducts.find((p) => p.id === id);
 }
 
 /* ------------------------------------------------------------------ */

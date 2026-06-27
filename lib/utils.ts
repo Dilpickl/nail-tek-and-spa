@@ -15,6 +15,16 @@ export function formatPrice(amount: number): string {
   }).format(amount);
 }
 
+/** Format currency with cents — used for transactions and analytics. */
+export function formatMoney(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
 /** Format a duration in minutes as a friendly label, e.g. "1 hr 15 min". */
 export function formatDuration(minutes: number): string {
   const hrs = Math.floor(minutes / 60);

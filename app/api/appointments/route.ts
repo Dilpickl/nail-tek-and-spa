@@ -6,10 +6,10 @@ import {
   getServicesByIds,
   getTotalDurationMinutes,
   resolveTechnicianForSlot,
-  toLocalDateTime,
   type BookingPartyMember,
   type TechnicianSelection,
 } from "@/lib/booking/availability";
+import { isSlotInPast, toLocalDateTime } from "@/lib/booking/time-utils";
 import { getTechnicianById } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -48,6 +48,13 @@ export async function POST(request: Request) {
   const date = payload.date!;
   const time = payload.time!;
 
+  if (isSlotInPast(date, time)) {
+    return NextResponse.json(
+      { error: "That time has already passed. Please choose a later slot." },
+      { status: 400 }
+    );
+  }
+
   try {
     const resolvedTechnicianId = await resolveTechnicianForSlot({
       date,
@@ -63,16 +70,22 @@ export async function POST(request: Request) {
       );
     }
 
+    const isAnyTechnician = technicianId === "any" || resolvedTechnicianId === "any";
     const supabase = createAdminClient();
     const startsAt = toLocalDateTime(date, time);
     const endsAt = new Date(startsAt.getTime() + duration * 60_000);
     const partyGroupId = randomUUID();
-    const assignedTechnician = getTechnicianById(resolvedTechnicianId);
+    const assignedTechnician = isAnyTechnician
+      ? null
+      : getTechnicianById(resolvedTechnicianId);
+
+    const estimatedTotal = services.reduce((sum, s) => sum + s.price, 0);
 
     const { data: appointment, error: appointmentError } = await supabase
       .from("appointments")
       .insert({
-        technician_id: resolvedTechnicianId,
+        technician_id: isAnyTechnician ? null : resolvedTechnicianId,
+        any_technician: isAnyTechnician,
         customer_name: payload.customer!.name!.trim(),
         customer_phone: payload.customer!.phone!.trim(),
         customer_email: payload.customer!.email?.trim() || null,
@@ -84,6 +97,7 @@ export async function POST(request: Request) {
         source: "online",
         sms_consent: true,
         notes: buildPartyNotes(party),
+        estimated_total: estimatedTotal,
       })
       .select("id")
       .single();
@@ -107,8 +121,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       appointmentId: appointment.id,
-      technicianId: resolvedTechnicianId,
-      technicianName: assignedTechnician?.name ?? "Any available technician",
+      technicianId: isAnyTechnician ? null : resolvedTechnicianId,
+      technicianName: isAnyTechnician
+        ? "Any available technician"
+        : assignedTechnician?.name ?? "Assigned technician",
       startsAt: startsAt.toISOString(),
       endsAt: endsAt.toISOString(),
     });

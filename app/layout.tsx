@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 
 import { business } from "@/lib/config/salonData";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import { SiteChrome } from "@/components/layout/SiteChrome";
 import "./globals.css";
 
 const sans = Inter({
@@ -40,9 +39,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable}`}>
       <body className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <SiteChrome>
+          <main className="flex-1">{children}</main>
+        </SiteChrome>
       </body>
     </html>
   );

@@ -1,20 +1,41 @@
-import {
-  allServices,
-  hours,
-  technicians,
-  type Service,
-} from "@/lib/config/salonData";
-import { createAdminClient } from "@/lib/supabase/admin";
+import "server-only";
 
-export const SLOT_INTERVAL_MINUTES = 15;
+import { technicians } from "@/lib/config/salonData";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  flattenPartyServiceIds,
+  getServicesByIds,
+  getTotalDurationMinutes,
+  type BookingPartyMember,
+} from "@/lib/booking/service-utils";
+import {
+  filterPastSlots,
+  getBusinessHoursForDate,
+  SLOT_INTERVAL_MINUTES,
+  toLocalDateTime,
+} from "@/lib/booking/time-utils";
+
+export {
+  filterPastSlots,
+  getBusinessHoursForDate,
+  getBusinessTimeBounds,
+  getNextTimeSlot,
+  isSlotInPast,
+  maxTime,
+  parseLocalDate,
+  SLOT_INTERVAL_MINUTES,
+  toIsoDate,
+  toLocalDateTime,
+} from "@/lib/booking/time-utils";
+
+export {
+  flattenPartyServiceIds,
+  getServicesByIds,
+  getTotalDurationMinutes,
+  type BookingPartyMember,
+} from "@/lib/booking/service-utils";
 
 export type TechnicianSelection = "any" | string;
-
-export interface BookingPartyMember {
-  id: string;
-  label: string;
-  serviceIds: string[];
-}
 
 export interface BookingSlot {
   time: string;
@@ -23,8 +44,32 @@ export interface BookingSlot {
 
 interface BusyWindow {
   technician_id: string | null;
+  any_technician: boolean;
   starts_at: string;
   ends_at: string;
+}
+
+function getSlotUsage(
+  busyWindows: BusyWindow[] | null,
+  slotStart: Date,
+  slotEnd: Date
+) {
+  const busyTechIds = new Set<string>();
+  let anyCount = 0;
+
+  for (const busy of busyWindows ?? []) {
+    if (!overlaps(slotStart, slotEnd, new Date(busy.starts_at), new Date(busy.ends_at))) {
+      continue;
+    }
+
+    if (busy.any_technician || busy.technician_id === null) {
+      anyCount += 1;
+    } else {
+      busyTechIds.add(busy.technician_id);
+    }
+  }
+
+  return { busyTechIds, anyCount, poolUsed: busyTechIds.size + anyCount };
 }
 
 interface TimeOffWindow {
@@ -33,45 +78,6 @@ interface TimeOffWindow {
   full_day: boolean;
   starts_at: string | null;
   ends_at: string | null;
-}
-
-const serviceById = new Map(allServices.map((service) => [service.id, service]));
-
-export function getServicesByIds(serviceIds: string[]): Service[] {
-  return serviceIds.map((id) => {
-    const service = serviceById.get(id);
-    if (!service) {
-      throw new Error(`Unknown service id: ${id}`);
-    }
-    return service;
-  });
-}
-
-export function getTotalDurationMinutes(serviceIds: string[]): number {
-  return getServicesByIds(serviceIds).reduce(
-    (total, service) => total + service.durationMinutes,
-    0
-  );
-}
-
-export function flattenPartyServiceIds(party: BookingPartyMember[]): string[] {
-  return party.flatMap((member) => member.serviceIds);
-}
-
-export function getBusinessHoursForDate(date: string) {
-  const parsed = parseLocalDate(date);
-  return hours[parsed.getDay()];
-}
-
-export function parseLocalDate(date: string): Date {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
-export function toLocalDateTime(date: string, time: string): Date {
-  const [year, month, day] = date.split("-").map(Number);
-  const [hour, minute] = time.split(":").map(Number);
-  return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
 function addMinutes(date: Date, minutes: number): Date {
@@ -138,7 +144,7 @@ export async function getAvailableSlots({
     await Promise.all([
       supabase
         .from("appointments")
-        .select("technician_id, starts_at, ends_at")
+        .select("technician_id, any_technician, starts_at, ends_at")
         .eq("status", "booked")
         .lt("starts_at", dayEnd.toISOString())
         .gt("ends_at", dayStart.toISOString()),
@@ -162,33 +168,44 @@ export async function getAvailableSlots({
     slotStart = addMinutes(slotStart, SLOT_INTERVAL_MINUTES)
   ) {
     const slotEnd = addMinutes(slotStart, duration);
+    const { busyTechIds, anyCount, poolUsed } = getSlotUsage(
+      busyWindows as BusyWindow[] | null,
+      slotStart,
+      slotEnd
+    );
 
-    const technicianIds = selectedTechnicians
-      .filter((technician) => {
-        const hasBusyOverlap = (busyWindows as BusyWindow[] | null)?.some(
-          (busy) =>
-            busy.technician_id === technician.id &&
-            overlaps(slotStart, slotEnd, new Date(busy.starts_at), new Date(busy.ends_at))
-        );
+    const availableTechnicians = selectedTechnicians.filter((technician) => {
+      if (busyTechIds.has(technician.id)) return false;
 
-        if (hasBusyOverlap) return false;
+      return !isTechnicianOff(
+        technician.id,
+        date,
+        slotStart,
+        slotEnd,
+        (timeOff as TimeOffWindow[] | null) ?? []
+      );
+    });
 
-        return !isTechnicianOff(
-          technician.id,
-          date,
-          slotStart,
-          slotEnd,
-          (timeOff as TimeOffWindow[] | null) ?? []
-        );
-      })
-      .map((technician) => technician.id);
+    if (technicianId === "any") {
+      if (poolUsed < technicians.length && availableTechnicians.length > 0) {
+        slots.push({
+          time: formatTime(slotStart),
+          technicianIds: availableTechnicians.map((technician) => technician.id),
+        });
+      }
+      continue;
+    }
+
+    if (poolUsed >= technicians.length) continue;
+
+    const technicianIds = availableTechnicians.map((technician) => technician.id);
 
     if (technicianIds.length > 0) {
       slots.push({ time: formatTime(slotStart), technicianIds });
     }
   }
 
-  return slots;
+  return filterPastSlots(date, slots);
 }
 
 export async function resolveTechnicianForSlot({
@@ -204,5 +221,7 @@ export async function resolveTechnicianForSlot({
 }): Promise<string | null> {
   const slots = await getAvailableSlots({ date, serviceIds, technicianId });
   const match = slots.find((slot) => slot.time === time);
-  return match?.technicianIds[0] ?? null;
+  if (!match) return null;
+  if (technicianId === "any") return "any";
+  return match.technicianIds[0] ?? null;
 }

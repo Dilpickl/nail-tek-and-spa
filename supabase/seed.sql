@@ -36,3 +36,16 @@ on conflict (id) do update
       description = excluded.description,
       price = excluded.price,
       duration_minutes = excluded.duration_minutes;
+
+-- Retail products (mirrors lib/config/salonData.ts retailProducts) ------------
+insert into public.retail_products (id, name, price, category, is_active) values
+  ('retail-cuticle-oil', 'Cuticle Oil',       12, 'Care',        true),
+  ('retail-hand-cream',  'Hand Cream',        18, 'Care',        true),
+  ('retail-nail-file',   'Glass Nail File',    8, 'Tools',       true),
+  ('retail-polish',      'Nail Polish',       14, 'Color',       true),
+  ('retail-gift-card',   'Gift Card',         50, 'Gift Cards',  true)
+on conflict (id) do update
+  set name = excluded.name,
+      price = excluded.price,
+      category = excluded.category,
+      is_active = excluded.is_active;

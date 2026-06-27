@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
-import { toLocalDateTime } from "@/lib/booking/availability";
+import { toLocalDateTime } from "@/lib/booking/time-utils";
 import { technicians } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
 

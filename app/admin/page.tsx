@@ -13,10 +13,12 @@ export const metadata: Metadata = {
 interface AppointmentRow {
   id: string;
   technician_id: string | null;
+  any_technician: boolean;
   customer_name: string;
   customer_phone: string;
   starts_at: string;
   ends_at: string;
+  status: "booked" | "completed" | "cancelled" | "no_show";
   source: "online" | "walk_in" | "phone";
   notes: string | null;
   appointment_services?: { service_id: string }[];
@@ -58,7 +60,7 @@ export default async function AdminPage() {
       supabase
         .from("appointments")
         .select(
-          "id, technician_id, customer_name, customer_phone, starts_at, ends_at, source, notes, appointment_services(service_id)"
+          "id, technician_id, any_technician, customer_name, customer_phone, starts_at, ends_at, status, source, notes, appointment_services(service_id)"
         )
         .gte("starts_at", start.toISOString())
         .lte("starts_at", end.toISOString())
@@ -90,10 +92,12 @@ export default async function AdminPage() {
     (row) => ({
       id: row.id,
       technicianId: row.technician_id,
+      anyTechnician: row.any_technician ?? false,
       customerName: row.customer_name,
       customerPhone: row.customer_phone,
       startsAt: row.starts_at,
       endsAt: row.ends_at,
+      status: row.status,
       source: row.source,
       notes: row.notes,
       services:
