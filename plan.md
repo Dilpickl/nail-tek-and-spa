@@ -73,9 +73,10 @@ Template: `.env.example`
 |------|-------|
 | Branch | `master` (tracks `origin/master`) |
 | Remote | `https://github.com/Dilpickl/nail-tek-and-spa.git` |
-| HEAD | `6464073` — run `git log -1 --oneline` after pull |
+| HEAD | `e7a46e4` — run `git log -1 --oneline` after pull |
 
 **Recent commits (newest first):**
+- `e7a46e4` — Sync plan.md HEAD to latest commit hash
 - `6464073` — Update plan.md handoff for multi-guest bookings and recent admin UX
 - `4d27dad` — Fix booking validation scroll-to-error for guest service selection
 - `1c6ac93` — Split multi-guest bookings into per-guest appointments; admin highlights; party UX
@@ -322,7 +323,7 @@ Read plan.md in the project root first.
 
 Recent work (June 2026): multi-guest bookings create one appointment per guest (party_group_id), parallel availability via party-scheduling.ts, admin party badges + new-booking highlights, booking scroll-to-error validation for guest names/services, cancel/no-show confirmation modals, agenda day navigation, quick-booking multi-service panel.
 
-HEAD should be 6464073 or later on master. Confirm migrations 002–004 applied in Supabase.
+HEAD should be e7a46e4 or later on master. Confirm migrations 002–004 applied in Supabase.
 
 Rules:
 - Revenue metrics = completed transactions only
