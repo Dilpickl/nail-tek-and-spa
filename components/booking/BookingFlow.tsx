@@ -20,7 +20,7 @@ import {
   serviceCategories,
   technicians,
 } from "@/lib/config/salonData";
-import { formatDuration, formatPrice } from "@/lib/utils";
+import { formatDuration, formatPrice, cn } from "@/lib/utils";
 import {
   filterPastSlots,
   getDefaultBookingDate,
@@ -79,9 +79,17 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
+  const [highlightedField, setHighlightedField] = useState<string | null>(null);
 
   const selectedServiceIds = useMemo(
     () => party.flatMap((member) => member.serviceIds),
+    [party]
+  );
+  const partyPayload = useMemo(
+    () =>
+      JSON.stringify(
+        party.map((member) => ({ label: member.label, serviceIds: member.serviceIds }))
+      ),
     [party]
   );
   const selectedServices = useMemo(
@@ -103,21 +111,31 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
     [selectedServices]
   );
 
-  const canContinue = Boolean(
-    (step === 1 && selectedServiceIds.length > 0) ||
-      (step === 2 && technicianId) ||
-      (step === 3 && selectedTime) ||
-      (step === 4 && details.name.trim() && details.phone.trim()) ||
-      step === 5
-  );
-
   const autoDateAdjusted = useRef(false);
+
+  function handleContinue() {
+    const errorField = getStepValidationError(step, {
+      party,
+      selectedServiceIds,
+      selectedTime,
+      details,
+    });
+
+    if (errorField) {
+      setHighlightedField(errorField);
+      requestAnimationFrame(() => scrollToBookingField(errorField));
+      return;
+    }
+
+    setHighlightedField(null);
+    setStep((current) => Math.min(5, current + 1) as Step);
+  }
 
   // Only reset the chosen time when availability inputs change — not when
   // advancing to the next booking step (which was clearing the selection).
   useEffect(() => {
     setSelectedTime("");
-  }, [selectedDate, selectedServiceIds.join("|"), technicianId]);
+  }, [selectedDate, partyPayload, technicianId]);
 
   useEffect(() => {
     if (selectedServiceIds.length === 0 || step < 3) {
@@ -133,8 +151,8 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
       const params = new URLSearchParams({
         date: selectedDate,
         technicianId,
+        party: partyPayload,
       });
-      selectedServiceIds.forEach((serviceId) => params.append("serviceId", serviceId));
 
       try {
         const response = await fetch(`/api/availability?${params.toString()}`, {
@@ -162,7 +180,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
 
     loadSlots();
     return () => controller.abort();
-  }, [selectedDate, selectedServiceIds.join("|"), step, technicianId]);
+  }, [selectedDate, partyPayload, step, technicianId]);
 
   // On step 3, skip closed days and auto-advance if today has no remaining slots.
   useEffect(() => {
@@ -189,6 +207,10 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
     }
   }, [step, loadingSlots, slotError, slots.length, selectedDate]);
 
+  function clearFieldHighlight(fieldId: string) {
+    setHighlightedField((current) => (current === fieldId ? null : current));
+  }
+
   if (confirmation) {
     return <BookingConfirmationView confirmation={confirmation} />;
   }
@@ -200,13 +222,19 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_340px]">
         <div className="rounded-2xl bg-offwhite p-5 ring-1 ring-ink/5 sm:p-8">
           {step === 1 && (
-            <ServiceStep party={party} setParty={setParty} />
+            <ServiceStep
+              party={party}
+              setParty={setParty}
+              highlightedField={highlightedField}
+              onFieldEdit={clearFieldHighlight}
+            />
           )}
 
           {step === 2 && (
             <TechnicianStep
               technicianId={technicianId}
               setTechnicianId={setTechnicianId}
+              partySize={party.length}
             />
           )}
 
@@ -220,11 +248,18 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
               loadingSlots={loadingSlots}
               slotError={slotError}
               technicianId={technicianId}
+              highlightedField={highlightedField}
+              onFieldEdit={clearFieldHighlight}
             />
           )}
 
           {step === 4 && (
-            <DetailsStep details={details} setDetails={setDetails} />
+            <DetailsStep
+              details={details}
+              setDetails={setDetails}
+              highlightedField={highlightedField}
+              onFieldEdit={clearFieldHighlight}
+            />
           )}
 
           {step === 5 && (
@@ -251,11 +286,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
             </Button>
 
             {step < 5 ? (
-              <Button
-                type="button"
-                disabled={!canContinue}
-                onClick={() => setStep((current) => Math.min(5, current + 1) as Step)}
-              >
+              <Button type="button" onClick={handleContinue}>
                 Continue
                 <ChevronRight className="size-4" />
               </Button>
@@ -418,9 +449,13 @@ function BookingSteps({ step }: { step: Step }) {
 function ServiceStep({
   party,
   setParty,
+  highlightedField,
+  onFieldEdit,
 }: {
   party: PartyMember[];
   setParty: Dispatch<SetStateAction<PartyMember[]>>;
+  highlightedField: string | null;
+  onFieldEdit: (fieldId: string) => void;
 }) {
   return (
     <div>
@@ -431,10 +466,53 @@ function ServiceStep({
       />
 
       <div className="mt-6 space-y-8">
-        {party.map((member, memberIndex) => (
-          <div key={member.id} className="rounded-xl bg-background p-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="font-semibold text-ink">{member.label}</h3>
+        {party.map((member, memberIndex) => {
+          const guestNameFieldId = `booking-guest-name-${member.id}`;
+          const isPrimarySection = memberIndex === 0;
+          const primaryFieldId = "booking-primary-services";
+          const sectionHighlight =
+            (isPrimarySection && highlightedField === primaryFieldId) ||
+            (!isPrimarySection && highlightedField === guestNameFieldId);
+
+          return (
+          <div
+            key={member.id}
+            id={isPrimarySection ? primaryFieldId : undefined}
+            className={cn(
+              "rounded-xl bg-background p-4 transition-shadow",
+              sectionHighlight && "ring-2 ring-red-500 ring-offset-2 ring-offset-offwhite"
+            )}
+          >
+            <div className="flex items-start justify-between gap-3">
+              {memberIndex === 0 ? (
+                <h3 className="font-semibold text-ink">You</h3>
+              ) : (
+                <label className="min-w-0 flex-1">
+                  <span className="text-sm font-medium text-ink">
+                    Guest name<span className="text-red-700"> *</span>
+                  </span>
+                  <input
+                    id={guestNameFieldId}
+                    value={member.label}
+                    onChange={(event) => {
+                      onFieldEdit(guestNameFieldId);
+                      setParty((current) =>
+                        current.map((item) =>
+                          item.id === member.id
+                            ? { ...item, label: event.target.value }
+                            : item
+                        )
+                      );
+                    }}
+                    placeholder="Type guest name here"
+                    className={cn(
+                      "mt-2 h-11 w-full rounded-xl border border-input bg-offwhite px-3 text-ink placeholder:text-ink-muted outline-none transition-shadow",
+                      highlightedField === guestNameFieldId &&
+                        "border-red-500 ring-2 ring-red-500"
+                    )}
+                  />
+                </label>
+              )}
               {memberIndex > 0 && (
                 <button
                   type="button"
@@ -471,7 +549,8 @@ function ServiceStep({
                             type="checkbox"
                             checked={checked}
                             className="mt-1 size-4 accent-ink"
-                            onChange={() =>
+                            onChange={() => {
+                              if (isPrimarySection) onFieldEdit(primaryFieldId);
                               setParty((current) =>
                                 current.map((item) =>
                                   item.id === member.id
@@ -483,8 +562,8 @@ function ServiceStep({
                                       }
                                     : item
                                 )
-                              )
-                            }
+                              );
+                            }}
                           />
                           <span className="flex-1">
                             <span className="flex items-baseline justify-between gap-3">
@@ -505,7 +584,8 @@ function ServiceStep({
               ))}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <Button
@@ -515,7 +595,7 @@ function ServiceStep({
         onClick={() =>
           setParty((current) => [
             ...current,
-            { id: crypto.randomUUID(), label: `Guest ${current.length}`, serviceIds: [] },
+            { id: crypto.randomUUID(), label: "", serviceIds: [] },
           ])
         }
       >
@@ -529,16 +609,22 @@ function ServiceStep({
 function TechnicianStep({
   technicianId,
   setTechnicianId,
+  partySize,
 }: {
   technicianId: string;
   setTechnicianId: (id: string) => void;
+  partySize: number;
 }) {
   return (
     <div>
       <StepHeading
         icon={<UserRound className="size-5" />}
         title="Choose a technician"
-        description="Pick someone specific or choose Any for the most available times."
+        description={
+          partySize > 1
+            ? 'Each guest needs their own technician at the same time. "Any" shows times when enough staff are free.'
+            : 'Pick someone specific or choose "Any" for the most available times.'
+        }
       />
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -596,6 +682,8 @@ function DateTimeStep({
   loadingSlots,
   slotError,
   technicianId,
+  highlightedField,
+  onFieldEdit,
 }: {
   selectedDate: string;
   setSelectedDate: (date: string) => void;
@@ -605,7 +693,10 @@ function DateTimeStep({
   loadingSlots: boolean;
   slotError: string;
   technicianId: string;
+  highlightedField: string | null;
+  onFieldEdit: (fieldId: string) => void;
 }) {
+  const timeFieldId = "booking-time-slots";
   const dateOptions = useMemo(() => {
     const today = new Date();
     return Array.from({ length: 14 }, (_, index) => {
@@ -622,14 +713,14 @@ function DateTimeStep({
     ? "We're closed this day. Please choose another date."
     : isToday
       ? "No times left today. Try tomorrow or another open day."
-      : "No times available for this date. Try another day or choose Any technician.";
+      : 'No times available for this date. Try another day or choose "Any" technician.';
 
   return (
     <div>
       <StepHeading
         icon={<Calendar className="size-5" />}
         title="Choose date and time"
-        description="Times are shown in 15-minute blocks based on selected service duration."
+        description="Times are shown in 15-minute blocks based on your selected services."
       />
 
       <div className="mt-6">
@@ -674,7 +765,14 @@ function DateTimeStep({
         />
       </div>
 
-      <div className="mt-8">
+      <div
+        id={timeFieldId}
+        className={cn(
+          "mt-8 rounded-xl transition-shadow",
+          highlightedField === timeFieldId &&
+            "ring-2 ring-red-500 ring-offset-2 ring-offset-offwhite"
+        )}
+      >
         <div className="flex items-center justify-between gap-3">
           <label className="text-sm font-medium text-ink">Available times</label>
           {technicianId === "any" && !isClosed && (
@@ -718,7 +816,10 @@ function DateTimeStep({
                     ? "border-ink bg-ink text-offwhite"
                     : "border-border bg-background text-ink hover:border-ink/40"
                 }`}
-                onClick={() => setSelectedTime(slot.time)}
+                onClick={() => {
+                  onFieldEdit(timeFieldId);
+                  setSelectedTime(slot.time);
+                }}
               >
                 {formatTimeLabel(slot.time)}
               </button>
@@ -733,9 +834,13 @@ function DateTimeStep({
 function DetailsStep({
   details,
   setDetails,
+  highlightedField,
+  onFieldEdit,
 }: {
   details: { name: string; phone: string; email: string };
   setDetails: Dispatch<SetStateAction<{ name: string; phone: string; email: string }>>;
+  highlightedField: string | null;
+  onFieldEdit: (fieldId: string) => void;
 }) {
   return (
     <div>
@@ -747,18 +852,28 @@ function DetailsStep({
 
       <div className="mt-6 grid gap-4">
         <TextField
+          id="booking-details-name"
           label="Name"
           value={details.name}
-          onChange={(value) => setDetails((current) => ({ ...current, name: value }))}
+          onChange={(value) => {
+            onFieldEdit("booking-details-name");
+            setDetails((current) => ({ ...current, name: value }));
+          }}
           autoComplete="name"
           required
+          highlighted={highlightedField === "booking-details-name"}
         />
         <TextField
+          id="booking-details-phone"
           label="Phone number"
           value={details.phone}
-          onChange={(value) => setDetails((current) => ({ ...current, phone: value }))}
+          onChange={(value) => {
+            onFieldEdit("booking-details-phone");
+            setDetails((current) => ({ ...current, phone: value }));
+          }}
           autoComplete="tel"
           required
+          highlighted={highlightedField === "booking-details-phone"}
         />
         <TextField
           label="Email (optional)"
@@ -921,19 +1036,23 @@ function StepHeading({
 }
 
 function TextField({
+  id,
   label,
   value,
   onChange,
   type = "text",
   required,
   autoComplete,
+  highlighted = false,
 }: {
+  id?: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
   required?: boolean;
   autoComplete?: string;
+  highlighted?: boolean;
 }) {
   return (
     <label className="block">
@@ -942,11 +1061,15 @@ function TextField({
         {required && <span className="text-red-700"> *</span>}
       </span>
       <input
+        id={id}
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         autoComplete={autoComplete}
-        className="mt-2 h-12 w-full rounded-md border border-input bg-background px-4 text-ink outline-none focus:ring-2 focus:ring-ring"
+        className={cn(
+          "mt-2 h-12 w-full rounded-md border border-input bg-background px-4 text-ink outline-none transition-shadow focus:ring-2 focus:ring-ring",
+          highlighted && "border-red-500 ring-2 ring-red-500"
+        )}
       />
     </label>
   );
@@ -1037,6 +1160,56 @@ function formatMonthDay(date: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(
     new Date(`${date}T00:00:00`)
   );
+}
+
+function getStepValidationError(
+  currentStep: Step,
+  {
+    party,
+    selectedServiceIds,
+    selectedTime,
+    details,
+  }: {
+    party: PartyMember[];
+    selectedServiceIds: string[];
+    selectedTime: string;
+    details: { name: string; phone: string; email: string };
+  }
+): string | null {
+  if (currentStep === 1) {
+    const guestMissingName = party.find((member, index) => index > 0 && !member.label.trim());
+    if (guestMissingName) {
+      return `booking-guest-name-${guestMissingName.id}`;
+    }
+
+    if (selectedServiceIds.length === 0) {
+      return "booking-primary-services";
+    }
+
+    return null;
+  }
+
+  if (currentStep === 3 && !selectedTime) {
+    return "booking-time-slots";
+  }
+
+  if (currentStep === 4) {
+    if (!details.name.trim()) return "booking-details-name";
+    if (!details.phone.trim()) return "booking-details-phone";
+  }
+
+  return null;
+}
+
+function scrollToBookingField(fieldId: string) {
+  const element = document.getElementById(fieldId);
+  if (!element) return;
+
+  element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+    element.focus({ preventScroll: true });
+  }
 }
 
 function formatReadableDate(date: string) {

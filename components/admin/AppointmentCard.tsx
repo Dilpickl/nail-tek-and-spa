@@ -12,6 +12,8 @@ interface AppointmentCardProps {
   compact?: boolean;
   draggable?: boolean;
   isDragging?: boolean;
+  isNew?: boolean;
+  onOpen?: () => void;
   onDragStart?: (appointmentId: string) => void;
   onDragEnd?: () => void;
 }
@@ -21,6 +23,8 @@ export function AppointmentCard({
   compact = false,
   draggable = false,
   isDragging = false,
+  isNew = false,
+  onOpen,
   onDragStart,
   onDragEnd,
 }: AppointmentCardProps) {
@@ -35,6 +39,7 @@ export function AppointmentCard({
   const canDrag = draggable && appointment.status === "booked";
 
   function handleClick() {
+    onOpen?.();
     router.push(`/admin/appointments/${appointment.id}`);
   }
 
@@ -49,12 +54,18 @@ export function AppointmentCard({
       }}
       onDragEnd={() => onDragEnd?.()}
       className={cn(
-        "rounded-xl bg-background ring-1 ring-ink/5 transition-shadow",
+        "relative rounded-xl bg-background ring-1 ring-ink/5 transition-all duration-500",
         canDrag && "cursor-grab active:cursor-grabbing",
         isDragging && "opacity-50 ring-2 ring-ink/30",
-        !isDragging && "hover:shadow-md"
+        isNew && "bg-emerald-50 ring-2 ring-emerald-400 shadow-md",
+        !isDragging && !isNew && "hover:shadow-md"
       )}
     >
+      {isNew && (
+        <span className="absolute -top-2 right-3 z-10 rounded-full bg-emerald-600 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+          New
+        </span>
+      )}
       <button
         type="button"
         onClick={handleClick}
@@ -73,6 +84,12 @@ export function AppointmentCard({
                 <p className={cn("font-semibold text-ink", compact ? "text-base" : "text-lg")}>
                   {appointment.customerName}
                 </p>
+                {appointment.partySize > 1 && (
+                  <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                    {appointment.isGuest ? "Guest · " : ""}
+                    Party of {appointment.partySize}
+                  </p>
+                )}
                 {!compact && (
                   <p className="flex items-center gap-1 text-sm text-ink-muted">
                     <Phone className="size-3.5" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -13,12 +13,19 @@ import {
   ToggleRight,
   UserPlus,
   Users,
+  Check,
+  ChevronDown,
 } from "lucide-react";
 
 import { AppointmentCard } from "@/components/admin/AppointmentCard";
 import { Button } from "@/components/ui/button";
 import { TimeWheelPicker } from "@/components/ui/TimeWheelPicker";
 import { ANY_EMPLOYEE_ID, ANY_EMPLOYEE_LABEL } from "@/lib/admin/constants";
+import {
+  clearQueuedAppointmentHighlights,
+  queueAppointmentHighlights,
+  readQueuedAppointmentHighlights,
+} from "@/lib/admin/highlight-appointments";
 import { formatReadableDate } from "@/lib/admin/format";
 import {
   clampTime,
@@ -27,7 +34,7 @@ import {
   maxTime,
   shiftIsoDate,
 } from "@/lib/booking/time-utils";
-import { technicians } from "@/lib/config/salonData";
+import { technicians, serviceCategories, getServiceById } from "@/lib/config/salonData";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +50,9 @@ export interface AdminAppointment {
   source: "online" | "walk_in" | "phone";
   services: string[];
   notes: string | null;
+  partyGroupId: string | null;
+  isGuest: boolean;
+  partySize: number;
 }
 
 interface AdminDashboardProps {
@@ -69,6 +79,12 @@ export function AdminDashboard({
 }: AdminDashboardProps) {
   const router = useRouter();
   const isToday = agendaDate === today;
+  const isTomorrow = agendaDate === shiftIsoDate(today, 1);
+  const agendaHeading = isToday
+    ? "Today's Agenda"
+    : isTomorrow
+      ? "Tomorrow"
+      : "Agenda";
   const [notice, setNotice] = useState("");
   const [quickSource, setQuickSource] = useState<QuickSource | null>(null);
   const [pendingOffId, setPendingOffId] = useState("");
@@ -77,6 +93,48 @@ export function AdminDashboard({
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [assignError, setAssignError] = useState("");
+  const [highlightedIds, setHighlightedIds] = useState<Set<string>>(() => new Set());
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function addHighlights(ids: string[]) {
+    if (ids.length === 0) return;
+
+    setHighlightedIds((current) => new Set([...Array.from(current), ...ids]));
+
+    if (highlightTimerRef.current) {
+      clearTimeout(highlightTimerRef.current);
+    }
+
+    highlightTimerRef.current = setTimeout(() => {
+      setHighlightedIds(new Set());
+      highlightTimerRef.current = null;
+    }, 12_000);
+  }
+
+  function clearHighlight(appointmentId: string) {
+    setHighlightedIds((current) => {
+      if (!current.has(appointmentId)) return current;
+      const next = new Set(current);
+      next.delete(appointmentId);
+      return next;
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) {
+        clearTimeout(highlightTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const queued = readQueuedAppointmentHighlights();
+    if (queued.length === 0) return;
+
+    clearQueuedAppointmentHighlights();
+    addHighlights(queued);
+  }, [appointments]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -85,8 +143,16 @@ export function AdminDashboard({
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "appointments" },
-        () => {
-          setNotice("New online booking received. Refresh to update the agenda.");
+        (payload) => {
+          const row = payload.new as { id?: string; starts_at?: string };
+          if (!row.id || !row.starts_at) return;
+
+          const appointmentDate = row.starts_at.slice(0, 10);
+          if (appointmentDate !== agendaDate) return;
+
+          queueAppointmentHighlights([row.id]);
+          addHighlights([row.id]);
+          router.refresh();
         }
       )
       .subscribe();
@@ -94,7 +160,7 @@ export function AdminDashboard({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [agendaDate, router]);
 
   const columns: AgendaColumn[] = useMemo(
     () => [
@@ -215,7 +281,7 @@ export function AdminDashboard({
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-4xl font-semibold text-ink">
-            {isToday ? "Today's Agenda" : "Agenda"}
+            {agendaHeading}
           </h1>
           {!isToday && (
             <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium uppercase tracking-wider text-ink-muted">
@@ -334,8 +400,13 @@ export function AdminDashboard({
       {quickSource && (
         <QuickBookingPanel
           source={quickSource}
+          today={today}
           agendaDate={agendaDate}
           onClose={() => setQuickSource(null)}
+          onBookingCreated={(appointmentId) => {
+            queueAppointmentHighlights([appointmentId]);
+            addHighlights([appointmentId]);
+          }}
         />
       )}
 
@@ -438,6 +509,8 @@ export function AdminDashboard({
                       appointment={appointment}
                       draggable
                       isDragging={draggingId === appointment.id}
+                      isNew={highlightedIds.has(appointment.id)}
+                      onOpen={() => clearHighlight(appointment.id)}
                       onDragStart={setDraggingId}
                       onDragEnd={() => {
                         setDraggingId(null);
@@ -457,38 +530,73 @@ export function AdminDashboard({
 
 function QuickBookingPanel({
   source,
+  today,
   agendaDate,
   onClose,
+  onBookingCreated,
 }: {
   source: QuickSource;
+  today: string;
   agendaDate: string;
   onClose: () => void;
+  onBookingCreated: (appointmentId: string) => void;
 }) {
   const router = useRouter();
-  const bounds = useMemo(() => getBusinessTimeBounds(agendaDate), [agendaDate]);
+  const isWalkIn = source === "walk_in";
+
+  const [phoneDate, setPhoneDate] = useState(today);
+  const activeDate = isWalkIn ? agendaDate : phoneDate;
+
+  const bounds = useMemo(() => getBusinessTimeBounds(activeDate), [activeDate]);
   const defaultTime = useMemo(
     () =>
       clampTime(
-        maxTime(bounds.minTime, getNextTimeSlot()),
+        maxTime(
+          bounds.minTime,
+          activeDate === today ? getNextTimeSlot() : bounds.minTime
+        ),
         bounds.minTime,
         bounds.maxTime
       ),
-    [bounds.minTime, bounds.maxTime]
+    [activeDate, bounds.minTime, bounds.maxTime, today]
   );
 
-  const [technicianId, setTechnicianId] = useState(technicians[0]?.id ?? "");
+  const [technicianId, setTechnicianId] = useState(ANY_EMPLOYEE_ID);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(() =>
+    serviceCategories[0]?.services[0]?.id ? [serviceCategories[0].services[0].id] : []
+  );
   const [time, setTime] = useState(defaultTime);
-  const [duration, setDuration] = useState("30");
-  const [name, setName] = useState(source === "walk_in" ? "Walk-In Guest" : "");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setTime(defaultTime);
-  }, [defaultTime]);
+  }, [defaultTime, activeDate]);
+
+  function toggleService(serviceId: string) {
+    setSelectedServiceIds((current) =>
+      current.includes(serviceId)
+        ? current.filter((id) => id !== serviceId)
+        : [...current, serviceId]
+    );
+  }
 
   async function submit() {
+    if (!name.trim()) {
+      setError("Guest name is required.");
+      return;
+    }
+    if (selectedServiceIds.length === 0) {
+      setError("Please select at least one service.");
+      return;
+    }
+    if (!isWalkIn && !phone.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -499,16 +607,20 @@ function QuickBookingPanel({
         body: JSON.stringify({
           source,
           technicianId,
-          date: agendaDate,
+          serviceIds: selectedServiceIds,
+          date: activeDate,
           time,
-          durationMinutes: Number(duration),
           customerName: name,
-          customerPhone: phone || "N/A",
+          ...(isWalkIn ? {} : { customerPhone: phone }),
         }),
       });
-      const body = (await response.json()) as { error?: string };
+      const body = (await response.json()) as { error?: string; appointmentId?: string };
 
       if (!response.ok) throw new Error(body.error || "Unable to create booking.");
+
+      if (body.appointmentId) {
+        onBookingCreated(body.appointmentId);
+      }
 
       onClose();
       router.refresh();
@@ -523,62 +635,76 @@ function QuickBookingPanel({
     <div className="mt-6 rounded-2xl bg-offwhite p-5 ring-1 ring-ink/5">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-2xl font-semibold text-ink">
-          {source === "walk_in" ? "Add Walk-In" : "Add Phone Booking"}
+          {isWalkIn ? "Add Walk-In" : "Add Phone Booking"}
         </h2>
         <Button variant="outline" onClick={onClose}>
           Close
         </Button>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <label className="block">
           <span className="text-sm font-medium text-ink">Technician</span>
-          <select
-            value={technicianId}
-            onChange={(event) => setTechnicianId(event.target.value)}
-            className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink"
-          >
-            {technicians.map((technician) => (
-              <option key={technician.id} value={technician.id}>
-                {technician.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative mt-2">
+            <select
+              value={technicianId}
+              onChange={(event) => setTechnicianId(event.target.value)}
+              className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-3 pr-10 text-ink"
+            >
+              <option value={ANY_EMPLOYEE_ID}>{ANY_EMPLOYEE_LABEL}</option>
+              {technicians.map((technician) => (
+                <option key={technician.id} value={technician.id}>
+                  {technician.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
+          </div>
         </label>
 
-        <label className="block">
-          <span className="text-sm font-medium text-ink">Duration</span>
-          <select
-            value={duration}
-            onChange={(event) => setDuration(event.target.value)}
-            className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink"
-          >
-            <option value="15">15 min</option>
-            <option value="30">30 min</option>
-            <option value="45">45 min</option>
-            <option value="60">60 min</option>
-            <option value="75">75 min</option>
-            <option value="90">90 min</option>
-          </select>
-        </label>
+        <div className="block md:col-span-2 lg:col-span-1">
+          <span className="text-sm font-medium text-ink">Services</span>
+          <ServiceMultiSelect
+            selectedIds={selectedServiceIds}
+            onToggle={toggleService}
+            className="mt-2"
+          />
+        </div>
 
         <label className="block">
-          <span className="text-sm font-medium text-ink">Name</span>
+          <span className="text-sm font-medium text-ink">Guest name</span>
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink"
+            placeholder="Type guest name here"
+            className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink placeholder:text-ink-muted"
           />
         </label>
 
-        <label className="block">
-          <span className="text-sm font-medium text-ink">Phone</span>
-          <input
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink"
-          />
-        </label>
+        {!isWalkIn && (
+          <>
+            <label className="block">
+              <span className="text-sm font-medium text-ink">Date</span>
+              <input
+                type="date"
+                value={phoneDate}
+                min={today}
+                onChange={(event) => setPhoneDate(event.target.value)}
+                className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-ink">Phone</span>
+              <input
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                placeholder="(555) 123-4567"
+                className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink placeholder:text-ink-muted"
+              />
+            </label>
+          </>
+        )}
       </div>
 
       <div className="mt-5">
@@ -600,8 +726,113 @@ function QuickBookingPanel({
 
       <Button className="mt-5 min-h-14 w-full sm:w-auto" onClick={submit} disabled={loading}>
         {loading ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-        Block This Time
+        {isWalkIn ? "Add Walk-In" : "Add Phone Booking"}
       </Button>
+    </div>
+  );
+}
+
+function serviceSelectionLabel(selectedIds: string[]) {
+  if (selectedIds.length === 0) return "Select services";
+  if (selectedIds.length === 1) {
+    return getServiceById(selectedIds[0])?.name ?? "1 service";
+  }
+  if (selectedIds.length === 2) {
+    return selectedIds
+      .map((id) => getServiceById(id)?.name)
+      .filter(Boolean)
+      .join(", ");
+  }
+  return `${selectedIds.length} services selected`;
+}
+
+function ServiceMultiSelect({
+  selectedIds,
+  onToggle,
+  className,
+}: {
+  selectedIds: string[];
+  onToggle: (serviceId: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className={cn("relative", className)}>
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex h-12 w-full items-center justify-between gap-2 rounded-xl border border-input bg-background px-3 text-left text-ink"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+      >
+        <span className={cn("truncate", selectedIds.length === 0 && "text-ink-muted")}>
+          {serviceSelectionLabel(selectedIds)}
+        </span>
+        <ChevronDown
+          className={cn("size-4 shrink-0 text-ink-muted transition-transform", open && "rotate-180")}
+        />
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          aria-multiselectable
+          className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-input bg-background py-1 shadow-lg ring-1 ring-ink/5"
+        >
+          {serviceCategories.map((category) => (
+            <div key={category.id}>
+              <p className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                {category.name}
+              </p>
+              {category.services.map((service) => {
+                const selected = selectedIds.includes(service.id);
+                return (
+                  <button
+                    key={service.id}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    onClick={() => onToggle(service.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors",
+                      selected
+                        ? "bg-secondary font-medium text-ink"
+                        : "text-ink hover:bg-secondary/60"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex size-4 shrink-0 items-center justify-center rounded border",
+                        selected
+                          ? "border-ink bg-ink text-offwhite"
+                          : "border-ink/25 bg-background"
+                      )}
+                    >
+                      {selected && <Check className="size-3" strokeWidth={3} />}
+                    </span>
+                    <span className="flex-1">{service.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

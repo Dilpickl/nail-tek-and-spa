@@ -58,12 +58,27 @@ export interface AppointmentDetailData {
   estimatedTotal: number;
   bookedServices: BookedService[];
   transaction: Transaction | null;
+  partyGroupId: string | null;
+  isGuest: boolean;
+  partyMembers: PartyMemberSummary[];
+}
+
+interface PartyMemberSummary {
+  id: string;
+  customerName: string;
+  technicianName: string;
+  startsAt: string;
+  endsAt: string;
+  status: AppointmentDetailData["status"];
+  services: string[];
+  isCurrent: boolean;
 }
 
 export function AppointmentDetailView({ appointment }: { appointment: AppointmentDetailData }) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [confirmAction, setConfirmAction] = useState<"cancelled" | "no_show" | null>(null);
 
   async function updateStatus(status: "cancelled" | "no_show") {
     setLoading(status);
@@ -86,6 +101,21 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
   }
 
   const isBooked = appointment.status === "booked";
+
+  const confirmCopy =
+    confirmAction === "no_show"
+      ? {
+          title: "Mark as no-show?",
+          description: `${appointment.customerName}'s appointment will be marked as a no-show. This cannot be undone.`,
+          confirmLabel: "Yes, mark no-show",
+        }
+      : confirmAction === "cancelled"
+        ? {
+            title: "Cancel this appointment?",
+            description: `${appointment.customerName}'s appointment will be cancelled. This cannot be undone.`,
+            confirmLabel: "Yes, cancel appointment",
+          }
+        : null;
 
   return (
     <div className="container py-8 md:py-10">
@@ -110,7 +140,7 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Link
               href={`/admin/appointments/${appointment.id}/complete`}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-ink-soft"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-medium text-white shadow-sm hover:bg-emerald-800"
             >
               <CheckCircle2 className="size-4" />
               Complete Appointment
@@ -126,7 +156,7 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
               variant="outline"
               className="min-h-12"
               disabled={loading !== null}
-              onClick={() => updateStatus("no_show")}
+              onClick={() => setConfirmAction("no_show")}
             >
               {loading === "no_show" ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -139,7 +169,7 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
               variant="outline"
               className="min-h-12"
               disabled={loading !== null}
-              onClick={() => updateStatus("cancelled")}
+              onClick={() => setConfirmAction("cancelled")}
             >
               {loading === "cancelled" ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -154,6 +184,46 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
 
       {error && (
         <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+      )}
+
+      {appointment.partyMembers.length > 1 && (
+        <section className="mt-6 rounded-2xl bg-offwhite p-5 ring-1 ring-ink/5">
+          <h2 className="text-xl font-semibold text-ink">Party ({appointment.partyMembers.length} guests)</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Each guest has a separate appointment on the agenda and can be assigned to a different technician.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {appointment.partyMembers.map((member) => (
+              <li key={member.id}>
+                {member.isCurrent ? (
+                  <div className="rounded-xl bg-background px-4 py-3 ring-1 ring-ink/10">
+                    <p className="font-medium text-ink">
+                      {member.customerName}
+                      <span className="ml-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                        Viewing
+                      </span>
+                    </p>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {member.technicianName} · {formatDateTime(member.startsAt)} ·{" "}
+                      {member.services.join(", ") || "No services"}
+                    </p>
+                  </div>
+                ) : (
+                  <Link
+                    href={`/admin/appointments/${member.id}`}
+                    className="block rounded-xl bg-background px-4 py-3 ring-1 ring-ink/5 transition-colors hover:ring-ink/20"
+                  >
+                    <p className="font-medium text-ink">{member.customerName}</p>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {member.technicianName} · {formatDateTime(member.startsAt)} ·{" "}
+                      {member.services.join(", ") || "No services"}
+                    </p>
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
@@ -220,6 +290,44 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
             <span>{formatMoney(appointment.transaction.finalTotal)}</span>
           </div>
         </section>
+      )}
+
+      {confirmCopy && confirmAction && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-status-title"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-offwhite p-6 shadow-xl ring-1 ring-ink/5">
+            <h2 id="confirm-status-title" className="text-xl font-semibold text-ink">
+              {confirmCopy.title}
+            </h2>
+            <p className="mt-2 text-sm text-ink-muted">{confirmCopy.description}</p>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button
+                variant="outline"
+                className="min-h-11"
+                disabled={loading !== null}
+                onClick={() => setConfirmAction(null)}
+              >
+                Go back
+              </Button>
+              <Button
+                className="min-h-11"
+                disabled={loading !== null}
+                onClick={() => {
+                  void updateStatus(confirmAction).then(() => setConfirmAction(null));
+                }}
+              >
+                {loading === confirmAction ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : null}
+                {confirmCopy.confirmLabel}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -22,6 +22,8 @@ interface AppointmentRow {
   status: "booked" | "completed" | "cancelled" | "no_show";
   source: "online" | "walk_in" | "phone";
   notes: string | null;
+  party_group_id: string | null;
+  is_guest: boolean;
   appointment_services?: { service_id: string }[];
 }
 
@@ -68,7 +70,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       supabase
         .from("appointments")
         .select(
-          "id, technician_id, any_technician, customer_name, customer_phone, starts_at, ends_at, status, source, notes, appointment_services(service_id)"
+          "id, technician_id, any_technician, customer_name, customer_phone, starts_at, ends_at, status, source, notes, party_group_id, is_guest, appointment_services(service_id)"
         )
         .gte("starts_at", start.toISOString())
         .lte("starts_at", end.toISOString())
@@ -96,23 +98,31 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     );
   }
 
-  const appointments: AdminAppointment[] = ((appointmentRows as AppointmentRow[]) ?? []).map(
-    (row) => ({
-      id: row.id,
-      technicianId: row.technician_id,
-      anyTechnician: row.any_technician ?? false,
-      customerName: row.customer_name,
-      customerPhone: row.customer_phone,
-      startsAt: row.starts_at,
-      endsAt: row.ends_at,
-      status: row.status,
-      source: row.source,
-      notes: row.notes,
-      services:
-        row.appointment_services?.map((item) => getServiceById(item.service_id)?.name ?? item.service_id) ??
-        [],
-    })
-  );
+  const rows = (appointmentRows as AppointmentRow[]) ?? [];
+  const partySizes = new Map<string, number>();
+  rows.forEach((row) => {
+    if (!row.party_group_id) return;
+    partySizes.set(row.party_group_id, (partySizes.get(row.party_group_id) ?? 0) + 1);
+  });
+
+  const appointments: AdminAppointment[] = rows.map((row) => ({
+    id: row.id,
+    technicianId: row.technician_id,
+    anyTechnician: row.any_technician ?? false,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    status: row.status,
+    source: row.source,
+    notes: row.notes,
+    partyGroupId: row.party_group_id,
+    isGuest: row.is_guest ?? false,
+    partySize: row.party_group_id ? (partySizes.get(row.party_group_id) ?? 1) : 1,
+    services:
+      row.appointment_services?.map((item) => getServiceById(item.service_id)?.name ?? item.service_id) ??
+      [],
+  }));
 
   const offTechnicianIds = ((timeOffRows as TimeOffRow[]) ?? []).map(
     (row) => row.technician_id

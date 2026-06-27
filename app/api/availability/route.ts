@@ -5,6 +5,7 @@ import {
   getServicesByIds,
   type TechnicianSelection,
 } from "@/lib/booking/availability";
+import { parsePartyPayload } from "@/lib/booking/party-scheduling";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,12 +13,13 @@ export async function GET(request: Request) {
   const technicianId = (searchParams.get("technicianId") ||
     "any") as TechnicianSelection;
   const serviceIds = searchParams.getAll("serviceId");
+  const party = parsePartyPayload(searchParams.get("party"), serviceIds);
 
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return NextResponse.json({ error: "A valid date is required." }, { status: 400 });
   }
 
-  if (serviceIds.length === 0) {
+  if (party.length === 0 || party.every((member) => member.serviceIds.length === 0)) {
     return NextResponse.json(
       { error: "At least one service is required." },
       { status: 400 }
@@ -25,7 +27,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    getServicesByIds(serviceIds);
+    for (const member of party) {
+      if (member.serviceIds.length > 0) {
+        getServicesByIds(member.serviceIds);
+      }
+    }
   } catch {
     return NextResponse.json(
       { error: "One or more selected services are invalid." },
@@ -34,7 +40,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const slots = await getAvailableSlots({ date, serviceIds, technicianId });
+    const slots = await getAvailableSlots({ date, party, technicianId });
     return NextResponse.json({ slots });
   } catch (error) {
     console.error("Availability lookup failed", error);

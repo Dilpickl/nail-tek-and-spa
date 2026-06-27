@@ -14,7 +14,13 @@ import {
   SLOT_INTERVAL_MINUTES,
   toLocalDateTime,
 } from "@/lib/booking/time-utils";
-import { getSlotUsage, type BusyWindow } from "@/lib/booking/slot-capacity";
+import {
+  assignTechniciansForParty,
+  getPartyMaxDurationMinutes,
+  getPartyMembersWithServices,
+  type TechnicianSelection,
+} from "@/lib/booking/party-scheduling";
+import type { BusyWindow } from "@/lib/booking/slot-capacity";
 
 export {
   filterPastSlots,
@@ -36,7 +42,7 @@ export {
   type BookingPartyMember,
 } from "@/lib/booking/service-utils";
 
-export type TechnicianSelection = "any" | string;
+export type { TechnicianSelection } from "@/lib/booking/party-scheduling";
 
 export interface BookingSlot {
   time: string;
@@ -84,17 +90,24 @@ function isTechnicianOff(
 
 export async function getAvailableSlots({
   date,
+  party,
   serviceIds,
   technicianId,
 }: {
   date: string;
-  serviceIds: string[];
+  party?: BookingPartyMember[];
+  serviceIds?: string[];
   technicianId: TechnicianSelection;
 }): Promise<BookingSlot[]> {
-  const duration = getTotalDurationMinutes(serviceIds);
+  const members = party
+    ? getPartyMembersWithServices(party)
+    : getPartyMembersWithServices([
+        { id: "0", label: "You", serviceIds: serviceIds ?? [] },
+      ]);
+  const maxDuration = getPartyMaxDurationMinutes(members);
   const dayHours = getBusinessHoursForDate(date);
 
-  if (!dayHours?.open || !dayHours.close || duration <= 0) {
+  if (!dayHours?.open || !dayHours.close || maxDuration <= 0 || members.length === 0) {
     return [];
   }
 
@@ -105,6 +118,13 @@ export async function getAvailableSlots({
 
   if (selectedTechnicians.length === 0) {
     return [];
+  }
+
+  if (technicianId !== "any" && members.length > 1) {
+    const otherTechCount = technicians.filter((technician) => technician.id !== technicianId).length;
+    if (otherTechCount < members.length - 1) {
+      return [];
+    }
   }
 
   const supabase = createAdminClient();
@@ -145,36 +165,32 @@ export async function getAvailableSlots({
   const slots: BookingSlot[] = [];
   const open = toLocalDateTime(date, dayHours.open);
   const close = toLocalDateTime(date, dayHours.close);
-  const latestStart = addMinutes(close, -duration);
+  const latestStart = addMinutes(close, -maxDuration);
+  const timeOffRows = (timeOff as TimeOffWindow[] | null) ?? [];
 
   for (
     let slotStart = open;
     slotStart <= latestStart;
     slotStart = addMinutes(slotStart, SLOT_INTERVAL_MINUTES)
   ) {
-    const slotEnd = addMinutes(slotStart, duration);
-    const { assignedBusyIds, remainingSeats } = getSlotUsage(
-      busyWindows as BusyWindow[] | null,
+    const assignments = assignTechniciansForParty({
+      date,
       slotStart,
-      slotEnd,
-      activeTechCount
-    );
-
-    const availableTechnicians = selectedTechnicians.filter((technician) => {
-      if (assignedBusyIds.has(technician.id)) return false;
-
-      return !isTechnicianOff(
-        technician.id,
-        date,
-        slotStart,
-        slotEnd,
-        (timeOff as TimeOffWindow[] | null) ?? []
-      );
+      party: members,
+      technicianId,
+      busyWindows: (busyWindows as BusyWindow[] | null) ?? [],
+      timeOff: timeOffRows,
+      activeTechnicians,
     });
 
-    if (remainingSeats <= 0 || availableTechnicians.length === 0) {
-      continue;
-    }
+    if (!assignments) continue;
+
+    const slotEnd = addMinutes(slotStart, maxDuration);
+    const availableTechnicians = selectedTechnicians.filter((technician) => {
+      return !isTechnicianOff(technician.id, date, slotStart, slotEnd, timeOffRows);
+    });
+
+    if (availableTechnicians.length === 0) continue;
 
     slots.push({
       time: formatTime(slotStart),
@@ -188,15 +204,17 @@ export async function getAvailableSlots({
 export async function resolveTechnicianForSlot({
   date,
   time,
+  party,
   serviceIds,
   technicianId,
 }: {
   date: string;
   time: string;
-  serviceIds: string[];
+  party?: BookingPartyMember[];
+  serviceIds?: string[];
   technicianId: TechnicianSelection;
 }): Promise<string | null> {
-  const slots = await getAvailableSlots({ date, serviceIds, technicianId });
+  const slots = await getAvailableSlots({ date, party, serviceIds, technicianId });
   const match = slots.find((slot) => slot.time === time);
   if (!match) return null;
   if (technicianId === "any") return "any";
