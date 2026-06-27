@@ -72,7 +72,8 @@ Template: `.env.example`
 |------|-------|
 | Branch | `master` (tracks `origin/master`) |
 | Remote | `https://github.com/Dilpickl/nail-tek-and-spa.git` |
-| Latest pushed commit | `b51ac99` (main feature: `d59afac`) — Add salon operations: completion workflow, analytics, and admin scheduling |
+| HEAD | `fb64538` — run `git log -1 --oneline` after pull |
+| Primary feature commit | `d59afac` — Add salon operations: completion workflow, analytics, and admin scheduling |
 
 ---
 
