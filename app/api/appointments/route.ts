@@ -15,8 +15,12 @@ import {
   getPartyMembersWithServices,
   parsePartyPayload,
 } from "@/lib/booking/party-scheduling";
+import {
+  getActiveTechnicians,
+  getSchedulesForDate,
+  getTechnicianByIdFromDb,
+} from "@/lib/booking/technicians";
 import { isSlotInPast, toLocalDateTime } from "@/lib/booking/time-utils";
-import { getTechnicianById, technicians } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface AppointmentRequest {
@@ -100,9 +104,15 @@ export async function POST(request: Request) {
         .filter((window) => window.full_day)
         .map((window) => window.technician_id)
     );
-    const activeTechnicians = technicians.filter(
-      (technician) => !fullDayOffIds.has(technician.id)
+    const allTechnicians = await getActiveTechnicians();
+    const scheduleMap = await getSchedulesForDate(
+      date,
+      allTechnicians.map((technician) => technician.id)
     );
+    const activeTechnicians = allTechnicians.filter((technician) => {
+      const schedule = scheduleMap.get(technician.id);
+      return schedule?.isWorking && !fullDayOffIds.has(technician.id);
+    });
 
     const assignments = assignTechniciansForParty({
       date,
@@ -112,6 +122,7 @@ export async function POST(request: Request) {
       busyWindows: busyWindows ?? [],
       timeOff: timeOff ?? [],
       activeTechnicians,
+      scheduleMap,
     });
 
     if (!assignments) {
@@ -196,7 +207,8 @@ export async function POST(request: Request) {
     const primaryAssignment = assignments[0];
     const primaryTechnicianName = primaryAssignment.anyTechnician
       ? "Any available technician"
-      : getTechnicianById(primaryAssignment.technicianId ?? "")?.name ?? "Assigned technician";
+      : (await getTechnicianByIdFromDb(primaryAssignment.technicianId ?? ""))?.name ??
+        "Assigned technician";
     const maxDuration = Math.max(...assignments.map((item) => getMemberDurationMinutes(item.member)));
     const endsAt = new Date(startsAt.getTime() + maxDuration * 60_000);
 

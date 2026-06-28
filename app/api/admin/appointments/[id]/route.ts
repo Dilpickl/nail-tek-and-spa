@@ -7,7 +7,7 @@ import {
   validateAndBuildUpdate,
   type UpdateAppointmentPayload,
 } from "@/lib/admin/update-appointment";
-import { getServiceById, getTechnicianById as getTechById } from "@/lib/config/salonData";
+import { getServiceById } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface AppointmentServiceRow {
@@ -87,7 +87,7 @@ export async function PATCH(
 
   const technician = built.anyTechnician
     ? null
-    : getTechnicianById(built.technicianId ?? "");
+    : await getTechnicianById(built.technicianId ?? "");
 
   return NextResponse.json({
     ok: true,
@@ -185,13 +185,17 @@ export async function GET(
     }
   }
 
+  const technician = row.any_technician
+    ? null
+    : await getTechnicianById(row.technician_id ?? "");
+
   return NextResponse.json({
     appointment: {
       id: row.id,
       technicianId: row.any_technician ? ANY_EMPLOYEE_ID : row.technician_id,
       technicianName: row.any_technician
         ? ANY_EMPLOYEE_LABEL
-        : getTechById(row.technician_id ?? "")?.name ?? "Unassigned",
+        : technician?.name ?? "Unassigned",
       anyTechnician: row.any_technician ?? false,
       customerName: row.customer_name,
       customerPhone: row.customer_phone,

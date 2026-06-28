@@ -34,7 +34,8 @@ import {
   maxTime,
   shiftIsoDate,
 } from "@/lib/booking/time-utils";
-import { technicians, serviceCategories, getServiceById } from "@/lib/config/salonData";
+import { serviceCategories, getServiceById } from "@/lib/config/salonData";
+import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +61,7 @@ interface AdminDashboardProps {
   agendaDate: string;
   appointments: AdminAppointment[];
   offTechnicianIds: string[];
+  technicians: BookingTechnicianOption[];
 }
 
 type QuickSource = "walk_in" | "phone";
@@ -76,6 +78,7 @@ export function AdminDashboard({
   agendaDate,
   appointments,
   offTechnicianIds,
+  technicians,
 }: AdminDashboardProps) {
   const router = useRouter();
   const isToday = agendaDate === today;
@@ -175,11 +178,11 @@ export function AdminDashboard({
       ...technicians.map((technician) => ({
         id: technician.id,
         name: technician.name,
-        subtitle: technician.role,
+        subtitle: technician.role ?? undefined,
         showOffToggle: true,
       })),
     ],
-    []
+    [technicians]
   );
 
   const appointmentsByColumn = useMemo(() => {
@@ -405,6 +408,7 @@ export function AdminDashboard({
           source={quickSource}
           today={today}
           agendaDate={agendaDate}
+          technicians={technicians}
           onClose={() => setQuickSource(null)}
           onBookingCreated={(appointmentId) => {
             queueAppointmentHighlights([appointmentId]);
@@ -535,12 +539,14 @@ function QuickBookingPanel({
   source,
   today,
   agendaDate,
+  technicians,
   onClose,
   onBookingCreated,
 }: {
   source: QuickSource;
   today: string;
   agendaDate: string;
+  technicians: BookingTechnicianOption[];
   onClose: () => void;
   onBookingCreated: (appointmentId: string) => void;
 }) {

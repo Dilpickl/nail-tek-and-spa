@@ -17,9 +17,7 @@ import type {
 import {
   allServices,
   getServiceById,
-  getTechnicianById,
   hours as businessHours,
-  technicians,
 } from "@/lib/config/salonData";
 import { roundMoney } from "@/lib/completion/calculate-totals";
 import { normalizePhone } from "@/lib/clients/resolve-client";
@@ -69,6 +67,13 @@ interface ClientRow {
   first_visit_at: string | null;
 }
 
+interface TechnicianRow {
+  id: string;
+  name: string;
+  is_active: boolean;
+  display_order: number;
+}
+
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -91,6 +96,7 @@ export async function fetchAnalytics(
     { data: allCompletedTransactions },
     { data: clients },
     { data: upcomingRows },
+    { data: technicianRows },
   ] = await Promise.all([
     supabase
       .from("appointments")
@@ -124,7 +130,14 @@ export async function fetchAnalytics(
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .limit(12),
+    supabase
+      .from("technicians")
+      .select("id, name, is_active, display_order")
+      .order("display_order", { ascending: true }),
   ]);
+
+  const technicians = (technicianRows ?? []) as TechnicianRow[];
+  const technicianNameById = new Map(technicians.map((tech) => [tech.id, tech.name]));
 
   const appointments = (appointmentsInRange ?? []) as AppointmentRow[];
   const transactions = (transactionsInRange ?? []) as unknown as TransactionRow[];
@@ -147,14 +160,19 @@ export async function fetchAnalytics(
   const busyDays = computeBusyDays(appointments);
   const monthlyTrends = computeMonthlyTrends(appointments, range);
   const averageLeadTimeDays = computeAverageLeadTime(appointments);
-  const staffPerformance = computeStaffPerformance(transactions, allCompleted, appointments);
+  const staffPerformance = computeStaffPerformance(
+    transactions,
+    allCompleted,
+    appointments,
+    technicians
+  );
   const { most, least } = computeServicePopularity(appointments);
   const financialSummary = computeFinancialSummary(transactions);
   const paymentMethods = computePaymentMethods(transactions);
   const rebookingRate = computeRebookingRate(transactions, allCompleted);
   const rebookingTrend = computeRebookingTrend(transactions, allCompleted, range);
-  const scheduleUtilization = computeScheduleUtilization(appointments, range);
-  const upcoming = mapUpcoming((upcomingRows ?? []) as AppointmentRow[]);
+  const scheduleUtilization = computeScheduleUtilization(appointments, range, technicians);
+  const upcoming = mapUpcoming((upcomingRows ?? []) as AppointmentRow[], technicianNameById);
   const alerts = buildAlerts(appointments, transactions);
 
   const totalAppointments = appointments.length;
@@ -383,7 +401,8 @@ function computeAverageLeadTime(appointments: AppointmentRow[]): number {
 function computeStaffPerformance(
   transactions: TransactionRow[],
   allCompleted: { id: string; completed_at: string; appointments: { customer_phone: string; client_id: string | null } | null }[],
-  appointmentsInRange: AppointmentRow[]
+  appointmentsInRange: AppointmentRow[],
+  technicians: TechnicianRow[]
 ): StaffPerformanceRow[] {
   const byTech = new Map<string, { revenue: number; count: number; appointmentIds: string[] }>();
 
@@ -557,7 +576,12 @@ function computeRebookingTrend(
   });
 }
 
-function computeScheduleUtilization(appointments: AppointmentRow[], range: DateRange) {
+function computeScheduleUtilization(
+  appointments: AppointmentRow[],
+  range: DateRange,
+  technicians: TechnicianRow[]
+) {
+  const activeTechnicianCount = technicians.filter((tech) => tech.is_active).length || 1;
   const days = eachDayInRange(range.from, range.to);
   let availableMinutes = 0;
 
@@ -570,7 +594,7 @@ function computeScheduleUtilization(appointments: AppointmentRow[], range: DateR
     const [openH, openM] = schedule.open.split(":").map(Number);
     const [closeH, closeM] = schedule.close.split(":").map(Number);
     const minutes = closeH * 60 + closeM - (openH * 60 + openM);
-    availableMinutes += minutes * technicians.length;
+    availableMinutes += minutes * activeTechnicianCount;
   }
 
   let bookedMinutes = 0;
@@ -589,7 +613,10 @@ function computeScheduleUtilization(appointments: AppointmentRow[], range: DateR
   return { availableHours, bookedHours, occupancyPercent };
 }
 
-function mapUpcoming(rows: AppointmentRow[]): UpcomingAppointment[] {
+function mapUpcoming(
+  rows: AppointmentRow[],
+  technicianNameById: Map<string, string>
+): UpcomingAppointment[] {
   return rows.map((row) => ({
     id: row.id,
     customerName: row.customer_name,
@@ -598,7 +625,7 @@ function mapUpcoming(rows: AppointmentRow[]): UpcomingAppointment[] {
       row.appointment_services?.map(
         (s) => getServiceById(s.service_id)?.name ?? s.service_id
       ) ?? [],
-    technicianName: getTechnicianById(row.technician_id ?? "")?.name ?? "Unassigned",
+    technicianName: technicianNameById.get(row.technician_id ?? "") ?? "Unassigned",
   }));
 }
 

@@ -6,7 +6,8 @@ import {
   type AppointmentDetailData,
 } from "@/components/admin/AppointmentDetailView";
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
-import { getServiceById, getTechnicianById } from "@/lib/config/salonData";
+import { getServiceById } from "@/lib/config/salonData";
+import { getAllTechnicians } from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
@@ -61,10 +62,6 @@ function mapBookedServices(
   );
 }
 
-function technicianLabel(technicianId: string | null) {
-  return getTechnicianById(technicianId ?? "")?.name ?? "Unassigned";
-}
-
 export default async function AppointmentDetailPage({ params }: PageProps) {
   const user = await getCurrentUser();
   if (!user) redirect("/admin/login");
@@ -85,6 +82,11 @@ export default async function AppointmentDetailPage({ params }: PageProps) {
     .maybeSingle();
 
   if (error || !row) notFound();
+
+  const allTechnicians = await getAllTechnicians();
+  const technicianNameById = new Map(allTechnicians.map((tech) => [tech.id, tech.name]));
+  const technicianLabel = (technicianId: string | null) =>
+    technicianId ? technicianNameById.get(technicianId) ?? "Unassigned" : "Unassigned";
 
   const appointmentRow = row as AppointmentRow;
   const bookedServices = mapBookedServices(appointmentRow.appointment_services);

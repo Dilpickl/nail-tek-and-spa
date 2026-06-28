@@ -1,6 +1,12 @@
 import "server-only";
 
-import { technicians } from "@/lib/config/salonData";
+import {
+  getActiveTechnicians,
+  getSchedulesForDate,
+  isTechnicianScheduledForSlot,
+  type DbTechnician,
+  type ResolvedTechnicianSchedule,
+} from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   flattenPartyServiceIds,
@@ -88,6 +94,27 @@ function isTechnicianOff(
   });
 }
 
+function isTechnicianAvailableForSlot({
+  technicianId,
+  date,
+  slotStart,
+  slotEnd,
+  timeOff,
+  scheduleMap,
+}: {
+  technicianId: string;
+  date: string;
+  slotStart: Date;
+  slotEnd: Date;
+  timeOff: TimeOffWindow[];
+  scheduleMap: Map<string, ResolvedTechnicianSchedule>;
+}) {
+  const schedule = scheduleMap.get(technicianId);
+  if (!schedule?.isWorking) return false;
+  if (isTechnicianOff(technicianId, date, slotStart, slotEnd, timeOff)) return false;
+  return isTechnicianScheduledForSlot(schedule, slotStart, slotEnd, date);
+}
+
 export async function getAvailableSlots({
   date,
   party,
@@ -111,17 +138,20 @@ export async function getAvailableSlots({
     return [];
   }
 
+  const allTechnicians = await getActiveTechnicians();
   const selectedTechnicians =
     technicianId === "any"
-      ? technicians
-      : technicians.filter((technician) => technician.id === technicianId);
+      ? allTechnicians
+      : allTechnicians.filter((technician) => technician.id === technicianId);
 
   if (selectedTechnicians.length === 0) {
     return [];
   }
 
   if (technicianId !== "any" && members.length > 1) {
-    const otherTechCount = technicians.filter((technician) => technician.id !== technicianId).length;
+    const otherTechCount = allTechnicians.filter(
+      (technician) => technician.id !== technicianId
+    ).length;
     if (otherTechCount < members.length - 1) {
       return [];
     }
@@ -148,16 +178,22 @@ export async function getAvailableSlots({
   if (appointmentsError) throw appointmentsError;
   if (timeOffError) throw timeOffError;
 
-  const fullDayOffIds = new Set(
-    ((timeOff as TimeOffWindow[] | null) ?? [])
-      .filter((window) => window.full_day)
-      .map((window) => window.technician_id)
+  const scheduleMap = await getSchedulesForDate(
+    date,
+    allTechnicians.map((technician) => technician.id)
   );
-  const activeTechnicians = technicians.filter(
-    (technician) => !fullDayOffIds.has(technician.id)
-  );
-  const activeTechCount = activeTechnicians.length;
+  const timeOffRows = (timeOff as TimeOffWindow[] | null) ?? [];
 
+  const fullDayOffIds = new Set(
+    timeOffRows.filter((window) => window.full_day).map((window) => window.technician_id)
+  );
+
+  const activeTechnicians = allTechnicians.filter((technician) => {
+    const schedule = scheduleMap.get(technician.id);
+    return schedule?.isWorking && !fullDayOffIds.has(technician.id);
+  });
+
+  const activeTechCount = activeTechnicians.length;
   if (activeTechCount === 0) {
     return [];
   }
@@ -166,13 +202,27 @@ export async function getAvailableSlots({
   const open = toLocalDateTime(date, dayHours.open);
   const close = toLocalDateTime(date, dayHours.close);
   const latestStart = addMinutes(close, -maxDuration);
-  const timeOffRows = (timeOff as TimeOffWindow[] | null) ?? [];
 
   for (
     let slotStart = open;
     slotStart <= latestStart;
     slotStart = addMinutes(slotStart, SLOT_INTERVAL_MINUTES)
   ) {
+    const slotEnd = addMinutes(slotStart, maxDuration);
+
+    const availableForSlot = activeTechnicians.filter((technician) =>
+      isTechnicianAvailableForSlot({
+        technicianId: technician.id,
+        date,
+        slotStart,
+        slotEnd,
+        timeOff: timeOffRows,
+        scheduleMap,
+      })
+    );
+
+    if (availableForSlot.length === 0) continue;
+
     const assignments = assignTechniciansForParty({
       date,
       slotStart,
@@ -180,15 +230,22 @@ export async function getAvailableSlots({
       technicianId,
       busyWindows: (busyWindows as BusyWindow[] | null) ?? [],
       timeOff: timeOffRows,
-      activeTechnicians,
+      activeTechnicians: availableForSlot as DbTechnician[],
+      scheduleMap,
     });
 
     if (!assignments) continue;
 
-    const slotEnd = addMinutes(slotStart, maxDuration);
-    const availableTechnicians = selectedTechnicians.filter((technician) => {
-      return !isTechnicianOff(technician.id, date, slotStart, slotEnd, timeOffRows);
-    });
+    const availableTechnicians = selectedTechnicians.filter((technician) =>
+      isTechnicianAvailableForSlot({
+        technicianId: technician.id,
+        date,
+        slotStart,
+        slotEnd,
+        timeOff: timeOffRows,
+        scheduleMap,
+      })
+    );
 
     if (availableTechnicians.length === 0) continue;
 

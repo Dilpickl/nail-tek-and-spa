@@ -15,7 +15,8 @@ import {
   maxTime,
   toIsoDate,
 } from "@/lib/booking/time-utils";
-import { serviceCategories, technicians } from "@/lib/config/salonData";
+import { serviceCategories } from "@/lib/config/salonData";
+import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import { formatMoney } from "@/lib/utils";
 
 interface EditAppointmentFormProps {
@@ -27,6 +28,7 @@ interface EditAppointmentFormProps {
   startsAt: string;
   serviceIds: string[];
   notes: string | null;
+  technicians: BookingTechnicianOption[];
 }
 
 export function EditAppointmentForm({
@@ -38,6 +40,7 @@ export function EditAppointmentForm({
   startsAt,
   serviceIds: initialServiceIds,
   notes: initialNotes,
+  technicians,
 }: EditAppointmentFormProps) {
   const router = useRouter();
   const start = new Date(startsAt);

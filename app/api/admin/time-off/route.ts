@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
-import { technicians } from "@/lib/config/salonData";
+import { getActiveTechnicians } from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface TimeOffRequest {
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
 
   const payload = (await request.json()) as TimeOffRequest;
-  const validationError = validate(payload);
+  const validationError = await validate(payload);
   if (validationError) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
@@ -51,7 +51,8 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true });
 }
 
-function validate(payload: TimeOffRequest) {
+async function validate(payload: TimeOffRequest) {
+  const technicians = await getActiveTechnicians();
   if (!payload.technicianId || !technicians.some((t) => t.id === payload.technicianId)) {
     return "A valid technician is required.";
   }

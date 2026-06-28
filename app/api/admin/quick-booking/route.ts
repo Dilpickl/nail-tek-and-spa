@@ -8,8 +8,12 @@ import {
   getServicesByIds,
   getTotalDurationMinutes,
 } from "@/lib/booking/service-utils";
+import {
+  getActiveTechnicians,
+  getSchedulesForDate,
+  isTechnicianScheduledForSlot,
+} from "@/lib/booking/technicians";
 import { getBusinessHoursForDate, toLocalDateTime } from "@/lib/booking/time-utils";
-import { technicians } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface QuickBookingRequest {
@@ -29,7 +33,8 @@ export async function POST(request: Request) {
   }
 
   const payload = (await request.json()) as QuickBookingRequest;
-  const validationError = validate(payload);
+  const activeTechnicians = await getActiveTechnicians();
+  const validationError = validate(payload, activeTechnicians);
   if (validationError) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
@@ -85,7 +90,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: timeOffError.message }, { status: 500 });
   }
 
-  const activeTechCount = technicians.filter(
+  const activeTechCount = activeTechnicians.filter(
     (tech) => !(timeOffRows ?? []).some((row) => row.technician_id === tech.id)
   ).length;
 
@@ -114,6 +119,27 @@ export async function POST(request: Request) {
     );
   } else if (remainingSeats <= 0) {
     return NextResponse.json({ error: "No open capacity at this time." }, { status: 409 });
+  }
+
+  if (!isAnyTechnician) {
+    const scheduleMap = await getSchedulesForDate(date, [technicianId!]);
+    const schedule = scheduleMap.get(technicianId!);
+    if (
+      !schedule?.isWorking ||
+      !isTechnicianScheduledForSlot(schedule, startsAt, endsAt, date)
+    ) {
+      return NextResponse.json(
+        { error: "That technician is not scheduled to work at this time." },
+        { status: 409 }
+      );
+    }
+
+    if ((timeOffRows ?? []).some((row) => row.technician_id === technicianId)) {
+      return NextResponse.json(
+        { error: "That technician is marked off for this date." },
+        { status: 409 }
+      );
+    }
   }
 
   const { data: appointment, error: appointmentError } = await supabase
@@ -166,7 +192,10 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true, appointmentId: appointment.id });
 }
 
-function validate(payload: QuickBookingRequest) {
+function validate(
+  payload: QuickBookingRequest,
+  technicians: Awaited<ReturnType<typeof getActiveTechnicians>>
+) {
   if (payload.source !== "walk_in" && payload.source !== "phone") {
     return "A valid booking source is required.";
   }

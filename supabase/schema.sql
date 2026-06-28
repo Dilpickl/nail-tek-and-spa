@@ -121,6 +121,29 @@ create unique index if not exists technician_time_off_full_day_unique
   where full_day = true;
 
 -- ----------------------------------------------------------------------------
+--  TECHNICIAN SCHEDULES  (recurring weekly working hours)
+-- ----------------------------------------------------------------------------
+alter table public.technicians
+  add column if not exists bio text,
+  add column if not exists avatar_url text;
+
+create table if not exists public.technician_schedules (
+  technician_id   text not null references public.technicians (id) on delete cascade,
+  day_of_week     smallint not null check (day_of_week >= 0 and day_of_week <= 6),
+  is_working      boolean not null default false,
+  start_time      time,
+  end_time        time,
+  primary key (technician_id, day_of_week),
+  constraint technician_schedules_time_valid check (
+    (is_working = false and start_time is null and end_time is null)
+    or (is_working = true and start_time is not null and end_time is not null and end_time > start_time)
+  )
+);
+
+create index if not exists technician_schedules_day_idx
+  on public.technician_schedules (day_of_week, is_working);
+
+-- ----------------------------------------------------------------------------
 --  ADMIN USERS  (only these authenticated users can access /admin data)
 -- ----------------------------------------------------------------------------
 create table if not exists public.admin_users (
@@ -155,6 +178,7 @@ alter table public.technicians          enable row level security;
 alter table public.appointments         enable row level security;
 alter table public.appointment_services enable row level security;
 alter table public.technician_time_off  enable row level security;
+alter table public.technician_schedules enable row level security;
 alter table public.admin_users          enable row level security;
 
 -- Public (anon) READ access to reference data needed to render the site and
@@ -167,6 +191,9 @@ create policy "public read technicians"
 
 create policy "public read time off"
   on public.technician_time_off for select using (true);
+
+create policy "public read technician schedules"
+  on public.technician_schedules for select using (true);
 
 -- The booking engine needs only busy windows to compute availability. Column
 -- grants below prevent anon users from reading customer names/phones/emails.
@@ -196,6 +223,10 @@ create policy "admin manage appointment services"
 
 create policy "admin manage time off"
   on public.technician_time_off for all to authenticated
+  using (private.is_admin()) with check (private.is_admin());
+
+create policy "admin manage technician schedules"
+  on public.technician_schedules for all to authenticated
   using (private.is_admin()) with check (private.is_admin());
 
 create policy "admin manage admin users"

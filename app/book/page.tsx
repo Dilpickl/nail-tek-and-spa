@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 
 import { getServiceById } from "@/lib/config/salonData";
+import { getActiveTechnicians } from "@/lib/booking/technicians";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 
 export const metadata: Metadata = {
   title: "Book an Appointment",
 };
 
-export default function BookPage({
+export default async function BookPage({
   searchParams,
 }: {
   searchParams: { service?: string };
@@ -15,6 +16,8 @@ export default function BookPage({
   const preselected = searchParams.service
     ? getServiceById(searchParams.service)
     : undefined;
+
+  const technicians = await getActiveTechnicians();
 
   return (
     <section className="section-padding">
@@ -36,7 +39,14 @@ export default function BookPage({
         </div>
 
         <div className="mt-12">
-          <BookingFlow preselectedServiceId={preselected?.id} />
+          <BookingFlow
+            preselectedServiceId={preselected?.id}
+            technicians={technicians.map((technician) => ({
+              id: technician.id,
+              name: technician.name,
+              role: technician.role,
+            }))}
+          />
         </div>
       </div>
     </section>

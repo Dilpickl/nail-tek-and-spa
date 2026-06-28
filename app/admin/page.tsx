@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AdminDashboard, type AdminAppointment } from "@/components/admin/AdminDashboard";
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { getServiceById } from "@/lib/config/salonData";
+import { getActiveTechnicians } from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidIsoDate, toIsoDate } from "@/lib/booking/time-utils";
 
@@ -65,7 +66,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const end = new Date(`${agendaDate}T23:59:59`);
   const supabase = createAdminClient();
 
-  const [{ data: appointmentRows, error: appointmentsError }, { data: timeOffRows, error: timeOffError }] =
+  const [{ data: appointmentRows, error: appointmentsError }, { data: timeOffRows, error: timeOffError }, technicians] =
     await Promise.all([
       supabase
         .from("appointments")
@@ -81,6 +82,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         .select("technician_id")
         .eq("off_date", agendaDate)
         .eq("full_day", true),
+      getActiveTechnicians(),
     ]);
 
   if (appointmentsError || timeOffError) {
@@ -134,6 +136,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       agendaDate={agendaDate}
       appointments={appointments}
       offTechnicianIds={offTechnicianIds}
+      technicians={technicians.map((technician) => ({
+        id: technician.id,
+        name: technician.name,
+        role: technician.role,
+      }))}
     />
   );
 }

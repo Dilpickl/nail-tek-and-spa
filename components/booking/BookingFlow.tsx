@@ -25,8 +25,8 @@ import {
   getServiceById,
   getServiceVariantIds,
   serviceCategories,
-  technicians,
 } from "@/lib/config/salonData";
+import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import { formatDuration, formatPrice, cn } from "@/lib/utils";
 import {
   filterPastSlots,
@@ -63,11 +63,12 @@ interface BookingConfirmation {
 
 interface BookingFlowProps {
   preselectedServiceId?: string;
+  technicians: BookingTechnicianOption[];
 }
 
 const stepLabels = ["Services", "Technician", "Date & Time", "Details", "Confirm"];
 
-export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
+export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowProps) {
   const [step, setStep] = useState<Step>(1);
   const [party, setParty] = useState<PartyMember[]>(() => [
     {
@@ -236,6 +237,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
               technicianId={technicianId}
               setTechnicianId={setTechnicianId}
               partySize={party.length}
+              technicians={technicians}
             />
           )}
 
@@ -272,6 +274,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
               details={details}
               smsConsent={smsConsent}
               setSmsConsent={setSmsConsent}
+              technicians={technicians}
             />
           )}
 
@@ -327,6 +330,7 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
           technicianId={technicianId}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
+          technicians={technicians}
         />
       </div>
     </div>
@@ -679,10 +683,12 @@ function TechnicianStep({
   technicianId,
   setTechnicianId,
   partySize,
+  technicians,
 }: {
   technicianId: string;
   setTechnicianId: (id: string) => void;
   partySize: number;
+  technicians: BookingTechnicianOption[];
 }) {
   return (
     <div>
@@ -708,7 +714,7 @@ function TechnicianStep({
             key={technician.id}
             checked={technicianId === technician.id}
             title={technician.name}
-            description={`${technician.role} - ${technician.yearsExperience}+ years`}
+            description={technician.role ?? "Team member"}
             onClick={() => setTechnicianId(technician.id)}
           />
         ))}
@@ -964,6 +970,7 @@ function ConfirmStep({
   details,
   smsConsent,
   setSmsConsent,
+  technicians,
 }: {
   party: PartyMember[];
   technicianId: string;
@@ -972,6 +979,7 @@ function ConfirmStep({
   details: { name: string; phone: string; email: string };
   smsConsent: boolean;
   setSmsConsent: (value: boolean) => void;
+  technicians: BookingTechnicianOption[];
 }) {
   const technician =
     technicianId === "any"
@@ -1035,12 +1043,14 @@ function BookingSummary({
   technicianId,
   selectedDate,
   selectedTime,
+  technicians,
 }: {
   party: PartyMember[];
   totals: { confirmedTotal: number; durationMinutes: number; hasTbdPricing: boolean };
   technicianId: string;
   selectedDate: string;
   selectedTime: string;
+  technicians: BookingTechnicianOption[];
 }) {
   const technician =
     technicianId === "any"

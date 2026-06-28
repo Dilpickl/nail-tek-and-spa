@@ -8,7 +8,13 @@ import {
   getServicesByIds,
   getTotalDurationMinutes,
 } from "@/lib/booking/service-utils";
-import { getTechnicianById, technicians } from "@/lib/config/salonData";
+import {
+  getActiveTechnicians,
+  getAllTechnicians,
+  getSchedulesForDate,
+  getTechnicianByIdFromDb,
+  isTechnicianScheduledForSlot,
+} from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface UpdateAppointmentPayload {
@@ -71,11 +77,13 @@ export async function validateAndBuildUpdate(
   let technicianId: string | null = row.technician_id;
   let anyTechnician = row.any_technician ?? false;
 
+  const allTechnicians = await getAllTechnicians();
+
   if (payload.technicianId !== undefined) {
     if (payload.technicianId === ANY_EMPLOYEE_ID || payload.technicianId === null) {
       technicianId = null;
       anyTechnician = true;
-    } else if (!technicians.some((t) => t.id === payload.technicianId)) {
+    } else if (!allTechnicians.some((t) => t.id === payload.technicianId)) {
       return { error: "A valid technician is required.", status: 400 };
     } else {
       technicianId = payload.technicianId;
@@ -183,7 +191,8 @@ export async function validateAndBuildUpdate(
 
   if (timeOffError) return { error: timeOffError.message, status: 500 };
 
-  const activeTechCount = technicians.filter(
+  const activeTechnicians = await getActiveTechnicians();
+  const activeTechCount = activeTechnicians.filter(
     (tech) => !(timeOffRows ?? []).some((row) => row.technician_id === tech.id)
   ).length;
 
@@ -213,6 +222,22 @@ export async function validateAndBuildUpdate(
 
     if (remainingSeats <= 0) {
       return { error: "No open capacity at this time.", status: 409 };
+    }
+
+    const scheduleMap = await getSchedulesForDate(date, [technicianId]);
+    const schedule = scheduleMap.get(technicianId);
+    if (
+      !schedule?.isWorking ||
+      !isTechnicianScheduledForSlot(schedule, startsAt, endsAt, date)
+    ) {
+      return {
+        error: "That technician is not scheduled to work at this time.",
+        status: 409,
+      };
+    }
+
+    if ((timeOffRows ?? []).some((row) => row.technician_id === technicianId)) {
+      return { error: "That technician is marked off for this date.", status: 409 };
     }
   }
 
@@ -255,4 +280,4 @@ export async function validateAndBuildUpdate(
   };
 }
 
-export { getTechnicianById };
+export { getTechnicianByIdFromDb as getTechnicianById };

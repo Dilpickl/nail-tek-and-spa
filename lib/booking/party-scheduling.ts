@@ -1,6 +1,7 @@
 import "server-only";
 
-import { technicians } from "@/lib/config/salonData";
+import type { DbTechnician, ResolvedTechnicianSchedule } from "@/lib/booking/technicians";
+import { isTechnicianScheduledForSlot } from "@/lib/booking/technicians";
 import { getSlotUsage, type BusyWindow } from "@/lib/booking/slot-capacity";
 import {
   getServicesByIds,
@@ -84,8 +85,12 @@ function isTechnicianFreeForWindow(
   start: Date,
   end: Date,
   busyWindows: BusyWindow[],
-  timeOff: TimeOffWindow[]
+  timeOff: TimeOffWindow[],
+  scheduleMap: Map<string, ResolvedTechnicianSchedule>
 ) {
+  const schedule = scheduleMap.get(technicianId);
+  if (!schedule?.isWorking) return false;
+  if (!isTechnicianScheduledForSlot(schedule, start, end, date)) return false;
   if (isTechnicianOff(technicianId, date, start, end, timeOff)) return false;
   return !isTechnicianBusy(technicianId, start, end, busyWindows);
 }
@@ -98,6 +103,7 @@ export function assignTechniciansForParty({
   busyWindows,
   timeOff,
   activeTechnicians,
+  scheduleMap,
 }: {
   date: string;
   slotStart: Date;
@@ -105,7 +111,8 @@ export function assignTechniciansForParty({
   technicianId: TechnicianSelection;
   busyWindows: BusyWindow[];
   timeOff: TimeOffWindow[];
-  activeTechnicians: typeof technicians;
+  activeTechnicians: DbTechnician[];
+  scheduleMap: Map<string, ResolvedTechnicianSchedule>;
 }): PartyMemberAssignment[] | null {
   const members = getPartyMembersWithServices(party);
   if (members.length === 0) return null;
@@ -135,7 +142,8 @@ export function assignTechniciansForParty({
           slotStart,
           memberEnd,
           busyWindows,
-          timeOff
+          timeOff,
+          scheduleMap
         )
       ) {
         return null;
@@ -159,7 +167,8 @@ export function assignTechniciansForParty({
           slotStart,
           memberEnd,
           busyWindows,
-          timeOff
+          timeOff,
+          scheduleMap
         )
     );
 

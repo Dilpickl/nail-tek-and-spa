@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, CalendarDays, LogOut } from "lucide-react";
+import { BarChart3, CalendarDays, LogOut, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Agenda", icon: CalendarDays, exact: true },
+  { href: "/admin/employees", label: "Employees", icon: Users, exact: false },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, exact: false },
 ];
 

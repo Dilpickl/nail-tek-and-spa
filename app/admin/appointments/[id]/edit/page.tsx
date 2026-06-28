@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { EditAppointmentForm } from "@/components/admin/EditAppointmentForm";
 import { ANY_EMPLOYEE_ID } from "@/lib/admin/constants";
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
-import { technicians } from "@/lib/config/salonData";
+import { getActiveTechnicians } from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
@@ -38,6 +38,10 @@ export default async function EditAppointmentPage({ params }: PageProps) {
   if (error || !row) notFound();
   if (row.status !== "booked") redirect(`/admin/appointments/${params.id}`);
 
+  const technicians = await getActiveTechnicians();
+  const defaultTechnicianId =
+    row.any_technician ? ANY_EMPLOYEE_ID : (row.technician_id ?? technicians[0]?.id ?? "");
+
   const serviceIds =
     row.appointment_services?.map((s: { service_id: string }) => s.service_id) ?? [];
 
@@ -62,15 +66,18 @@ export default async function EditAppointmentPage({ params }: PageProps) {
       <div className="mt-8 max-w-3xl">
         <EditAppointmentForm
           appointmentId={row.id}
-          technicianId={
-            row.any_technician ? ANY_EMPLOYEE_ID : (row.technician_id ?? technicians[0]?.id ?? "")
-          }
+          technicianId={defaultTechnicianId}
           customerName={row.customer_name}
           customerPhone={row.customer_phone}
           customerEmail={row.customer_email}
           startsAt={row.starts_at}
           serviceIds={serviceIds}
           notes={row.notes}
+          technicians={technicians.map((technician) => ({
+            id: technician.id,
+            name: technician.name,
+            role: technician.role,
+          }))}
         />
       </div>
     </div>

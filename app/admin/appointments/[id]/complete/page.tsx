@@ -7,7 +7,8 @@ import { CompleteAppointmentForm } from "@/components/admin/CompleteAppointmentF
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { formatDateTime, formatMoney } from "@/lib/admin/format";
 import { formatBookingTotalLabel, isPricingTbdService } from "@/lib/booking/pricing";
-import { getServiceById, getTechnicianById } from "@/lib/config/salonData";
+import { getServiceById } from "@/lib/config/salonData";
+import { getTechnicianByIdFromDb } from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
@@ -55,7 +56,8 @@ export default async function CompleteAppointmentPage({ params }: PageProps) {
 
   const hasTbdPricing = bookedServices.some((svc) => isPricingTbdService(svc.serviceId));
 
-  const technicianName = getTechnicianById(row.technician_id ?? "")?.name ?? "Unassigned";
+  const technicianName =
+    (await getTechnicianByIdFromDb(row.technician_id ?? ""))?.name ?? "Unassigned";
 
   return (
     <div className="container py-8 md:py-10">
