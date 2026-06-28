@@ -74,10 +74,10 @@ Template: `.env.example`
 |------|-------|
 | Branch | `master` (tracks `origin/master`) |
 | Remote | `https://github.com/Dilpickl/nail-tek-and-spa.git` |
-| HEAD | run `git log -1 --oneline` after pull |
+| HEAD | `558b97d` — run `git log -1 --oneline` after pull |
 
 **Recent commits (newest first):**
-- Employees admin tab with weekly schedules and DB-backed availability (see git log)
+- `558b97d` — Add Employees admin tab with weekly schedules and DB-backed availability
 - `b165634` — Add TBD nail art pricing with visit-time checkout and admin agenda tweaks
 - `6464073` — Update plan.md handoff for multi-guest bookings and recent admin UX
 - `4d27dad` — Fix booking validation scroll-to-error for guest service selection
@@ -365,7 +365,7 @@ Read plan.md in the project root first.
 
 Recent work (June 2026): Employees admin tab with weekly per-employee schedules (technician_schedules), DB-backed technician list for booking/agenda/analytics, two-layer availability (recurring schedule + agenda time-off). Multi-guest bookings, party badges, booking scroll-to-error validation, cancel/no-show modals, agenda day navigation.
 
-Confirm migrations 002–005 applied in Supabase.
+Confirm migrations 002–005 applied in Supabase. HEAD should be 558b97d or later on master.
 
 Rules:
 - Revenue metrics = completed transactions only
