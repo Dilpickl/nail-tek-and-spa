@@ -3,6 +3,7 @@ import {
   getServiceById,
   isAddonService,
 } from "@/lib/config/salonData";
+import { isPricingTbdService } from "@/lib/booking/pricing";
 import {
   calculateLineTotal,
   calculateTotals,
@@ -55,6 +56,10 @@ function validateLineItem(item: CompletionLineItemInput): string | null {
   if (!item.serviceId) return "Service items require a service id.";
   const service = getServiceById(item.serviceId);
   if (!service) return `Unknown service: ${item.serviceId}.`;
+
+  if (isPricingTbdService(item.serviceId) && item.unitPrice <= 0) {
+    return `Enter the final nail art price for "${item.name.trim()}".`;
+  }
 
   return null;
 }

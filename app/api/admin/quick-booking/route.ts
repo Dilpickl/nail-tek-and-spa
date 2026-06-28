@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { ANY_EMPLOYEE_ID } from "@/lib/admin/constants";
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { getSlotUsage } from "@/lib/booking/slot-capacity";
+import { getConfirmedServicePrice } from "@/lib/booking/pricing";
 import {
   getServicesByIds,
   getTotalDurationMinutes,
@@ -41,7 +42,10 @@ export async function POST(request: Request) {
   }
 
   const durationMinutes = getTotalDurationMinutes(payload.serviceIds!);
-  const estimatedTotal = services.reduce((sum, service) => sum + service.price, 0);
+  const estimatedTotal = services.reduce(
+    (sum, service) => sum + getConfirmedServicePrice(service.id),
+    0
+  );
   const isAnyTechnician = payload.technicianId === ANY_EMPLOYEE_ID;
   const technicianId = isAnyTechnician ? null : payload.technicianId!;
   const startsAt = toLocalDateTime(payload.date!, payload.time!);
@@ -147,7 +151,7 @@ export async function POST(request: Request) {
   const serviceRows = services.map((service) => ({
     appointment_id: appointment.id,
     service_id: service.id,
-    price_at_booking: service.price,
+    price_at_booking: getConfirmedServicePrice(service.id),
     duration_at_booking: service.durationMinutes,
   }));
 

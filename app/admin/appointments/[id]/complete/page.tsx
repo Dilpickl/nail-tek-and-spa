@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { CompleteAppointmentForm } from "@/components/admin/CompleteAppointmentForm";
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { formatDateTime, formatMoney } from "@/lib/admin/format";
+import { formatBookingTotalLabel, isPricingTbdService } from "@/lib/booking/pricing";
 import { getServiceById, getTechnicianById } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -52,6 +53,8 @@ export default async function CompleteAppointmentPage({ params }: PageProps) {
       ? Number(row.estimated_total)
       : bookedServices.reduce((sum, s) => sum + s.priceAtBooking, 0);
 
+  const hasTbdPricing = bookedServices.some((svc) => isPricingTbdService(svc.serviceId));
+
   const technicianName = getTechnicianById(row.technician_id ?? "")?.name ?? "Unassigned";
 
   return (
@@ -71,7 +74,7 @@ export default async function CompleteAppointmentPage({ params }: PageProps) {
         <h1 className="mt-2 text-4xl font-semibold text-ink">{row.customer_name}</h1>
         <p className="mt-2 text-ink-muted">
           {formatDateTime(row.starts_at)} · {technicianName} · Estimate{" "}
-          {formatMoney(estimatedTotal)}
+          {formatBookingTotalLabel(estimatedTotal, hasTbdPricing)}
         </p>
       </div>
 

@@ -28,6 +28,10 @@ insert into public.services (id, category_id, name, description, price, duration
   ('enh-acrylic-fill', 'enhancements', 'Acrylic Fill',             'Maintenance fill for existing acrylic set.',                 45, 60),
   ('enh-dip',          'enhancements', 'Dip Powder Set',           'Lightweight, durable dip powder color.',                     50, 60),
   ('addon-art-simple', 'art-addons',   'Nail Art (per nail)',      'Hand-painted designs and accents.',                           5, 15),
+  ('addon-art-hand-painted', 'art-addons', 'Nail Art — Hand-painted design', 'Hand-painted designs and accents.',              5, 15),
+  ('addon-art-gemstones',    'art-addons', 'Nail Art — Gemstones',           'Gemstone embellishments per nail.',                8, 15),
+  ('addon-art-airbrush',     'art-addons', 'Nail Art — Airbrush',            'Airbrush nail art per nail.',                     10, 20),
+  ('addon-art-3d',           'art-addons', 'Nail Art — 3D art',              '3D sculpted nail art per nail.',                  12, 20),
   ('addon-french',     'art-addons',   'French Tip',               'Timeless French finish added to any service.',               10, 15),
   ('addon-removal',    'art-addons',   'Soak-Off Removal',         'Gentle removal of gel, acrylic, or dip.',                    15, 15)
 on conflict (id) do update

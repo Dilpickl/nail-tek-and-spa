@@ -28,6 +28,14 @@ export interface BusinessHours {
   close: string | null; // "19:00" (24h)
 }
 
+export interface ServiceVariant {
+  /** Stable unique id — stored on appointment_services. Do not reuse. */
+  id: string;
+  name: string;
+  price: number;
+  durationMinutes: number;
+}
+
 export interface Service {
   /** Stable unique id — used by the booking engine + database. Do not reuse. */
   id: string;
@@ -39,6 +47,10 @@ export interface Service {
   durationMinutes: number;
   /** Optional flag to surface a service in the home "gallery" highlight. */
   featured?: boolean;
+  /** When true, price is finalized at checkout — not included in online booking totals. */
+  pricingTbd?: boolean;
+  /** Bookable sub-options shown as a dropdown when this service is selected. */
+  variants?: ServiceVariant[];
 }
 
 export interface ServiceCategory {
@@ -240,9 +252,37 @@ export const serviceCategories: ServiceCategory[] = [
       {
         id: "addon-art-simple",
         name: "Nail Art (per nail)",
-        description: "Hand-painted designs, accents, and embellishments.",
-        price: 5,
+        description:
+          "Final pricing depends on how many nails and the design complexity — confirmed at your visit.",
+        price: 0,
         durationMinutes: 15,
+        pricingTbd: true,
+        variants: [
+          {
+            id: "addon-art-hand-painted",
+            name: "Hand-painted design",
+            price: 0,
+            durationMinutes: 15,
+          },
+          {
+            id: "addon-art-gemstones",
+            name: "Gemstones",
+            price: 0,
+            durationMinutes: 15,
+          },
+          {
+            id: "addon-art-airbrush",
+            name: "Airbrush",
+            price: 0,
+            durationMinutes: 20,
+          },
+          {
+            id: "addon-art-3d",
+            name: "3D art",
+            price: 0,
+            durationMinutes: 20,
+          },
+        ],
       },
       {
         id: "addon-french",
@@ -262,18 +302,66 @@ export const serviceCategories: ServiceCategory[] = [
   },
 ];
 
-/** Flat list of every service — convenient for the booking engine + lookups. */
-export const allServices: Service[] = serviceCategories.flatMap(
-  (c) => c.services
-);
+function resolveVariantService(parent: Service, variant: ServiceVariant): Service {
+  const pricingTbd = Boolean(parent.pricingTbd);
+  return {
+    id: variant.id,
+    name: `${parent.name} — ${variant.name}`,
+    description: parent.description,
+    price: pricingTbd ? 0 : variant.price,
+    durationMinutes: variant.durationMinutes,
+    pricingTbd,
+  };
+}
 
-/** Quick lookup of a service by id. */
+const serviceParentByVariantId = new Map<string, Service>();
+const serviceById = new Map<string, Service>();
+
+for (const category of serviceCategories) {
+  for (const service of category.services) {
+    serviceById.set(service.id, service);
+    for (const variant of service.variants ?? []) {
+      serviceParentByVariantId.set(variant.id, service);
+      serviceById.set(variant.id, resolveVariantService(service, variant));
+    }
+  }
+}
+
+/** Flat list of every bookable service — includes variant rows for the booking engine. */
+export const allServices: Service[] = Array.from(serviceById.values());
+
+/** Quick lookup of a service by id (parent or variant). */
 export function getServiceById(id: string): Service | undefined {
-  return allServices.find((s) => s.id === id);
+  return serviceById.get(id);
+}
+
+export function getServiceParent(serviceId: string): Service | undefined {
+  return serviceParentByVariantId.get(serviceId);
+}
+
+export function getServiceVariantIds(service: Service): string[] {
+  if (service.variants?.length) {
+    return service.variants.map((variant) => variant.id);
+  }
+  return [service.id];
+}
+
+export function getSelectedServiceVariantId(
+  serviceIds: string[],
+  service: Service
+): string | undefined {
+  const ids = new Set(getServiceVariantIds(service));
+  return serviceIds.find((id) => ids.has(id));
 }
 
 export function getServiceCategoryId(serviceId: string): string | undefined {
-  return serviceCategories.find((c) => c.services.some((s) => s.id === serviceId))?.id;
+  const direct = serviceCategories.find((c) =>
+    c.services.some((s) => s.id === serviceId)
+  )?.id;
+  if (direct) return direct;
+
+  const parent = getServiceParent(serviceId);
+  return parent ? getServiceCategoryId(parent.id) : undefined;
 }
 
 export function isAddonService(serviceId: string): boolean {

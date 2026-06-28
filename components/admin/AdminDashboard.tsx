@@ -80,11 +80,14 @@ export function AdminDashboard({
   const router = useRouter();
   const isToday = agendaDate === today;
   const isTomorrow = agendaDate === shiftIsoDate(today, 1);
+  const isYesterday = agendaDate === shiftIsoDate(today, -1);
   const agendaHeading = isToday
     ? "Today's Agenda"
     : isTomorrow
       ? "Tomorrow"
-      : "Agenda";
+      : isYesterday
+        ? "Yesterday"
+        : "Agenda";
   const [notice, setNotice] = useState("");
   const [quickSource, setQuickSource] = useState<QuickSource | null>(null);
   const [pendingOffId, setPendingOffId] = useState("");

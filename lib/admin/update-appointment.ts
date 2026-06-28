@@ -1,6 +1,7 @@
 import "server-only";
 
 import { ANY_EMPLOYEE_ID } from "@/lib/admin/constants";
+import { getConfirmedServicePrice } from "@/lib/booking/pricing";
 import { getBusinessHoursForDate, toLocalDateTime } from "@/lib/booking/time-utils";
 import { getSlotUsage, type BusyWindow } from "@/lib/booking/slot-capacity";
 import {
@@ -134,12 +135,15 @@ export async function validateAndBuildUpdate(
     const duration = getTotalDurationMinutes(serviceIds);
     startsAt = toLocalDateTime(date, time);
     endsAt = new Date(startsAt.getTime() + duration * 60_000);
-    estimatedTotal = services.reduce((sum, service) => sum + service.price, 0);
+    estimatedTotal = services.reduce(
+      (sum, service) => sum + getConfirmedServicePrice(service.id),
+      0
+    );
 
     if (payload.serviceIds !== undefined) {
       serviceRows = services.map((service) => ({
         service_id: service.id,
-        price_at_booking: service.price,
+        price_at_booking: getConfirmedServicePrice(service.id),
         duration_at_booking: service.durationMinutes,
       }));
     }

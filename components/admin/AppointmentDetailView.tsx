@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatBookingTotalLabel, isPricingTbdService } from "@/lib/booking/pricing";
 import { formatDateTime, formatMoney } from "@/lib/admin/format";
 
 interface BookedService {
@@ -252,13 +253,24 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
                 className="flex items-center justify-between rounded-xl bg-background px-4 py-3 text-sm"
               >
                 <span className="font-medium text-ink">{svc.name}</span>
-                <span className="text-ink-muted">{formatMoney(svc.priceAtBooking)}</span>
+                <span className="text-ink-muted">
+                  {isPricingTbdService(svc.serviceId) && svc.priceAtBooking <= 0
+                    ? "Priced at visit"
+                    : formatMoney(svc.priceAtBooking)}
+                </span>
               </li>
             ))}
           </ul>
           <div className="mt-4 flex justify-between border-t border-ink/10 pt-4 font-semibold text-ink">
             <span>Estimated Total</span>
-            <span>{formatMoney(appointment.estimatedTotal)}</span>
+            <span>
+              {formatBookingTotalLabel(
+                appointment.estimatedTotal,
+                appointment.bookedServices.some((svc) =>
+                  isPricingTbdService(svc.serviceId)
+                )
+              )}
+            </span>
           </div>
         </section>
       </div>

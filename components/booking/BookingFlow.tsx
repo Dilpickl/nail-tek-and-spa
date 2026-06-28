@@ -16,7 +16,14 @@ import {
 } from "lucide-react";
 
 import {
+  computeBookingTotals,
+  formatBookingTotalLabel,
+  formatServicePriceLabel,
+} from "@/lib/booking/pricing";
+import {
+  getSelectedServiceVariantId,
   getServiceById,
+  getServiceVariantIds,
   serviceCategories,
   technicians,
 } from "@/lib/config/salonData";
@@ -50,6 +57,7 @@ interface BookingConfirmation {
   customerName: string;
   party: PartyMember[];
   estimatedTotal: number;
+  hasTbdPricing: boolean;
   durationMinutes: number;
 }
 
@@ -92,23 +100,9 @@ export function BookingFlow({ preselectedServiceId }: BookingFlowProps) {
       ),
     [party]
   );
-  const selectedServices = useMemo(
-    () =>
-      selectedServiceIds
-        .map((id) => getServiceById(id))
-        .filter((service): service is NonNullable<typeof service> => Boolean(service)),
-    [selectedServiceIds]
-  );
   const totals = useMemo(
-    () =>
-      selectedServices.reduce(
-        (total, service) => ({
-          price: total.price + service.price,
-          duration: total.duration + service.durationMinutes,
-        }),
-        { price: 0, duration: 0 }
-      ),
-    [selectedServices]
+    () => computeBookingTotals(selectedServiceIds),
+    [selectedServiceIds]
   );
 
   const autoDateAdjusted = useRef(false);
@@ -400,7 +394,7 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
                       {service.name}
                     </span>
                     <span className="shrink-0 font-medium text-ink-muted">
-                      {formatPrice(service.price)}
+                      {formatServicePriceLabel(id)}
                     </span>
                   </li>
                 );
@@ -411,10 +405,18 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
 
         <div className="mt-5 flex items-center justify-between border-t border-ink/8 pt-4">
           <span className="font-semibold text-ink">Estimated total</span>
-          <span className="text-xl font-semibold text-ink">
-            {formatPrice(confirmation.estimatedTotal)}
+          <span className="text-right text-xl font-semibold text-ink">
+            {formatBookingTotalLabel(
+              confirmation.estimatedTotal,
+              confirmation.hasTbdPricing
+            )}
           </span>
         </div>
+        {confirmation.hasTbdPricing && (
+          <p className="mt-2 text-sm text-ink-muted">
+            Nail art is priced at your visit based on nails done and design detail.
+          </p>
+        )}
       </section>
 
       <p className="mt-6 text-center text-sm text-ink-muted">
@@ -548,48 +550,102 @@ function ServiceStep({
                   </p>
                   <div className="mt-2 grid gap-2">
                     {category.services.map((service) => {
-                      const checked = member.serviceIds.includes(service.id);
+                      const hasVariants = Boolean(service.variants?.length);
+                      const selectedVariantId = getSelectedServiceVariantId(
+                        member.serviceIds,
+                        service
+                      );
+                      const checked = hasVariants
+                        ? Boolean(selectedVariantId)
+                        : member.serviceIds.includes(service.id);
+                      const displayService =
+                        (selectedVariantId && getServiceById(selectedVariantId)) || service;
+
+                      function toggleService() {
+                        onFieldEdit(servicesFieldId);
+                        setParty((current) =>
+                          current.map((item) => {
+                            if (item.id !== member.id) return item;
+
+                            const variantIds = getServiceVariantIds(service);
+                            const withoutService = item.serviceIds.filter(
+                              (id) => !variantIds.includes(id)
+                            );
+
+                            if (checked) {
+                              return { ...item, serviceIds: withoutService };
+                            }
+
+                            const nextVariantId = service.variants?.[0]?.id ?? service.id;
+                            return {
+                              ...item,
+                              serviceIds: [...withoutService, nextVariantId],
+                            };
+                          })
+                        );
+                      }
+
+                      function setVariant(variantId: string) {
+                        onFieldEdit(servicesFieldId);
+                        setParty((current) =>
+                          current.map((item) => {
+                            if (item.id !== member.id) return item;
+
+                            const variantIds = getServiceVariantIds(service);
+                            const withoutService = item.serviceIds.filter(
+                              (id) => !variantIds.includes(id)
+                            );
+
+                            return {
+                              ...item,
+                              serviceIds: [...withoutService, variantId],
+                            };
+                          })
+                        );
+                      }
+
                       return (
-                        <label
+                        <div
                           key={`${member.id}-${service.id}`}
-                          className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                          className={`rounded-lg border p-3 transition-colors ${
                             checked
                               ? "border-ink bg-offwhite"
                               : "border-border bg-offwhite/60 hover:border-ink/40"
                           }`}
                         >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            className="mt-1 size-4 accent-ink"
-                            onChange={() => {
-                              onFieldEdit(servicesFieldId);
-                              setParty((current) =>
-                                current.map((item) =>
-                                  item.id === member.id
-                                    ? {
-                                        ...item,
-                                        serviceIds: checked
-                                          ? item.serviceIds.filter((id) => id !== service.id)
-                                          : [...item.serviceIds, service.id],
-                                      }
-                                    : item
-                                )
-                              );
-                            }}
-                          />
-                          <span className="flex-1">
-                            <span className="flex items-baseline justify-between gap-3">
-                              <span className="font-medium text-ink">{service.name}</span>
-                              <span className="text-sm font-semibold text-ink">
-                                {formatPrice(service.price)}
+                          <label className="flex cursor-pointer items-start gap-3">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              className="mt-1 size-4 accent-ink"
+                              onChange={toggleService}
+                            />
+                            <span className="flex-1">
+                              <span className="flex items-baseline justify-between gap-3">
+                                <span className="font-medium text-ink">{service.name}</span>
+                                <span className="text-sm font-semibold text-ink">
+                                  {formatServicePriceLabel(displayService.id)}
+                                </span>
+                              </span>
+                              <span className="mt-1 block text-sm text-ink-muted">
+                                {formatDuration(displayService.durationMinutes)}
                               </span>
                             </span>
-                            <span className="mt-1 block text-sm text-ink-muted">
-                              {formatDuration(service.durationMinutes)}
-                            </span>
-                          </span>
-                        </label>
+                          </label>
+                          {hasVariants && checked && (
+                            <select
+                              value={selectedVariantId}
+                              onChange={(event) => setVariant(event.target.value)}
+                              className="mt-3 ml-7 h-10 w-[calc(100%-1.75rem)] rounded-lg border border-input bg-background px-3 text-sm text-ink outline-none transition-shadow focus:border-ink/40"
+                            >
+                              {service.variants!.map((variant) => (
+                                <option key={variant.id} value={variant.id}>
+                                  {variant.name} · {formatDuration(variant.durationMinutes)}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
@@ -981,7 +1037,7 @@ function BookingSummary({
   selectedTime,
 }: {
   party: PartyMember[];
-  totals: { price: number; duration: number };
+  totals: { confirmedTotal: number; durationMinutes: number; hasTbdPricing: boolean };
   technicianId: string;
   selectedDate: string;
   selectedTime: string;
@@ -1001,9 +1057,17 @@ function BookingSummary({
         <SummaryRow label="Technician" value={technician} />
         <SummaryRow label="Date" value={formatReadableDate(selectedDate)} />
         <SummaryRow label="Time" value={selectedTime ? formatTimeLabel(selectedTime) : "Select"} />
-        <SummaryRow label="Duration" value={totals.duration ? formatDuration(totals.duration) : "0 min"} />
-        <SummaryRow label="Total" value={formatPrice(totals.price)} />
+        <SummaryRow label="Duration" value={totals.durationMinutes ? formatDuration(totals.durationMinutes) : "0 min"} />
+        <SummaryRow
+          label="Total"
+          value={formatBookingTotalLabel(totals.confirmedTotal, totals.hasTbdPricing)}
+        />
       </div>
+      {totals.hasTbdPricing && (
+        <p className="mt-3 text-xs text-ink-muted">
+          Nail art is priced at your visit based on nails done and design detail.
+        </p>
+      )}
 
       <div className="mt-6 border-t border-border pt-5">
         {party.map((member) => (
@@ -1119,13 +1183,7 @@ async function submitBooking({
   setSubmitting(true);
   setSubmitError("");
 
-  const services = party.flatMap((member) =>
-    member.serviceIds
-      .map((id) => getServiceById(id))
-      .filter((service): service is NonNullable<typeof service> => Boolean(service))
-  );
-  const estimatedTotal = services.reduce((sum, service) => sum + service.price, 0);
-  const durationMinutes = services.reduce((sum, service) => sum + service.durationMinutes, 0);
+  const bookingTotals = computeBookingTotals(party.flatMap((member) => member.serviceIds));
 
   try {
     const response = await fetch("/api/appointments", {
@@ -1152,8 +1210,9 @@ async function submitBooking({
       ...body,
       customerName: details.name.trim(),
       party,
-      estimatedTotal,
-      durationMinutes,
+      estimatedTotal: bookingTotals.confirmedTotal,
+      hasTbdPricing: bookingTotals.hasTbdPricing,
+      durationMinutes: bookingTotals.durationMinutes,
     });
   } catch (error) {
     setSubmitError((error as Error).message);

@@ -1,4 +1,5 @@
-import { allServices, type Service } from "@/lib/config/salonData";
+import { getServiceById } from "@/lib/config/salonData";
+import type { Service } from "@/lib/config/salonData";
 
 export interface BookingPartyMember {
   id: string;
@@ -6,11 +7,9 @@ export interface BookingPartyMember {
   serviceIds: string[];
 }
 
-const serviceById = new Map(allServices.map((service) => [service.id, service]));
-
 export function getServicesByIds(serviceIds: string[]): Service[] {
   return serviceIds.map((id) => {
-    const service = serviceById.get(id);
+    const service = getServiceById(id);
     if (!service) {
       throw new Error(`Unknown service id: ${id}`);
     }

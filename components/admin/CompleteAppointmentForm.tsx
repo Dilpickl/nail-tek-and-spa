@@ -7,6 +7,7 @@ import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CompletionLineItemInput, PaymentMethod } from "@/lib/completion/types";
 import { calculateTotals } from "@/lib/completion/calculate-totals";
+import { isPricingTbdService, formatBookingTotalLabel } from "@/lib/booking/pricing";
 import {
   allServices,
   retailProducts,
@@ -71,7 +72,18 @@ export function CompleteAppointmentForm({
     [lineItems, discountAmount, taxAmount, tipAmount]
   );
 
+  const hasTbdBookedServices = bookedServices.some((svc) =>
+    isPricingTbdService(svc.serviceId)
+  );
+  const hasUnsetTbdPricing = lineItems.some(
+    (item) =>
+      item.serviceId &&
+      isPricingTbdService(item.serviceId) &&
+      item.unitPrice <= 0
+  );
+
   const unchangedFromBooking =
+    !hasUnsetTbdPricing &&
     lineItems.length === bookedServices.length &&
     bookedServices.every((svc) => {
       const item = lineItems.find((l) => l.serviceId === svc.serviceId);
@@ -164,11 +176,19 @@ export function CompleteAppointmentForm({
           <div>
             <h2 className="text-2xl font-semibold text-ink">Completion Details</h2>
             <p className="text-sm text-ink-muted">
-              Original estimate: {formatMoney(estimatedTotal)}
+              Original estimate:{" "}
+              {formatBookingTotalLabel(estimatedTotal, hasTbdBookedServices)}
               {unchangedFromBooking && " — no changes detected, one-click ready."}
             </p>
           </div>
         </div>
+
+        {hasTbdBookedServices && (
+          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-950 ring-1 ring-amber-200">
+            This appointment includes nail art priced at the visit. Enter the final
+            charge for each nail art line before completing checkout.
+          </p>
+        )}
 
         <div className="mt-5 space-y-3">
           {lineItems.length === 0 && (
@@ -177,7 +197,12 @@ export function CompleteAppointmentForm({
             </p>
           )}
 
-          {lineItems.map((item) => (
+          {lineItems.map((item) => {
+            const needsFinalPrice = Boolean(
+              item.serviceId && isPricingTbdService(item.serviceId)
+            );
+
+            return (
             <div
               key={item.key}
               className="grid gap-3 rounded-xl bg-background p-4 ring-1 ring-ink/5 md:grid-cols-[1fr_auto_auto_auto]"
@@ -186,6 +211,7 @@ export function CompleteAppointmentForm({
                 <p className="font-semibold text-ink">{item.name}</p>
                 <p className="text-xs uppercase tracking-wide text-ink-muted">
                   {item.lineType}
+                  {needsFinalPrice && " · priced at visit"}
                 </p>
               </div>
 
@@ -205,7 +231,9 @@ export function CompleteAppointmentForm({
               </label>
 
               <label className="block">
-                <span className="text-xs font-medium text-ink-muted">Price</span>
+                <span className="text-xs font-medium text-ink-muted">
+                  {needsFinalPrice ? "Final price *" : "Price"}
+                </span>
                 <input
                   type="number"
                   min={0}
@@ -216,13 +244,19 @@ export function CompleteAppointmentForm({
                       unitPrice: Math.max(0, Number(e.target.value) || 0),
                     })
                   }
-                  className="mt-1 h-10 w-28 rounded-md border border-input bg-offwhite px-2 text-ink"
+                  className={`mt-1 h-10 w-28 rounded-md border bg-offwhite px-2 text-ink ${
+                    needsFinalPrice && item.unitPrice <= 0
+                      ? "border-amber-500 ring-1 ring-amber-500"
+                      : "border-input"
+                  }`}
                 />
               </label>
 
               <div className="flex items-end justify-between gap-3 md:flex-col md:items-end">
                 <p className="text-sm font-semibold text-ink">
-                  {formatMoney(item.quantity * item.unitPrice)}
+                  {needsFinalPrice && item.unitPrice <= 0
+                    ? "TBD"
+                    : formatMoney(item.quantity * item.unitPrice)}
                 </p>
                 <button
                   type="button"
@@ -234,7 +268,8 @@ export function CompleteAppointmentForm({
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -333,6 +368,12 @@ export function CompleteAppointmentForm({
         </div>
       </section>
 
+      {hasUnsetTbdPricing && (
+        <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Enter the final nail art price before completing this appointment.
+        </p>
+      )}
+
       {error && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
       )}
@@ -340,7 +381,7 @@ export function CompleteAppointmentForm({
       <Button
         className="min-h-14 w-full text-lg"
         onClick={submit}
-        disabled={loading || lineItems.length === 0}
+        disabled={loading || lineItems.length === 0 || hasUnsetTbdPricing}
       >
         {loading ? (
           <Loader2 className="size-5 animate-spin" />

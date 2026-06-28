@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
+import { getConfirmedServicePrice } from "@/lib/booking/pricing";
 import {
   getServicesByIds,
   resolveTechnicianForSlot,
@@ -135,7 +136,10 @@ export async function POST(request: Request) {
         const duration = getMemberDurationMinutes(member);
         const memberEndsAt = new Date(startsAt.getTime() + duration * 60_000);
         const isPrimary = index === 0;
-        const estimatedTotal = services.reduce((sum, service) => sum + service.price, 0);
+        const estimatedTotal = services.reduce(
+          (sum, service) => sum + getConfirmedServicePrice(service.id),
+          0
+        );
 
         const { data: appointment, error: appointmentError } = await supabase
           .from("appointments")
@@ -172,7 +176,7 @@ export async function POST(request: Request) {
         const serviceRows = services.map((service) => ({
           appointment_id: appointment.id,
           service_id: service.id,
-          price_at_booking: service.price,
+          price_at_booking: getConfirmedServicePrice(service.id),
           duration_at_booking: service.durationMinutes,
         }));
 
