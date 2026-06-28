@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Copy, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,10 +24,13 @@ export function EmployeeScheduleEditor({
   onChange,
   disabled = false,
 }: EmployeeScheduleEditorProps) {
+  const [draftHint, setDraftHint] = useState("");
+
   function updateDay(dayOfWeek: number, patch: Partial<TechnicianScheduleInput>) {
     onChange(
       schedule.map((day) => (day.dayOfWeek === dayOfWeek ? { ...day, ...patch } : day))
     );
+    setDraftHint("Click Save schedule to apply these changes.");
   }
 
   function toggleWorking(dayOfWeek: number, isWorking: boolean) {
@@ -42,28 +46,52 @@ export function EmployeeScheduleEditor({
     });
   }
 
+  function applyQuickSetup(nextSchedule: TechnicianScheduleInput[], hint: string) {
+    onChange(nextSchedule);
+    setDraftHint(hint);
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          disabled={disabled}
-          onClick={() => onChange(copyMondayToWeekdays(schedule))}
-        >
-          <Copy className="size-4" />
-          Copy Mon → Weekdays
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          disabled={disabled}
-          onClick={() => onChange(applySalonHoursToSchedule())}
-        >
-          Apply salon hours
-        </Button>
+      <div className="rounded-2xl bg-secondary/40 p-4">
+        <p className="text-sm font-semibold text-ink">Quick weekly setup</p>
+        <p className="mt-1 text-sm text-ink-muted">
+          These shortcuts update the draft below. Save schedule when you are done.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={disabled}
+            onClick={() =>
+              applyQuickSetup(
+                applySalonHoursToSchedule(),
+                "Salon default hours applied — click Save schedule to apply."
+              )
+            }
+          >
+            Reset to salon default hours
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={disabled}
+            onClick={() =>
+              applyQuickSetup(
+                copyMondayToWeekdays(schedule),
+                "Monday copied to Tue–Fri — click Save schedule to apply."
+              )
+            }
+          >
+            <Copy className="size-4" />
+            Copy Mon → Weekdays
+          </Button>
+        </div>
+        {draftHint && (
+          <p className="mt-3 text-sm font-medium text-amber-900">{draftHint}</p>
+        )}
       </div>
 
       <div className="space-y-2">

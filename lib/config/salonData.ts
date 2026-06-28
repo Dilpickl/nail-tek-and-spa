@@ -350,8 +350,15 @@ export function getSelectedServiceVariantId(
   serviceIds: string[],
   service: Service
 ): string | undefined {
+  return getSelectedServiceVariantIds(serviceIds, service)[0];
+}
+
+export function getSelectedServiceVariantIds(
+  serviceIds: string[],
+  service: Service
+): string[] {
   const ids = new Set(getServiceVariantIds(service));
-  return serviceIds.find((id) => ids.has(id));
+  return serviceIds.filter((id) => ids.has(id));
 }
 
 export function getServiceCategoryId(serviceId: string): string | undefined {
@@ -385,7 +392,7 @@ export function getRetailProductById(id: string): RetailProduct | undefined {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Technicians                                                        */
+/*  Technicians — marketing mirror only; operational data lives in DB  */
 /* ------------------------------------------------------------------ */
 
 export const technicians: Technician[] = [

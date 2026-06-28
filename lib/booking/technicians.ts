@@ -7,13 +7,22 @@ import type {
   DbTechnician,
   ResolvedTechnicianSchedule,
   TechnicianScheduleInput,
+  TechnicianScheduleOverrideRow,
   TechnicianScheduleRow,
 } from "@/lib/technicians/types";
 import { DAY_LABELS } from "@/lib/technicians/types";
 
-export type { DbTechnician, TechnicianScheduleRow, ResolvedTechnicianSchedule };
+export type { DbTechnician, TechnicianScheduleRow, ResolvedTechnicianSchedule, TechnicianScheduleOverrideRow };
 
 const DAY_NAMES = [...DAY_LABELS];
+
+function isMissingOverridesTableError(message: string): boolean {
+  return (
+    message.includes("technician_schedule_overrides") ||
+    message.includes("schema cache") ||
+    message.includes("does not exist")
+  );
+}
 
 export function normalizeTimeValue(value: string | null | undefined): string | null {
   if (!value) return null;
@@ -126,6 +135,59 @@ export async function getSchedulesForTechnicians(
   }));
 }
 
+export async function getScheduleOverridesForDate(
+  date: string,
+  technicianIds?: string[]
+): Promise<TechnicianScheduleOverrideRow[]> {
+  const supabase = createAdminClient();
+  let query = supabase
+    .from("technician_schedule_overrides")
+    .select("id, technician_id, override_date, is_working, start_time, end_time, reason")
+    .eq("override_date", date);
+
+  if (technicianIds?.length) {
+    query = query.in("technician_id", technicianIds);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    if (isMissingOverridesTableError(error.message)) return [];
+    throw error;
+  }
+
+  return ((data as TechnicianScheduleOverrideRow[] | null) ?? []).map((row) => ({
+    ...row,
+    start_time: normalizeTimeValue(row.start_time),
+    end_time: normalizeTimeValue(row.end_time),
+  }));
+}
+
+export async function getScheduleOverridesForTechnician(
+  technicianId: string,
+  fromDate: string,
+  toDate: string
+): Promise<TechnicianScheduleOverrideRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("technician_schedule_overrides")
+    .select("id, technician_id, override_date, is_working, start_time, end_time, reason")
+    .eq("technician_id", technicianId)
+    .gte("override_date", fromDate)
+    .lte("override_date", toDate)
+    .order("override_date", { ascending: true });
+
+  if (error) {
+    if (isMissingOverridesTableError(error.message)) return [];
+    throw error;
+  }
+
+  return ((data as TechnicianScheduleOverrideRow[] | null) ?? []).map((row) => ({
+    ...row,
+    start_time: normalizeTimeValue(row.start_time),
+    end_time: normalizeTimeValue(row.end_time),
+  }));
+}
+
 export async function getSchedulesForDate(
   date: string,
   technicianIds?: string[]
@@ -134,10 +196,34 @@ export async function getSchedulesForDate(
   const ids =
     technicianIds ??
     (await getActiveTechnicians()).map((technician) => technician.id);
-  const rows = await getSchedulesForTechnicians(ids);
+  const [rows, overrides] = await Promise.all([
+    getSchedulesForTechnicians(ids),
+    getScheduleOverridesForDate(date, ids),
+  ]);
+  const overrideByTech = new Map(
+    overrides.map((override) => [override.technician_id, override])
+  );
   const map = new Map<string, ResolvedTechnicianSchedule>();
 
   for (const id of ids) {
+    const override = overrideByTech.get(id);
+
+    if (override) {
+      const resolved = intersectScheduleWithSalonHours(
+        {
+          is_working: override.is_working,
+          start_time: override.start_time,
+          end_time: override.end_time,
+        },
+        dayOfWeek
+      );
+      map.set(id, {
+        technicianId: id,
+        ...resolved,
+      });
+      continue;
+    }
+
     const row = rows.find(
       (schedule) => schedule.technician_id === id && schedule.day_of_week === dayOfWeek
     );

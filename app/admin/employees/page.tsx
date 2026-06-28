@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { EmployeesDashboard } from "@/components/admin/employees/EmployeesDashboard";
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Employees",
 };

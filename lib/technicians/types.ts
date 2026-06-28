@@ -40,6 +40,24 @@ export interface BookingTechnicianOption {
   role: string | null;
 }
 
+export interface TechnicianScheduleOverrideRow {
+  id: string;
+  technician_id: string;
+  override_date: string;
+  is_working: boolean;
+  start_time: string | null;
+  end_time: string | null;
+  reason: string | null;
+}
+
+export interface TechnicianScheduleOverrideInput {
+  overrideDate: string;
+  isWorking: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  reason?: string | null;
+}
+
 export const DAY_LABELS = [
   "Sunday",
   "Monday",

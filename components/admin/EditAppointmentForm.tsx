@@ -135,7 +135,7 @@ export function EditAppointmentForm({
               <option value={ANY_EMPLOYEE_ID}>{ANY_EMPLOYEE_LABEL}</option>
               {technicians.map((tech) => (
                 <option key={tech.id} value={tech.id}>
-                  {tech.name}
+                  {tech.role ? `${tech.name} — ${tech.role}` : tech.name}
                 </option>
               ))}
             </select>

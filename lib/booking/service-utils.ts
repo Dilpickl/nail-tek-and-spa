@@ -5,6 +5,8 @@ export interface BookingPartyMember {
   id: string;
   label: string;
   serviceIds: string[];
+  /** Preferred technician; defaults to "any" when omitted. */
+  technicianId?: string;
 }
 
 export function getServicesByIds(serviceIds: string[]): Service[] {

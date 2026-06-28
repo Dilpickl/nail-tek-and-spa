@@ -5,6 +5,7 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 import {
   Calendar,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -21,9 +22,8 @@ import {
   formatServicePriceLabel,
 } from "@/lib/booking/pricing";
 import {
-  getSelectedServiceVariantId,
+  getSelectedServiceVariantIds,
   getServiceById,
-  getServiceVariantIds,
   serviceCategories,
 } from "@/lib/config/salonData";
 import type { BookingTechnicianOption } from "@/lib/technicians/types";
@@ -43,6 +43,7 @@ interface PartyMember {
   id: string;
   label: string;
   serviceIds: string[];
+  technicianId: string;
 }
 
 interface BookingSlot {
@@ -75,9 +76,9 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
       id: "primary",
       label: "You",
       serviceIds: preselectedServiceId ? [preselectedServiceId] : [],
+      technicianId: "any",
     },
   ]);
-  const [technicianId, setTechnicianId] = useState("any");
   const [selectedDate, setSelectedDate] = useState(() => getDefaultBookingDate());
   const [selectedTime, setSelectedTime] = useState("");
   const [slots, setSlots] = useState<BookingSlot[]>([]);
@@ -97,10 +98,15 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
   const partyPayload = useMemo(
     () =>
       JSON.stringify(
-        party.map((member) => ({ label: member.label, serviceIds: member.serviceIds }))
+        party.map((member) => ({
+          label: member.label,
+          serviceIds: member.serviceIds,
+          technicianId: member.technicianId,
+        }))
       ),
     [party]
   );
+  const primaryTechnicianId = party[0]?.technicianId ?? "any";
   const totals = useMemo(
     () => computeBookingTotals(selectedServiceIds),
     [selectedServiceIds]
@@ -132,7 +138,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
   // advancing to the next booking step (which was clearing the selection).
   useEffect(() => {
     setSelectedTime("");
-  }, [selectedDate, partyPayload, technicianId]);
+  }, [selectedDate, partyPayload]);
 
   useEffect(() => {
     if (selectedServiceIds.length === 0 || step < 3) {
@@ -147,7 +153,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
 
       const params = new URLSearchParams({
         date: selectedDate,
-        technicianId,
+        technicianId: party.length === 1 ? primaryTechnicianId : "any",
         party: partyPayload,
       });
 
@@ -177,7 +183,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
 
     loadSlots();
     return () => controller.abort();
-  }, [selectedDate, partyPayload, step, technicianId]);
+  }, [selectedDate, partyPayload, primaryTechnicianId, party.length, step]);
 
   // On step 3, skip closed days and auto-advance if today has no remaining slots.
   useEffect(() => {
@@ -234,9 +240,8 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
 
           {step === 2 && (
             <TechnicianStep
-              technicianId={technicianId}
-              setTechnicianId={setTechnicianId}
-              partySize={party.length}
+              party={party}
+              setParty={setParty}
               technicians={technicians}
             />
           )}
@@ -250,7 +255,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
               slots={slots}
               loadingSlots={loadingSlots}
               slotError={slotError}
-              technicianId={technicianId}
+              party={party}
               highlightedField={highlightedField}
               onFieldEdit={clearFieldHighlight}
             />
@@ -268,7 +273,6 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
           {step === 5 && (
             <ConfirmStep
               party={party}
-              technicianId={technicianId}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               details={details}
@@ -301,7 +305,6 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
                 onClick={() =>
                   submitBooking({
                     party,
-                    technicianId,
                     selectedDate,
                     selectedTime,
                     details,
@@ -327,7 +330,6 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
         <BookingSummary
           party={party}
           totals={totals}
-          technicianId={technicianId}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
           technicians={technicians}
@@ -555,58 +557,102 @@ function ServiceStep({
                   <div className="mt-2 grid gap-2">
                     {category.services.map((service) => {
                       const hasVariants = Boolean(service.variants?.length);
-                      const selectedVariantId = getSelectedServiceVariantId(
+                      const selectedVariantIds = getSelectedServiceVariantIds(
                         member.serviceIds,
                         service
                       );
                       const checked = hasVariants
-                        ? Boolean(selectedVariantId)
+                        ? selectedVariantIds.length > 0
                         : member.serviceIds.includes(service.id);
-                      const displayService =
-                        (selectedVariantId && getServiceById(selectedVariantId)) || service;
 
-                      function toggleService() {
+                      function togglePlainService() {
                         onFieldEdit(servicesFieldId);
                         setParty((current) =>
                           current.map((item) => {
                             if (item.id !== member.id) return item;
-
-                            const variantIds = getServiceVariantIds(service);
-                            const withoutService = item.serviceIds.filter(
-                              (id) => !variantIds.includes(id)
-                            );
-
                             if (checked) {
-                              return { ...item, serviceIds: withoutService };
+                              return {
+                                ...item,
+                                serviceIds: item.serviceIds.filter((id) => id !== service.id),
+                              };
                             }
-
-                            const nextVariantId = service.variants?.[0]?.id ?? service.id;
                             return {
                               ...item,
-                              serviceIds: [...withoutService, nextVariantId],
+                              serviceIds: [...item.serviceIds, service.id],
                             };
                           })
                         );
                       }
 
-                      function setVariant(variantId: string) {
+                      function toggleVariant(variantId: string) {
                         onFieldEdit(servicesFieldId);
                         setParty((current) =>
                           current.map((item) => {
                             if (item.id !== member.id) return item;
-
-                            const variantIds = getServiceVariantIds(service);
-                            const withoutService = item.serviceIds.filter(
-                              (id) => !variantIds.includes(id)
-                            );
-
+                            const isSelected = item.serviceIds.includes(variantId);
                             return {
                               ...item,
-                              serviceIds: [...withoutService, variantId],
+                              serviceIds: isSelected
+                                ? item.serviceIds.filter((id) => id !== variantId)
+                                : [...item.serviceIds, variantId],
                             };
                           })
                         );
                       }
+
+                      if (hasVariants) {
+                        return (
+                          <div
+                            key={`${member.id}-${service.id}`}
+                            className={cn(
+                              "rounded-lg border p-3 transition-colors",
+                              checked
+                                ? "border-ink bg-offwhite"
+                                : "border-border bg-offwhite/60"
+                            )}
+                          >
+                            <p className="font-medium text-ink">{service.name}</p>
+                            <p className="mt-1 text-sm text-ink-muted">
+                              {formatServicePriceLabel(service.id)} · Select one or more types
+                            </p>
+                            <div className="mt-3 space-y-2 pl-1">
+                              {service.variants!.map((variant) => {
+                                const variantSelected = member.serviceIds.includes(variant.id);
+                                const variantService = getServiceById(variant.id);
+                                return (
+                                  <label
+                                    key={variant.id}
+                                    className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background p-3"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={variantSelected}
+                                      className="mt-1 size-4 accent-ink"
+                                      onChange={() => toggleVariant(variant.id)}
+                                    />
+                                    <span className="flex-1">
+                                      <span className="flex items-baseline justify-between gap-3">
+                                        <span className="font-medium text-ink">{variant.name}</span>
+                                        <span className="text-sm font-semibold text-ink">
+                                          {formatServicePriceLabel(variant.id)}
+                                        </span>
+                                      </span>
+                                      <span className="mt-1 block text-sm text-ink-muted">
+                                        {formatDuration(
+                                          variantService?.durationMinutes ??
+                                            variant.durationMinutes
+                                        )}
+                                      </span>
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const displayService = getServiceById(service.id) ?? service;
 
                       return (
                         <div
@@ -622,7 +668,7 @@ function ServiceStep({
                               type="checkbox"
                               checked={checked}
                               className="mt-1 size-4 accent-ink"
-                              onChange={toggleService}
+                              onChange={togglePlainService}
                             />
                             <span className="flex-1">
                               <span className="flex items-baseline justify-between gap-3">
@@ -636,19 +682,6 @@ function ServiceStep({
                               </span>
                             </span>
                           </label>
-                          {hasVariants && checked && (
-                            <select
-                              value={selectedVariantId}
-                              onChange={(event) => setVariant(event.target.value)}
-                              className="mt-3 ml-7 h-10 w-[calc(100%-1.75rem)] rounded-lg border border-input bg-background px-3 text-sm text-ink outline-none transition-shadow focus:border-ink/40"
-                            >
-                              {service.variants!.map((variant) => (
-                                <option key={variant.id} value={variant.id}>
-                                  {variant.name} · {formatDuration(variant.durationMinutes)}
-                                </option>
-                              ))}
-                            </select>
-                          )}
                         </div>
                       );
                     })}
@@ -668,7 +701,7 @@ function ServiceStep({
         onClick={() =>
           setParty((current) => [
             ...current,
-            { id: crypto.randomUUID(), label: "", serviceIds: [] },
+            { id: crypto.randomUUID(), label: "", serviceIds: [], technicianId: "any" },
           ])
         }
       >
@@ -680,42 +713,96 @@ function ServiceStep({
 }
 
 function TechnicianStep({
-  technicianId,
-  setTechnicianId,
-  partySize,
+  party,
+  setParty,
   technicians,
 }: {
-  technicianId: string;
-  setTechnicianId: (id: string) => void;
-  partySize: number;
+  party: PartyMember[];
+  setParty: Dispatch<SetStateAction<PartyMember[]>>;
   technicians: BookingTechnicianOption[];
 }) {
+  const isParty = party.length > 1;
+
+  function setMemberTechnician(memberId: string, technicianId: string) {
+    setParty((current) =>
+      current.map((member) =>
+        member.id === memberId ? { ...member, technicianId } : member
+      )
+    );
+  }
+
+  function formatTechLabel(technician: BookingTechnicianOption) {
+    return technician.role
+      ? `${technician.name} — ${technician.role}`
+      : technician.name;
+  }
+
+  if (isParty) {
+    return (
+      <div>
+        <StepHeading
+          icon={<UsersRound className="size-5" />}
+          title="Choose technicians"
+          description='Each guest needs their own technician at the same time. Default is "Any" — we assign whoever is free.'
+        />
+
+        <div className="mt-6 space-y-4">
+          {party.map((member, index) => (
+            <label key={member.id} className="block rounded-xl border border-border bg-background p-4">
+              <span className="text-sm font-medium text-ink">
+                {index === 0 ? "You" : member.label.trim() || "Guest"}
+                <span className="ml-2 text-ink-muted">
+                  ({member.serviceIds.length} service
+                  {member.serviceIds.length === 1 ? "" : "s"})
+                </span>
+              </span>
+              <div className="relative mt-2">
+                <select
+                  value={member.technicianId}
+                  onChange={(event) => setMemberTechnician(member.id, event.target.value)}
+                  className="h-12 w-full appearance-none rounded-xl border border-input bg-offwhite px-3 pr-10 text-ink"
+                >
+                  <option value="any">Any available technician</option>
+                  {technicians.map((technician) => (
+                    <option key={technician.id} value={technician.id}>
+                      {formatTechLabel(technician)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const member = party[0];
+  if (!member) return null;
+
   return (
     <div>
       <StepHeading
         icon={<UserRound className="size-5" />}
         title="Choose a technician"
-        description={
-          partySize > 1
-            ? 'Each guest needs their own technician at the same time. "Any" shows times when enough staff are free.'
-            : 'Pick someone specific or choose "Any" for the most available times.'
-        }
+        description='Pick someone specific or choose "Any" for the most available times.'
       />
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <TechnicianCard
-          checked={technicianId === "any"}
+          checked={member.technicianId === "any"}
           title="Any available technician"
           description="Show the earliest times across the whole team."
-          onClick={() => setTechnicianId("any")}
+          onClick={() => setMemberTechnician(member.id, "any")}
         />
         {technicians.map((technician) => (
           <TechnicianCard
             key={technician.id}
-            checked={technicianId === technician.id}
+            checked={member.technicianId === technician.id}
             title={technician.name}
             description={technician.role ?? "Team member"}
-            onClick={() => setTechnicianId(technician.id)}
+            onClick={() => setMemberTechnician(member.id, technician.id)}
           />
         ))}
       </div>
@@ -756,7 +843,7 @@ function DateTimeStep({
   slots,
   loadingSlots,
   slotError,
-  technicianId,
+  party,
   highlightedField,
   onFieldEdit,
 }: {
@@ -767,11 +854,12 @@ function DateTimeStep({
   slots: BookingSlot[];
   loadingSlots: boolean;
   slotError: string;
-  technicianId: string;
+  party: PartyMember[];
   highlightedField: string | null;
   onFieldEdit: (fieldId: string) => void;
 }) {
   const timeFieldId = "booking-time-slots";
+  const hasAnyTechnician = party.some((member) => member.technicianId === "any");
   const dateOptions = useMemo(() => {
     const today = new Date();
     return Array.from({ length: 14 }, (_, index) => {
@@ -850,7 +938,7 @@ function DateTimeStep({
       >
         <div className="flex items-center justify-between gap-3">
           <label className="text-sm font-medium text-ink">Available times</label>
-          {technicianId === "any" && !isClosed && (
+          {hasAnyTechnician && !isClosed && (
             <span className="text-xs text-ink-muted">Shows slots with at least one tech free</span>
           )}
         </div>
@@ -964,7 +1052,6 @@ function DetailsStep({
 
 function ConfirmStep({
   party,
-  technicianId,
   selectedDate,
   selectedTime,
   details,
@@ -973,7 +1060,6 @@ function ConfirmStep({
   technicians,
 }: {
   party: PartyMember[];
-  technicianId: string;
   selectedDate: string;
   selectedTime: string;
   details: { name: string; phone: string; email: string };
@@ -981,10 +1067,11 @@ function ConfirmStep({
   setSmsConsent: (value: boolean) => void;
   technicians: BookingTechnicianOption[];
 }) {
-  const technician =
-    technicianId === "any"
-      ? "Any available technician"
-      : technicians.find((item) => item.id === technicianId)?.name;
+  function formatMemberTechnician(member: PartyMember) {
+    if (member.technicianId === "any") return "Any available technician";
+    const tech = technicians.find((item) => item.id === member.technicianId);
+    return tech?.name ?? "Any available technician";
+  }
 
   return (
     <div>
@@ -998,7 +1085,20 @@ function ConfirmStep({
         <SummaryRow label="Name" value={details.name} />
         <SummaryRow label="Phone" value={details.phone} />
         {details.email && <SummaryRow label="Email" value={details.email} />}
-        <SummaryRow label="Technician" value={technician ?? "Any available technician"} />
+        {party.length === 1 ? (
+          <SummaryRow label="Technician" value={formatMemberTechnician(party[0]!)} />
+        ) : (
+          <div>
+            <span className="font-semibold text-ink">Technicians</span>
+            <ul className="mt-2 space-y-1 text-ink-muted">
+              {party.map((member) => (
+                <li key={member.id}>
+                  {member.label}: {formatMemberTechnician(member)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <SummaryRow
           label="Date & time"
           value={`${formatReadableDate(selectedDate)} at ${formatTimeLabel(selectedTime)}`}
@@ -1040,22 +1140,20 @@ function ConfirmStep({
 function BookingSummary({
   party,
   totals,
-  technicianId,
   selectedDate,
   selectedTime,
   technicians,
 }: {
   party: PartyMember[];
   totals: { confirmedTotal: number; durationMinutes: number; hasTbdPricing: boolean };
-  technicianId: string;
   selectedDate: string;
   selectedTime: string;
   technicians: BookingTechnicianOption[];
 }) {
-  const technician =
-    technicianId === "any"
-      ? "Any available"
-      : technicians.find((item) => item.id === technicianId)?.name || "Any available";
+  function formatMemberTechnician(member: PartyMember) {
+    if (member.technicianId === "any") return "Any available";
+    return technicians.find((item) => item.id === member.technicianId)?.name || "Any available";
+  }
 
   return (
     <aside className="h-fit rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5 lg:sticky lg:top-28">
@@ -1064,7 +1162,20 @@ function BookingSummary({
       </p>
 
       <div className="mt-5 space-y-5">
-        <SummaryRow label="Technician" value={technician} />
+        {party.length === 1 ? (
+          <SummaryRow label="Technician" value={formatMemberTechnician(party[0]!)} />
+        ) : (
+          <div>
+            <span className="text-ink-muted">Technicians</span>
+            <ul className="mt-1 space-y-1 text-sm font-semibold text-ink">
+              {party.map((member) => (
+                <li key={member.id}>
+                  {member.label}: {formatMemberTechnician(member)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <SummaryRow label="Date" value={formatReadableDate(selectedDate)} />
         <SummaryRow label="Time" value={selectedTime ? formatTimeLabel(selectedTime) : "Select"} />
         <SummaryRow label="Duration" value={totals.durationMinutes ? formatDuration(totals.durationMinutes) : "0 min"} />
@@ -1173,7 +1284,6 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 
 async function submitBooking({
   party,
-  technicianId,
   selectedDate,
   selectedTime,
   details,
@@ -1182,7 +1292,6 @@ async function submitBooking({
   setConfirmation,
 }: {
   party: PartyMember[];
-  technicianId: string;
   selectedDate: string;
   selectedTime: string;
   details: { name: string; phone: string; email: string };
@@ -1194,14 +1303,19 @@ async function submitBooking({
   setSubmitError("");
 
   const bookingTotals = computeBookingTotals(party.flatMap((member) => member.serviceIds));
+  const primaryTechnicianId = party[0]?.technicianId ?? "any";
 
   try {
     const response = await fetch("/api/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        party,
-        technicianId,
+        party: party.map((member) => ({
+          label: member.label,
+          serviceIds: member.serviceIds,
+          technicianId: member.technicianId,
+        })),
+        technicianId: party.length === 1 ? primaryTechnicianId : "any",
         date: selectedDate,
         time: selectedTime,
         customer: details,

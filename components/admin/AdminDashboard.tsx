@@ -178,7 +178,7 @@ export function AdminDashboard({
       ...technicians.map((technician) => ({
         id: technician.id,
         name: technician.name,
-        subtitle: technician.role ?? undefined,
+        subtitle: technician.role ?? "Team member",
         showOffToggle: true,
       })),
     ],
@@ -663,7 +663,9 @@ function QuickBookingPanel({
               <option value={ANY_EMPLOYEE_ID}>{ANY_EMPLOYEE_LABEL}</option>
               {technicians.map((technician) => (
                 <option key={technician.id} value={technician.id}>
-                  {technician.name}
+                  {technician.role
+                    ? `${technician.name} — ${technician.role}`
+                    : technician.name}
                 </option>
               ))}
             </select>

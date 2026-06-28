@@ -95,11 +95,24 @@ function isTechnicianFreeForWindow(
   return !isTechnicianBusy(technicianId, start, end, busyWindows);
 }
 
+function getMemberTechnicianPreference(
+  member: BookingPartyMember,
+  fallbackTechnicianId?: TechnicianSelection
+): TechnicianSelection {
+  if (member.technicianId && member.technicianId !== "") {
+    return member.technicianId;
+  }
+  if (fallbackTechnicianId && fallbackTechnicianId !== "any") {
+    return fallbackTechnicianId;
+  }
+  return "any";
+}
+
 export function assignTechniciansForParty({
   date,
   slotStart,
   party,
-  technicianId,
+  technicianId: fallbackTechnicianId = "any",
   busyWindows,
   timeOff,
   activeTechnicians,
@@ -108,7 +121,7 @@ export function assignTechniciansForParty({
   date: string;
   slotStart: Date;
   party: BookingPartyMember[];
-  technicianId: TechnicianSelection;
+  technicianId?: TechnicianSelection;
   busyWindows: BusyWindow[];
   timeOff: TimeOffWindow[];
   activeTechnicians: DbTechnician[];
@@ -130,14 +143,15 @@ export function assignTechniciansForParty({
   const usedTechIds = new Set<string>();
   const assignments: PartyMemberAssignment[] = [];
 
-  for (let index = 0; index < members.length; index++) {
-    const member = members[index];
+  for (const member of members) {
     const memberEnd = addMinutes(slotStart, getMemberDurationMinutes(member));
+    const preference = getMemberTechnicianPreference(member, fallbackTechnicianId);
 
-    if (technicianId !== "any" && index === 0) {
+    if (preference !== "any") {
       if (
+        usedTechIds.has(preference) ||
         !isTechnicianFreeForWindow(
-          technicianId,
+          preference,
           date,
           slotStart,
           memberEnd,
@@ -149,10 +163,10 @@ export function assignTechniciansForParty({
         return null;
       }
 
-      usedTechIds.add(technicianId);
+      usedTechIds.add(preference);
       assignments.push({
         member,
-        technicianId,
+        technicianId: preference,
         anyTechnician: false,
       });
       continue;
@@ -182,10 +196,6 @@ export function assignTechniciansForParty({
       continue;
     }
 
-    if (technicianId !== "any") {
-      return null;
-    }
-
     assignments.push({
       member,
       technicianId: null,
@@ -208,12 +218,17 @@ export function parsePartyPayload(
 ): BookingPartyMember[] {
   if (partyJson) {
     try {
-      const parsed = JSON.parse(partyJson) as { label?: string; serviceIds?: string[] }[];
+      const parsed = JSON.parse(partyJson) as {
+        label?: string;
+        serviceIds?: string[];
+        technicianId?: string;
+      }[];
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed.map((member, index) => ({
           id: String(index),
           label: member.label ?? (index === 0 ? "You" : `Guest ${index}`),
           serviceIds: member.serviceIds ?? [],
+          technicianId: member.technicianId ?? "any",
         }));
       }
     } catch {
@@ -223,9 +238,25 @@ export function parsePartyPayload(
 
   if (fallbackServiceIds.length === 0) return [];
 
-  return [{ id: "0", label: "You", serviceIds: fallbackServiceIds }];
+  return [{ id: "0", label: "You", serviceIds: fallbackServiceIds, technicianId: "any" }];
 }
 
 export function getMemberServices(member: BookingPartyMember) {
   return getServicesByIds(member.serviceIds);
+}
+
+/** True when every member with a specific tech preference can be satisfied at this slot. */
+export function partyHasSpecificTechPreferences(party: BookingPartyMember[]): boolean {
+  return getPartyMembersWithServices(party).some(
+    (member) => getMemberTechnicianPreference(member) !== "any"
+  );
+}
+
+export function getDistinctSpecificTechPreferences(party: BookingPartyMember[]): string[] {
+  const ids = new Set<string>();
+  for (const member of getPartyMembersWithServices(party)) {
+    const pref = getMemberTechnicianPreference(member);
+    if (pref !== "any") ids.add(pref);
+  }
+  return Array.from(ids);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ChevronDown,
   ChevronUp,
@@ -12,6 +13,7 @@ import {
 
 import { EmployeeForm } from "@/components/admin/employees/EmployeeForm";
 import { EmployeeScheduleEditor } from "@/components/admin/employees/EmployeeScheduleEditor";
+import { EmployeeScheduleExceptions } from "@/components/admin/employees/EmployeeScheduleExceptions";
 import { Button } from "@/components/ui/button";
 import {
   getWeekOverview,
@@ -21,6 +23,7 @@ import type { EmployeeWithSchedule, TechnicianScheduleInput } from "@/lib/techni
 import { cn } from "@/lib/utils";
 
 export function EmployeesDashboard() {
+  const router = useRouter();
   const [employees, setEmployees] = useState<EmployeeWithSchedule[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,6 +137,7 @@ export function EmployeesDashboard() {
       if (!response.ok) throw new Error(body.error || "Unable to save employee.");
 
       await loadEmployees();
+      router.refresh();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -400,6 +404,7 @@ export function EmployeesDashboard() {
                       />
                       {selectedId === employee.id && selectedEmployee ? (
                         <EmployeeEditorPanel
+                          employeeId={employee.id}
                           draftName={draftName}
                           draftRole={draftRole}
                           draftActive={draftActive}
@@ -436,6 +441,7 @@ export function EmployeesDashboard() {
           <section className="hidden rounded-3xl bg-offwhite p-6 ring-1 ring-ink/5 lg:block md:p-8">
             {selectedEmployee ? (
               <EmployeeEditorPanel
+                employeeId={selectedEmployee.id}
                 draftName={draftName}
                 draftRole={draftRole}
                 draftActive={draftActive}
@@ -496,6 +502,7 @@ function MobileEmployeeActions({
 }
 
 function EmployeeEditorPanel({
+  employeeId,
   draftName,
   draftRole,
   draftActive,
@@ -511,6 +518,7 @@ function EmployeeEditorPanel({
   onSaveSchedule,
   onDeactivate,
 }: {
+  employeeId: string;
   draftName: string;
   draftRole: string;
   draftActive: boolean;
@@ -586,6 +594,8 @@ function EmployeeEditorPanel({
           </p>
         )}
       </div>
+
+      <EmployeeScheduleExceptions employeeId={employeeId} disabled={savingSchedule} />
     </div>
   );
 }

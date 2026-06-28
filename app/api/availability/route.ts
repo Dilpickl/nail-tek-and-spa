@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { validateBookableServiceIds } from "@/lib/booking/normalize-services";
 import {
   getAvailableSlots,
   getServicesByIds,
@@ -29,6 +30,10 @@ export async function GET(request: Request) {
   try {
     for (const member of party) {
       if (member.serviceIds.length > 0) {
+        const serviceError = validateBookableServiceIds(member.serviceIds);
+        if (serviceError) {
+          return NextResponse.json({ error: serviceError }, { status: 400 });
+        }
         getServicesByIds(member.serviceIds);
       }
     }

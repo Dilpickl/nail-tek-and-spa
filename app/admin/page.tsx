@@ -4,9 +4,11 @@ import { redirect } from "next/navigation";
 import { AdminDashboard, type AdminAppointment } from "@/components/admin/AdminDashboard";
 import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { getServiceById } from "@/lib/config/salonData";
-import { getActiveTechnicians } from "@/lib/booking/technicians";
+import { getActiveTechnicians, getScheduleOverridesForDate } from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidIsoDate, toIsoDate } from "@/lib/booking/time-utils";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -66,7 +68,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const end = new Date(`${agendaDate}T23:59:59`);
   const supabase = createAdminClient();
 
-  const [{ data: appointmentRows, error: appointmentsError }, { data: timeOffRows, error: timeOffError }, technicians] =
+  const [{ data: appointmentRows, error: appointmentsError }, { data: timeOffRows, error: timeOffError }, technicians, scheduleOverrides] =
     await Promise.all([
       supabase
         .from("appointments")
@@ -83,6 +85,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         .eq("off_date", agendaDate)
         .eq("full_day", true),
       getActiveTechnicians(),
+      getScheduleOverridesForDate(agendaDate),
     ]);
 
   if (appointmentsError || timeOffError) {
@@ -126,9 +129,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       [],
   }));
 
-  const offTechnicianIds = ((timeOffRows as TimeOffRow[]) ?? []).map(
-    (row) => row.technician_id
-  );
+  const offTechnicianIds = [
+    ...((timeOffRows as TimeOffRow[]) ?? []).map((row) => row.technician_id),
+    ...scheduleOverrides
+      .filter((override) => !override.is_working)
+      .map((override) => override.technician_id),
+  ].filter((id, index, array) => array.indexOf(id) === index);
 
   return (
     <AdminDashboard

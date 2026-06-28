@@ -22,6 +22,7 @@ import {
 } from "@/lib/booking/time-utils";
 import {
   assignTechniciansForParty,
+  getDistinctSpecificTechPreferences,
   getPartyMaxDurationMinutes,
   getPartyMembersWithServices,
   type TechnicianSelection,
@@ -129,7 +130,7 @@ export async function getAvailableSlots({
   const members = party
     ? getPartyMembersWithServices(party)
     : getPartyMembersWithServices([
-        { id: "0", label: "You", serviceIds: serviceIds ?? [] },
+        { id: "0", label: "You", serviceIds: serviceIds ?? [], technicianId: technicianId },
       ]);
   const maxDuration = getPartyMaxDurationMinutes(members);
   const dayHours = getBusinessHoursForDate(date);
@@ -139,22 +140,19 @@ export async function getAvailableSlots({
   }
 
   const allTechnicians = await getActiveTechnicians();
+  const specificPrefs = getDistinctSpecificTechPreferences(members);
+  const legacySingleTech =
+    technicianId !== "any" && members.length === 1 && specificPrefs.length === 0;
+
   const selectedTechnicians =
-    technicianId === "any"
-      ? allTechnicians
-      : allTechnicians.filter((technician) => technician.id === technicianId);
+    legacySingleTech
+      ? allTechnicians.filter((technician) => technician.id === technicianId)
+      : specificPrefs.length > 0
+        ? allTechnicians.filter((technician) => specificPrefs.includes(technician.id))
+        : allTechnicians;
 
-  if (selectedTechnicians.length === 0) {
+  if (legacySingleTech && selectedTechnicians.length === 0) {
     return [];
-  }
-
-  if (technicianId !== "any" && members.length > 1) {
-    const otherTechCount = allTechnicians.filter(
-      (technician) => technician.id !== technicianId
-    ).length;
-    if (otherTechCount < members.length - 1) {
-      return [];
-    }
   }
 
   const supabase = createAdminClient();
@@ -236,16 +234,17 @@ export async function getAvailableSlots({
 
     if (!assignments) continue;
 
-    const availableTechnicians = selectedTechnicians.filter((technician) =>
-      isTechnicianAvailableForSlot({
-        technicianId: technician.id,
-        date,
-        slotStart,
-        slotEnd,
-        timeOff: timeOffRows,
-        scheduleMap,
-      })
-    );
+    let availableTechnicians = availableForSlot as DbTechnician[];
+
+    if (legacySingleTech) {
+      availableTechnicians = availableTechnicians.filter(
+        (technician) => technician.id === technicianId
+      );
+    } else if (specificPrefs.length > 0) {
+      availableTechnicians = availableTechnicians.filter((technician) =>
+        specificPrefs.includes(technician.id)
+      );
+    }
 
     if (availableTechnicians.length === 0) continue;
 

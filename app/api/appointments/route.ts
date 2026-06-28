@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 
 import { getConfirmedServicePrice } from "@/lib/booking/pricing";
 import {
+  normalizeBookableServiceIds,
+  validateBookableServiceIds,
+} from "@/lib/booking/normalize-services";
+import {
   getServicesByIds,
   resolveTechnicianForSlot,
   type BookingPartyMember,
@@ -50,8 +54,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const party = getPartyMembersWithServices(payload.party!);
-  const technicianId = payload.technicianId || "any";
+  const normalizedParty = payload.party!.map((member) => ({
+    ...member,
+    serviceIds: normalizeBookableServiceIds(member.serviceIds),
+    technicianId: member.technicianId ?? payload.technicianId ?? "any",
+  }));
+
+  const party = getPartyMembersWithServices(normalizedParty);
+  const technicianId =
+    party.length === 1
+      ? (party[0]?.technicianId ?? payload.technicianId ?? "any")
+      : (payload.technicianId ?? "any");
   const date = payload.date!;
   const time = payload.time!;
 
@@ -195,7 +208,12 @@ export async function POST(request: Request) {
           .from("appointment_services")
           .insert(serviceRows);
 
-        if (servicesError) throw servicesError;
+        if (servicesError) {
+          const message = servicesError.message.includes("foreign key")
+            ? "One or more selected services are not available for booking. Please contact the salon."
+            : servicesError.message;
+          throw new Error(message);
+        }
       }
     } catch (error) {
       if (createdIds.length > 0) {
@@ -223,10 +241,12 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Appointment creation failed", error);
-    return NextResponse.json(
-      { error: "Unable to create appointment right now." },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : "Unable to create appointment right now.";
+    const status = message.includes("not available for booking") ? 400 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
@@ -252,6 +272,9 @@ function validatePayload(payload: AppointmentRequest): string | null {
   }
 
   for (const member of party) {
+    const serviceError = validateBookableServiceIds(member.serviceIds);
+    if (serviceError) return serviceError;
+
     try {
       getServicesByIds(member.serviceIds);
     } catch {
