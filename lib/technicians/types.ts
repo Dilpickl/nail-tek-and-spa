@@ -52,6 +52,7 @@ export interface TechnicianScheduleOverrideRow {
 
 export interface TechnicianScheduleOverrideInput {
   overrideDate: string;
+  rangeEndDate?: string | null;
   isWorking: boolean;
   startTime: string | null;
   endTime: string | null;

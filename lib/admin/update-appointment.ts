@@ -26,6 +26,8 @@ export interface UpdateAppointmentPayload {
   customerEmail?: string | null;
   serviceIds?: string[];
   notes?: string | null;
+  /** Skip schedule/capacity checks when assigning a tech at checkout. */
+  forCompletionAssignment?: boolean;
 }
 
 interface ExistingAppointment {
@@ -106,8 +108,10 @@ export async function validateAndBuildUpdate(
     return { error: "A valid time is required.", status: 400 };
   }
 
+  const skipScheduleConstraints = payload.forCompletionAssignment === true;
+
   const dayHours = getBusinessHoursForDate(date);
-  if (!dayHours?.open || !dayHours.close) {
+  if (!skipScheduleConstraints && (!dayHours?.open || !dayHours.close)) {
     return { error: "The salon is closed on that date.", status: 400 };
   }
 
@@ -132,7 +136,10 @@ export async function validateAndBuildUpdate(
     duration_at_booking: number;
   }[] | null = null;
 
-  if (serviceIds.length > 0) {
+  if (skipScheduleConstraints) {
+    startsAt = existingStart;
+    endsAt = existingEnd;
+  } else if (serviceIds.length > 0) {
     let services;
     try {
       services = getServicesByIds(serviceIds);
@@ -167,77 +174,83 @@ export async function validateAndBuildUpdate(
         : existingEnd;
   }
 
-  const open = toLocalDateTime(date, dayHours.open);
-  const close = toLocalDateTime(date, dayHours.close);
-  if (startsAt < open || endsAt > close) {
-    return { error: "That time is outside business hours.", status: 400 };
-  }
-
-  const { data: overlapping, error: overlapError } = await supabase
-    .from("appointments")
-    .select("id, technician_id, any_technician, starts_at, ends_at")
-    .eq("status", "booked")
-    .neq("id", appointmentId)
-    .lt("starts_at", endsAt.toISOString())
-    .gt("ends_at", startsAt.toISOString());
-
-  if (overlapError) return { error: overlapError.message, status: 500 };
-
-  const { data: timeOffRows, error: timeOffError } = await supabase
-    .from("technician_time_off")
-    .select("technician_id, full_day")
-    .eq("off_date", date)
-    .eq("full_day", true);
-
-  if (timeOffError) return { error: timeOffError.message, status: 500 };
-
-  const activeTechnicians = await getActiveTechnicians();
-  const activeTechCount = activeTechnicians.filter(
-    (tech) => !(timeOffRows ?? []).some((row) => row.technician_id === tech.id)
-  ).length;
-
-  if (activeTechCount === 0) {
-    return { error: "No technicians are scheduled to work on that date.", status: 409 };
-  }
-
-  const overlapRows = (overlapping ?? []) as BusyWindow[];
-  const { assignedBusyIds, remainingSeats } = getSlotUsage(
-    overlapRows,
-    startsAt,
-    endsAt,
-    activeTechCount
-  );
-
-  if (anyTechnician) {
-    if (remainingSeats <= 0) {
-      return { error: "No open capacity at this time.", status: 409 };
-    }
-  } else if (technicianId) {
-    if (assignedBusyIds.has(technicianId)) {
-      return {
-        error: "That technician already has a booking at this time.",
-        status: 409,
-      };
+  if (!skipScheduleConstraints) {
+    if (!dayHours?.open || !dayHours.close) {
+      return { error: "The salon is closed on that date.", status: 400 };
     }
 
-    if (remainingSeats <= 0) {
-      return { error: "No open capacity at this time.", status: 409 };
+    const open = toLocalDateTime(date, dayHours.open);
+    const close = toLocalDateTime(date, dayHours.close);
+    if (startsAt < open || endsAt > close) {
+      return { error: "That time is outside business hours.", status: 400 };
     }
 
-    const scheduleMap = await getSchedulesForDate(date, [technicianId]);
-    const schedule = scheduleMap.get(technicianId);
-    if (
-      !schedule?.isWorking ||
-      !isTechnicianScheduledForSlot(schedule, startsAt, endsAt, date)
-    ) {
-      return {
-        error: "That technician is not scheduled to work at this time.",
-        status: 409,
-      };
+    const { data: overlapping, error: overlapError } = await supabase
+      .from("appointments")
+      .select("id, technician_id, any_technician, starts_at, ends_at")
+      .eq("status", "booked")
+      .neq("id", appointmentId)
+      .lt("starts_at", endsAt.toISOString())
+      .gt("ends_at", startsAt.toISOString());
+
+    if (overlapError) return { error: overlapError.message, status: 500 };
+
+    const { data: timeOffRows, error: timeOffError } = await supabase
+      .from("technician_time_off")
+      .select("technician_id, full_day")
+      .eq("off_date", date)
+      .eq("full_day", true);
+
+    if (timeOffError) return { error: timeOffError.message, status: 500 };
+
+    const activeTechnicians = await getActiveTechnicians();
+    const activeTechCount = activeTechnicians.filter(
+      (tech) => !(timeOffRows ?? []).some((row) => row.technician_id === tech.id)
+    ).length;
+
+    if (activeTechCount === 0) {
+      return { error: "No technicians are scheduled to work on that date.", status: 409 };
     }
 
-    if ((timeOffRows ?? []).some((row) => row.technician_id === technicianId)) {
-      return { error: "That technician is marked off for this date.", status: 409 };
+    const overlapRows = (overlapping ?? []) as BusyWindow[];
+    const { assignedBusyIds, remainingSeats } = getSlotUsage(
+      overlapRows,
+      startsAt,
+      endsAt,
+      activeTechCount
+    );
+
+    if (anyTechnician) {
+      if (remainingSeats <= 0) {
+        return { error: "No open capacity at this time.", status: 409 };
+      }
+    } else if (technicianId) {
+      if (assignedBusyIds.has(technicianId)) {
+        return {
+          error: "That technician already has a booking at this time.",
+          status: 409,
+        };
+      }
+
+      if (remainingSeats <= 0) {
+        return { error: "No open capacity at this time.", status: 409 };
+      }
+
+      const scheduleMap = await getSchedulesForDate(date, [technicianId]);
+      const schedule = scheduleMap.get(technicianId);
+      if (
+        !schedule?.isWorking ||
+        !isTechnicianScheduledForSlot(schedule, startsAt, endsAt, date)
+      ) {
+        return {
+          error: "That technician is not scheduled to work at this time.",
+          status: 409,
+        };
+      }
+
+      if ((timeOffRows ?? []).some((row) => row.technician_id === technicianId)) {
+        return { error: "That technician is marked off for this date.", status: 409 };
+      }
     }
   }
 

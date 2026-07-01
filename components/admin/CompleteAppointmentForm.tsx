@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { CompletionLineItemInput, PaymentMethod } from "@/lib/completion/types";
 import { calculateTotals } from "@/lib/completion/calculate-totals";
 import { isPricingTbdService, formatBookingTotalLabel } from "@/lib/booking/pricing";
+import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import {
   allServices,
   retailProducts,
@@ -27,6 +28,8 @@ interface CompleteAppointmentFormProps {
   appointmentId: string;
   bookedServices: BookedService[];
   estimatedTotal: number;
+  requiresTechnicianAssignment: boolean;
+  technicians: BookingTechnicianOption[];
 }
 
 interface EditableLineItem extends CompletionLineItemInput {
@@ -44,8 +47,16 @@ export function CompleteAppointmentForm({
   appointmentId,
   bookedServices,
   estimatedTotal,
+  requiresTechnicianAssignment,
+  technicians,
 }: CompleteAppointmentFormProps) {
   const router = useRouter();
+  const [needsTechnicianAssignment, setNeedsTechnicianAssignment] = useState(
+    requiresTechnicianAssignment
+  );
+  const [assignmentTechId, setAssignmentTechId] = useState(technicians[0]?.id ?? "");
+  const [assigningTechnician, setAssigningTechnician] = useState(false);
+  const [assignmentError, setAssignmentError] = useState("");
   const [lineItems, setLineItems] = useState<EditableLineItem[]>(() =>
     bookedServices.map((svc) => ({
       key: svc.id,
@@ -166,6 +177,34 @@ export function CompleteAppointmentForm({
       setError((err as Error).message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function assignTechnician() {
+    if (!assignmentTechId) return;
+
+    setAssigningTechnician(true);
+    setAssignmentError("");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/admin/appointments/${appointmentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          technicianId: assignmentTechId,
+          forCompletionAssignment: true,
+        }),
+      });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(body.error || "Unable to assign technician.");
+
+      setNeedsTechnicianAssignment(false);
+      router.refresh();
+    } catch (err) {
+      setAssignmentError((err as Error).message);
+    } finally {
+      setAssigningTechnician(false);
     }
   }
 
@@ -373,15 +412,85 @@ export function CompleteAppointmentForm({
           Enter the final nail art price before completing this appointment.
         </p>
       )}
+      {needsTechnicianAssignment && (
+        <section
+          id="completion-technician-assignment"
+          className="rounded-2xl bg-amber-50 p-5 ring-1 ring-amber-200"
+        >
+          <h3 className="text-lg font-semibold text-amber-950">
+            Technician assignment required
+          </h3>
+          <p className="mt-1 text-sm text-amber-900">
+            * Assign a technician before completing this appointment. Move it out of
+            the Any column first.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="block flex-1">
+              <span className="text-sm font-medium text-amber-950">Technician</span>
+              <select
+                value={assignmentTechId}
+                onChange={(event) => setAssignmentTechId(event.target.value)}
+                disabled={assigningTechnician}
+                className="mt-2 h-11 w-full rounded-md border border-amber-300 bg-offwhite px-3 text-ink"
+              >
+                {technicians.length === 0 ? (
+                  <option value="">No active technicians</option>
+                ) : (
+                  technicians.map((tech) => (
+                    <option key={tech.id} value={tech.id}>
+                      {tech.role ? `${tech.name} — ${tech.role}` : tech.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </label>
+            <Button
+              type="button"
+              onClick={assignTechnician}
+              disabled={assigningTechnician || !assignmentTechId}
+              className="min-h-11"
+            >
+              {assigningTechnician ? <Loader2 className="size-4 animate-spin" /> : null}
+              Assign Technician
+            </Button>
+          </div>
+          {assignmentError && (
+            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              {assignmentError}
+            </p>
+          )}
+        </section>
+      )}
 
       {error && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+      )}
+      {needsTechnicianAssignment && (
+        <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById("completion-technician-assignment")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+            className="font-medium underline underline-offset-2"
+          >
+            * Assign a technician before completing this appointment. Move it out of
+            the Any column first.
+          </button>
+        </p>
       )}
 
       <Button
         className="min-h-14 w-full text-lg"
         onClick={submit}
-        disabled={loading || lineItems.length === 0 || hasUnsetTbdPricing}
+        disabled={
+          loading ||
+          lineItems.length === 0 ||
+          hasUnsetTbdPricing ||
+          needsTechnicianAssignment
+        }
       >
         {loading ? (
           <Loader2 className="size-5 animate-spin" />

@@ -18,6 +18,13 @@ export function formatReadableDate(date: string) {
   }).format(new Date(`${date}T00:00:00`));
 }
 
+export function formatMonthDay(date: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+  }).format(new Date(`${date}T00:00:00`));
+}
+
 export function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",

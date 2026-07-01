@@ -6,7 +6,10 @@ import {
   getServicesByIds,
   type TechnicianSelection,
 } from "@/lib/booking/availability";
-import { parsePartyPayload } from "@/lib/booking/party-scheduling";
+import {
+  findDuplicateSpecificTechnicianPreference,
+  parsePartyPayload,
+} from "@/lib/booking/party-scheduling";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -23,6 +26,16 @@ export async function GET(request: Request) {
   if (party.length === 0 || party.every((member) => member.serviceIds.length === 0)) {
     return NextResponse.json(
       { error: "At least one service is required." },
+      { status: 400 }
+    );
+  }
+
+  if (findDuplicateSpecificTechnicianPreference(party)) {
+    return NextResponse.json(
+      {
+        error:
+          "Each guest needs a different technician. Choose Any for one guest or pick different technicians.",
+      },
       { status: 400 }
     );
   }

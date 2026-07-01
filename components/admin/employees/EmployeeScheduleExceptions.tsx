@@ -21,6 +21,7 @@ export function EmployeeScheduleExceptions({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [overrideDate, setOverrideDate] = useState("");
+  const [rangeEndDate, setRangeEndDate] = useState("");
   const [exceptionType, setExceptionType] = useState<"off" | "custom">("off");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
@@ -62,6 +63,7 @@ export function EmployeeScheduleExceptions({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           overrideDate,
+          rangeEndDate: rangeEndDate || null,
           isWorking: exceptionType === "custom",
           startTime: exceptionType === "custom" ? startTime : null,
           endTime: exceptionType === "custom" ? endTime : null,
@@ -73,6 +75,7 @@ export function EmployeeScheduleExceptions({
       if (!response.ok) throw new Error(body.error || "Unable to save exception.");
 
       setOverrideDate("");
+      setRangeEndDate("");
       setReason("");
       await loadOverrides();
     } catch (err) {
@@ -128,14 +131,25 @@ export function EmployeeScheduleExceptions({
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         <label className="block text-sm">
-          <span className="mb-2 block font-medium text-ink">Date</span>
+          <span className="mb-2 block font-medium text-ink">Start date</span>
           <input
             type="date"
             value={overrideDate}
             disabled={disabled || saving}
             onChange={(event) => setOverrideDate(event.target.value)}
+            className="h-11 w-full rounded-xl border border-ink/15 bg-offwhite px-3 text-ink"
+          />
+        </label>
+        <label className="block text-sm">
+          <span className="mb-2 block font-medium text-ink">End date (optional)</span>
+          <input
+            type="date"
+            value={rangeEndDate}
+            min={overrideDate || undefined}
+            disabled={disabled || saving || !overrideDate}
+            onChange={(event) => setRangeEndDate(event.target.value)}
             className="h-11 w-full rounded-xl border border-ink/15 bg-offwhite px-3 text-ink"
           />
         </label>
@@ -152,6 +166,9 @@ export function EmployeeScheduleExceptions({
           </select>
         </label>
       </div>
+      <p className="text-xs text-ink-muted">
+        Set an end date to apply this exception across a date range.
+      </p>
 
       {exceptionType === "custom" && (
         <div className="grid gap-3 sm:grid-cols-2">

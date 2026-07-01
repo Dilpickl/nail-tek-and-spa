@@ -8,7 +8,10 @@ import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { formatDateTime, formatMoney } from "@/lib/admin/format";
 import { formatBookingTotalLabel, isPricingTbdService } from "@/lib/booking/pricing";
 import { getServiceById } from "@/lib/config/salonData";
-import { getTechnicianByIdFromDb } from "@/lib/booking/technicians";
+import {
+  getActiveTechnicians,
+  getTechnicianByIdFromDb,
+} from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
@@ -29,7 +32,7 @@ export default async function CompleteAppointmentPage({ params }: PageProps) {
     .from("appointments")
     .select(
       `
-      id, technician_id, customer_name, customer_phone, starts_at, status, estimated_total,
+      id, technician_id, any_technician, customer_name, customer_phone, starts_at, status, estimated_total,
       appointment_services ( id, service_id, price_at_booking )
     `
     )
@@ -55,6 +58,7 @@ export default async function CompleteAppointmentPage({ params }: PageProps) {
       : bookedServices.reduce((sum, s) => sum + s.priceAtBooking, 0);
 
   const hasTbdPricing = bookedServices.some((svc) => isPricingTbdService(svc.serviceId));
+  const technicians = await getActiveTechnicians();
 
   const technicianName =
     (await getTechnicianByIdFromDb(row.technician_id ?? ""))?.name ?? "Unassigned";
@@ -85,6 +89,12 @@ export default async function CompleteAppointmentPage({ params }: PageProps) {
           appointmentId={row.id}
           bookedServices={bookedServices}
           estimatedTotal={estimatedTotal}
+          requiresTechnicianAssignment={Boolean(row.any_technician || !row.technician_id)}
+          technicians={technicians.map((technician) => ({
+            id: technician.id,
+            name: technician.name,
+            role: technician.role,
+          }))}
         />
       </div>
     </div>

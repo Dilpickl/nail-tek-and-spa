@@ -722,8 +722,22 @@ function TechnicianStep({
   technicians: BookingTechnicianOption[];
 }) {
   const isParty = party.length > 1;
+  const selectedSpecificIds = new Set(
+    party
+      .map((member) => member.technicianId)
+      .filter((technicianId) => technicianId !== "any")
+  );
 
   function setMemberTechnician(memberId: string, technicianId: string) {
+    if (
+      technicianId !== "any" &&
+      party.some(
+        (member) => member.id !== memberId && member.technicianId === technicianId
+      )
+    ) {
+      return;
+    }
+
     setParty((current) =>
       current.map((member) =>
         member.id === memberId ? { ...member, technicianId } : member
@@ -764,7 +778,14 @@ function TechnicianStep({
                 >
                   <option value="any">Any available technician</option>
                   {technicians.map((technician) => (
-                    <option key={technician.id} value={technician.id}>
+                    <option
+                      key={technician.id}
+                      value={technician.id}
+                      disabled={
+                        technician.id !== member.technicianId &&
+                        selectedSpecificIds.has(technician.id)
+                      }
+                    >
                       {formatTechLabel(technician)}
                     </option>
                   ))}
@@ -774,6 +795,9 @@ function TechnicianStep({
             </label>
           ))}
         </div>
+        <p className="mt-3 text-sm text-ink-muted">
+          One technician can only be selected once per party.
+        </p>
       </div>
     );
   }

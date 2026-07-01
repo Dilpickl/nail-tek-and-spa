@@ -32,7 +32,7 @@ export async function POST(
   const supabase = createAdminClient();
   const { data: appointment, error: fetchError } = await supabase
     .from("appointments")
-    .select("id, status, customer_name, customer_phone, customer_email")
+    .select("id, status, any_technician, technician_id, customer_name, customer_phone, customer_email")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -48,6 +48,16 @@ export async function POST(
     return NextResponse.json(
       { error: "Only booked appointments can be completed." },
       { status: 409 }
+    );
+  }
+
+  if (appointment.any_technician || !appointment.technician_id) {
+    return NextResponse.json(
+      {
+        error:
+          "Assign a technician before completing this appointment. Move it out of the Any column first.",
+      },
+      { status: 400 }
     );
   }
 

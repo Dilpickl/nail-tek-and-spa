@@ -172,30 +172,6 @@ export function assignTechniciansForParty({
       continue;
     }
 
-    const freeTech = activeTechnicians.find(
-      (technician) =>
-        !usedTechIds.has(technician.id) &&
-        isTechnicianFreeForWindow(
-          technician.id,
-          date,
-          slotStart,
-          memberEnd,
-          busyWindows,
-          timeOff,
-          scheduleMap
-        )
-    );
-
-    if (freeTech) {
-      usedTechIds.add(freeTech.id);
-      assignments.push({
-        member,
-        technicianId: freeTech.id,
-        anyTechnician: false,
-      });
-      continue;
-    }
-
     assignments.push({
       member,
       technicianId: null,
@@ -259,4 +235,17 @@ export function getDistinctSpecificTechPreferences(party: BookingPartyMember[]):
     if (pref !== "any") ids.add(pref);
   }
   return Array.from(ids);
+}
+
+export function findDuplicateSpecificTechnicianPreference(
+  party: BookingPartyMember[]
+): string | null {
+  const seen = new Set<string>();
+  for (const member of getPartyMembersWithServices(party)) {
+    const pref = getMemberTechnicianPreference(member);
+    if (pref === "any") continue;
+    if (seen.has(pref)) return pref;
+    seen.add(pref);
+  }
+  return null;
 }

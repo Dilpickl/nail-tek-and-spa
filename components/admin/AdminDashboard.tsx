@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
+  CalendarClock,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -26,7 +27,7 @@ import {
   queueAppointmentHighlights,
   readQueuedAppointmentHighlights,
 } from "@/lib/admin/highlight-appointments";
-import { formatReadableDate } from "@/lib/admin/format";
+import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
 import {
   clampTime,
   getBusinessTimeBounds,
@@ -90,7 +91,7 @@ export function AdminDashboard({
       ? "Tomorrow"
       : isYesterday
         ? "Yesterday"
-        : "Agenda";
+        : formatMonthDay(agendaDate);
   const [notice, setNotice] = useState("");
   const [quickSource, setQuickSource] = useState<QuickSource | null>(null);
   const [pendingOffId, setPendingOffId] = useState("");
@@ -201,6 +202,11 @@ export function AdminDashboard({
     return map;
   }, [appointments, columns]);
 
+  const bookedCount = useMemo(
+    () => appointments.filter((appointment) => appointment.status === "booked").length,
+    [appointments]
+  );
+
   async function toggleOff(technicianId: string) {
     const nextOff = !offIds.has(technicianId);
     setPendingOffId(technicianId);
@@ -281,6 +287,40 @@ export function AdminDashboard({
 
   return (
     <div className="container py-8 md:py-10">
+      <aside
+        aria-live="polite"
+        className={cn(
+          "fixed bottom-6 right-6 z-30 flex max-w-[min(18rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl px-4 py-3 shadow-lg ring-1",
+          bookedCount > 0
+            ? "bg-ink text-offwhite ring-ink/20"
+            : "bg-offwhite text-ink ring-ink/10"
+        )}
+      >
+        <span
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-xl",
+            bookedCount > 0 ? "bg-offwhite/10" : "bg-secondary"
+          )}
+        >
+          <CalendarClock className="size-5" />
+        </span>
+        <span>
+          <span className="block text-lg font-semibold leading-tight">
+            {bookedCount} still booked
+          </span>
+          <span
+            className={cn(
+              "mt-0.5 block text-xs",
+              bookedCount > 0 ? "text-offwhite/70" : "text-ink-muted"
+            )}
+          >
+            {bookedCount === 0
+              ? `All done for ${formatReadableDate(agendaDate)}`
+              : `Uncompleted on ${formatReadableDate(agendaDate)}`}
+          </span>
+        </span>
+      </aside>
+
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
           Admin Dashboard

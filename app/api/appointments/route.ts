@@ -14,6 +14,7 @@ import {
 } from "@/lib/booking/availability";
 import {
   assignTechniciansForParty,
+  findDuplicateSpecificTechnicianPreference,
   getMemberDurationMinutes,
   getMemberServices,
   getPartyMembersWithServices,
@@ -61,6 +62,16 @@ export async function POST(request: Request) {
   }));
 
   const party = getPartyMembersWithServices(normalizedParty);
+  if (findDuplicateSpecificTechnicianPreference(party)) {
+    return NextResponse.json(
+      {
+        error:
+          "Each guest must have a different technician. Choose Any for one guest or select different technicians.",
+      },
+      { status: 400 }
+    );
+  }
+
   const technicianId =
     party.length === 1
       ? (party[0]?.technicianId ?? payload.technicianId ?? "any")

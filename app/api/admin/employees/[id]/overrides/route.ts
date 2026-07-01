@@ -14,15 +14,22 @@ interface RouteContext {
   params: { id: string };
 }
 
-function validateOverrideInput(input: TechnicianScheduleOverrideInput): string | null {
-  if (!input.overrideDate || !/^\d{4}-\d{2}-\d{2}$/.test(input.overrideDate)) {
+function isValidIsoDate(value: string | null | undefined): value is string {
+  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+}
+
+function validateOverrideInputForDate(
+  input: TechnicianScheduleOverrideInput,
+  overrideDate: string
+): string | null {
+  if (!isValidIsoDate(overrideDate)) {
     return "A valid date is required.";
   }
 
-  const dayOfWeek = parseLocalDate(input.overrideDate).getDay();
+  const dayOfWeek = parseLocalDate(overrideDate).getDay();
   const salonDay = getSalonHoursForDay(dayOfWeek);
   if (!salonDay?.open || !salonDay.close) {
-    return "The salon is closed on that date.";
+    return `The salon is closed on ${overrideDate}.`;
   }
 
   if (!input.isWorking) return null;
@@ -70,33 +77,65 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const payload = (await request.json()) as TechnicianScheduleOverrideInput;
-  const validationError = validateOverrideInput(payload);
-  if (validationError) {
-    return NextResponse.json({ error: validationError }, { status: 400 });
+  if (!isValidIsoDate(payload.overrideDate)) {
+    return NextResponse.json({ error: "A valid date is required." }, { status: 400 });
+  }
+
+  if (payload.rangeEndDate && !isValidIsoDate(payload.rangeEndDate)) {
+    return NextResponse.json(
+      { error: "Range end must be a valid date." },
+      { status: 400 }
+    );
+  }
+
+  const startDate = parseLocalDate(payload.overrideDate);
+  const rangeEndDate = payload.rangeEndDate
+    ? parseLocalDate(payload.rangeEndDate)
+    : startDate;
+  if (rangeEndDate < startDate) {
+    return NextResponse.json(
+      { error: "Range end date must be the same day or after the start date." },
+      { status: 400 }
+    );
+  }
+
+  const overrideDates: string[] = [];
+  for (
+    let cursor = new Date(startDate);
+    cursor <= rangeEndDate;
+    cursor.setDate(cursor.getDate() + 1)
+  ) {
+    overrideDates.push(toIsoDate(cursor));
+  }
+
+  for (const overrideDate of overrideDates) {
+    const validationError = validateOverrideInputForDate(payload, overrideDate);
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
   }
 
   const supabase = createAdminClient();
+  const upsertRows = overrideDates.map((overrideDate) => ({
+    technician_id: params.id,
+    override_date: overrideDate,
+    is_working: payload.isWorking,
+    start_time: payload.isWorking ? payload.startTime : null,
+    end_time: payload.isWorking ? payload.endTime : null,
+    reason: payload.reason?.trim() || null,
+  }));
+
   const { data, error } = await supabase
     .from("technician_schedule_overrides")
-    .upsert(
-      {
-        technician_id: params.id,
-        override_date: payload.overrideDate,
-        is_working: payload.isWorking,
-        start_time: payload.isWorking ? payload.startTime : null,
-        end_time: payload.isWorking ? payload.endTime : null,
-        reason: payload.reason?.trim() || null,
-      },
-      { onConflict: "technician_id,override_date" }
-    )
+    .upsert(upsertRows, { onConflict: "technician_id,override_date" })
     .select("id, technician_id, override_date, is_working, start_time, end_time, reason")
-    .single();
+    .order("override_date", { ascending: true });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ override: data });
+  return NextResponse.json({ overrides: data ?? [] });
 }
 
 export async function DELETE(request: Request, { params }: RouteContext) {
