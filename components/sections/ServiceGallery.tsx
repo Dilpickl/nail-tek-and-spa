@@ -35,43 +35,45 @@ export function ServiceGallery() {
 
       {/* Mobile: horizontal swipe + see-all card */}
       <div className="mt-8 md:hidden">
-        <div className="h-scroll">
-          {featured.map((service) => (
-            <div
-              key={service.id}
-              className="h-scroll-item flex flex-col rounded-2xl bg-background p-5 ring-1 ring-ink/5"
+        <Reveal>
+          <div className="h-scroll">
+            {featured.map((service) => (
+              <div
+                key={service.id}
+                className="h-scroll-item flex flex-col rounded-2xl bg-background p-5 ring-1 ring-ink/5"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="text-lg font-semibold text-ink">{service.name}</h3>
+                  <span className="shrink-0 font-serif text-xl font-semibold text-ink">
+                    {formatServiceDisplayPrice(service)}
+                  </span>
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-sm text-ink-muted">
+                    {formatDuration(service.durationMinutes)}
+                  </span>
+                  <Link
+                    href={`/book?service=${service.variants?.[0]?.id ?? service.id}`}
+                  >
+                    <Button size="sm">Book This</Button>
+                  </Link>
+                </div>
+              </div>
+            ))}
+            <Link
+              href="/services"
+              className="h-scroll-item flex flex-col items-center justify-center gap-3 rounded-2xl bg-background px-6 text-center ring-1 ring-ink/5 transition-colors hover:bg-secondary"
             >
-              <div className="flex items-baseline justify-between gap-3">
-                <h3 className="text-lg font-semibold text-ink">{service.name}</h3>
-                <span className="shrink-0 font-serif text-xl font-semibold text-ink">
-                  {formatServiceDisplayPrice(service)}
-                </span>
-              </div>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-ink-muted">
-                  {formatDuration(service.durationMinutes)}
-                </span>
-                <Link
-                  href={`/book?service=${service.variants?.[0]?.id ?? service.id}`}
-                >
-                  <Button size="sm">Book This</Button>
-                </Link>
-              </div>
-            </div>
-          ))}
-          <Link
-            href="/services"
-            className="h-scroll-item flex flex-col items-center justify-center gap-3 rounded-2xl bg-background px-6 text-center ring-1 ring-ink/5 transition-colors hover:bg-secondary"
-          >
-            <span className="text-lg font-semibold text-ink">
-              See all services
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
-              Open full menu
-              <ArrowRight className="size-4" />
-            </span>
-          </Link>
-        </div>
+              <span className="text-lg font-semibold text-ink">
+                See all services
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
+                Open full menu
+                <ArrowRight className="size-4" />
+              </span>
+            </Link>
+          </div>
+        </Reveal>
       </div>
 
       {/* Desktop: grid */}

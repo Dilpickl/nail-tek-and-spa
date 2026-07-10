@@ -27,27 +27,29 @@ export function About() {
 
       {/* Mobile: horizontal swipe */}
       <div className="mt-14 md:hidden">
-        <div className="h-scroll">
-          {trustPillars.map((pillar, i) => {
-            const Icon = icons[i % icons.length];
-            return (
-              <div
-                key={pillar.title}
-                className="h-scroll-item rounded-2xl bg-offwhite p-7 ring-1 ring-ink/5"
-              >
-                <div className="inline-flex size-12 items-center justify-center rounded-xl bg-ink text-offwhite">
-                  <Icon className="size-6" />
+        <Reveal>
+          <div className="h-scroll">
+            {trustPillars.map((pillar, i) => {
+              const Icon = icons[i % icons.length];
+              return (
+                <div
+                  key={pillar.title}
+                  className="h-scroll-item rounded-2xl bg-offwhite p-7 ring-1 ring-ink/5"
+                >
+                  <div className="inline-flex size-12 items-center justify-center rounded-xl bg-ink text-offwhite">
+                    <Icon className="size-6" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold text-ink">
+                    {pillar.title}
+                  </h3>
+                  <p className="mt-2 leading-relaxed text-ink-muted">
+                    {pillar.description}
+                  </p>
                 </div>
-                <h3 className="mt-5 text-xl font-semibold text-ink">
-                  {pillar.title}
-                </h3>
-                <p className="mt-2 leading-relaxed text-ink-muted">
-                  {pillar.description}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </Reveal>
       </div>
 
       {/* Desktop: grid */}

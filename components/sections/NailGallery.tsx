@@ -67,11 +67,8 @@ export function NailGallery() {
         </Reveal>
       </div>
 
-      <div className="mt-10">
-        <div
-          ref={scrollerRef}
-          className="h-scroll"
-        >
+      <Reveal className="mt-10">
+        <div ref={scrollerRef} className="h-scroll">
           {preview.map((image) => (
             <figure
               key={image.src}
@@ -92,14 +89,16 @@ export function NailGallery() {
             href="/gallery"
             className="h-scroll-item flex flex-col items-center justify-center gap-3 rounded-2xl bg-offwhite px-6 text-center ring-1 ring-ink/5 transition-colors hover:bg-secondary sm:w-[16rem] sm:max-w-none"
           >
-            <span className="text-lg font-semibold text-ink">See all {galleryImages.length} looks</span>
+            <span className="text-lg font-semibold text-ink">
+              See all {galleryImages.length} looks
+            </span>
             <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
               Open full gallery
               <ArrowRight className="size-4" />
             </span>
           </Link>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

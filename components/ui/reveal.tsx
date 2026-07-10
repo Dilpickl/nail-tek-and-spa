@@ -1,7 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
  * Subtle fade-and-rise reveal as the element scrolls into view.
@@ -16,19 +18,24 @@ export function Reveal({
   delay?: number;
   className?: string;
 }) {
+  const reduceMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setReady(true);
+    // Wait one frame after mount so we don't flash hidden content during hydration.
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
   }, []);
+
+  const shouldAnimate = ready && !reduceMotion;
 
   return (
     <motion.div
       className={className}
-      initial={ready ? { opacity: 0, y: 24 } : false}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+      initial={shouldAnimate ? { opacity: 0, y: 28 } : false}
+      whileInView={shouldAnimate ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.18, margin: "0px 0px -10% 0px" }}
+      transition={{ duration: 0.7, delay, ease: EASE }}
     >
       {children}
     </motion.div>
