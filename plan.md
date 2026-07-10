@@ -97,7 +97,7 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 - **Contact:** phone `(847) 458-4560`, email `Nailtekandspa52018@yahoo.com` (footer, careers, terms, privacy)
 - **Migration 007:** `supabase/migrations/007_real_salon_catalog.sql` — sync DB services/technicians with real catalog (must run on production Supabase)
 - **Brand copy:** removed fake “est. 1994 / 30+ years” story; hero uses owner-provided Algonquin description
-- **Google widget:** static 4.3 / 177 reviews with Maps + write-a-review links
+- **Google widget:** static 4.4 / 181 reviews with Maps + write-a-review links (update manually in `salonData.ts` when Google changes)
 
 **Prior work (June 28 – July 1, 2026):**
 - **Vercel deploy:** production live at `nail-tek-and-spa.vercel.app`; GitHub auto-deploy enabled; env vars configured

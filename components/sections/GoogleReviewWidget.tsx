@@ -1,7 +1,8 @@
-import { Star, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 import { business } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
+import { StarRating } from "@/components/ui/StarRating";
 
 /**
  * Google Reviews summary card — rating and count from salonData (keep in sync
@@ -27,18 +28,7 @@ export function GoogleReviewWidget() {
         {rating.toFixed(1)}
       </p>
 
-      <div className="mt-2 flex" aria-label={`${rating} out of 5 stars`}>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star
-            key={i}
-            className={
-              i < Math.round(rating)
-                ? "size-5 fill-ink text-ink"
-                : "size-5 text-ink/20"
-            }
-          />
-        ))}
-      </div>
+      <StarRating rating={rating} className="mt-2" />
 
       <p className="mt-2 text-sm text-ink-muted">
         Based on {reviewCount.toLocaleString()} Google reviews

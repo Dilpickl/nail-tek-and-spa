@@ -109,6 +109,9 @@ export const business = {
   locationLabel: "Algonquin, IL",
   shortDescription:
     "Located in the heart of Algonquin on Randall Road, Nail Tek & Spa offers premium nail services at highly affordable prices. The beautiful, spacious interior creates a relaxing atmosphere, fully staffed by a team of kind and welcoming nail technicians. Specializing in amazing custom nail art designs, the salon provides high-quality, professional care and luxurious results without the luxury price tag. Walk-ins are always welcome.",
+  /** Shorter blurb shown in the footer only. */
+  footerDescription:
+    "Located in the heart of Algonquin on Randall Road, Nail Tek & Spa offers premium nail services at highly affordable prices. Specializing in amazing custom nail art designs, the salon provides high-quality, professional care and luxurious results.",
   phone: "(847) 458-4560",
   /** Digits only — used for tel: links. */
   phoneRaw: "+18474584560",
@@ -122,15 +125,17 @@ export const business = {
     zip: "60102",
   },
   googleMapsEmbedUrl:
-    "https://www.google.com/maps?q=2403+W+Algonquin+Road,+Algonquin,+IL+60102&output=embed",
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2956.831941513576!2d-88.3350733235934!3d42.17527627121073!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880f1386c89a3d21%3A0x900621a5d7531e8a!2sNail%20Tek%20%26%20Spa%20INC!5e0!3m2!1sen!2sus!4v1783645130791!5m2!1sen!2sus",
   /** Google "Write a review" link (Place ID from Maps). */
   googleReviewUrl:
     "https://search.google.com/local/writereview?placeid=ChIJIT2ayIYTD4gRih5T16UhBpA",
   /** Public Google Maps profile / reviews listing. */
   googleMapsUrl:
     "https://www.google.com/maps/search/?api=1&query=Nail+Tek+%26+Spa+2403+W+Algonquin+Road+Algonquin+IL&query_place_id=ChIJIT2ayIYTD4gRih5T16UhBpA",
-  googleRating: 4.3,
-  googleReviewCount: 177,
+  googleRating: 4.4,
+  googleReviewCount: 181,
+  facebookRecommendPercent: 98,
+  facebookReviewCount: 28,
   walkInsWelcome: true,
   giftCardsAvailable: true,
 } as const;
@@ -667,8 +672,8 @@ export const testimonials: Testimonial[] = [
   {
     quote:
       "They were kind enough to accommodate me right away! It was actually my first time having a male technician do my eyebrows, which was a fun surprise. I started to explain exactly what I wanted, but he confidently assured me not to worry and promised I’d be happy with the outcome. He absolutely delivered……I couldn’t be more pleased with the results!",
-    name: "Google Reviewer",
-    source: "Google",
+    name: "Iris",
+    source: "Testimony",
   },
   {
     quote:
@@ -679,13 +684,13 @@ export const testimonials: Testimonial[] = [
   {
     quote:
       "I am always super nervous to try anything but a solid color at new salons. I was looking in the area for well rated nail salons when I came across this one and decided to give it a try. Glad I did. The staff was extremely friendly and respectful. I can’t say enough good things about them. It was all smiles. They did a wonderful job. I live an hour away but would definitely make the trip to return back to this salon. Thank you Travis & Daisy!!!",
-    name: "Google Reviewer",
+    name: "Jozie T.",
     source: "Google",
   },
   {
     quote:
       "I’ve lived in the Algonquin area for some time and it’s been so hard to find a nail salon I can actually go back to!! I stumbled upon Nail Tek & Spa being that it is super close to my house and YAY amazing work. My shape is beautiful and I actually found a place I’ll be more than happy to go back to. 10/10 recommended (:",
-    name: "Google Reviewer",
+    name: "Julie T.",
     source: "Google",
   },
 ];
@@ -697,17 +702,10 @@ export const testimonials: Testimonial[] = [
 export const careers: JobPosting[] = [
   {
     id: "job-nail-tech",
-    title: "Licensed Nail Technician",
+    title: "Nail Technician",
     type: "Full-Time",
     description:
-      "Join our friendly Algonquin team. We’re looking for a licensed technician skilled in manicures, pedicures, and enhancements who shares our commitment to quality work and kind client care.",
-  },
-  {
-    id: "job-front-desk",
-    title: "Front Desk Coordinator",
-    type: "Part-Time",
-    description:
-      "Be the welcoming first impression of our salon. Greet guests, help with walk-ins and bookings, and keep the front of house running smoothly.",
+      "Join our friendly Algonquin team. We’re looking for a technician skilled in manicures, pedicures, and enhancements who shares our commitment to quality work and kind client care.",
   },
 ];
 

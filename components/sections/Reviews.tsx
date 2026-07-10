@@ -3,6 +3,7 @@ import { Star, Quote } from "lucide-react";
 import { testimonials } from "@/lib/config/salonData";
 import { Reveal } from "@/components/ui/reveal";
 import { GoogleReviewWidget } from "@/components/sections/GoogleReviewWidget";
+import { FacebookReviewWidget } from "@/components/sections/FacebookReviewWidget";
 
 export function Reviews() {
   return (
@@ -19,7 +20,10 @@ export function Reviews() {
 
         <div className="mt-12 grid items-start gap-8 lg:grid-cols-[1fr_1.3fr]">
           <Reveal>
-            <GoogleReviewWidget />
+            <div className="space-y-4">
+              <GoogleReviewWidget />
+              <FacebookReviewWidget />
+            </div>
           </Reveal>
 
           <div className="grid gap-5 sm:grid-cols-2">

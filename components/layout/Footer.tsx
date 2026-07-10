@@ -14,7 +14,7 @@ export function Footer() {
           <div>
             <h3 className="font-serif text-2xl text-offwhite">{business.name}</h3>
             <p className="mt-2 text-sm text-beige-300/80 max-w-sm">
-              {business.shortDescription}
+              {business.footerDescription}
             </p>
 
             <div className="mt-6 space-y-3 text-sm">

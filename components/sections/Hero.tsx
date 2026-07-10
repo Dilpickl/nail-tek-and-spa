@@ -5,8 +5,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Star, Phone, Gift } from "lucide-react";
 
-import { business } from "@/lib/config/salonData";
+import { business, socials } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
+import { StarRating } from "@/components/ui/StarRating";
 
 export function Hero() {
   const [ready, setReady] = useState(false);
@@ -39,7 +40,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-offwhite px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-ink-soft"
           >
             <Star className="size-3.5 fill-ink text-ink" />
-            Algonquin&apos;s welcoming nail destination
+            Crystal Lake&apos;s premier nail destination
           </motion.div>
 
           <motion.h1
@@ -81,23 +82,30 @@ export function Hero() {
             className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-muted"
           >
             <div className="flex items-center gap-2">
-              <div className="flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={
-                      i < Math.round(business.googleRating)
-                        ? "size-4 fill-ink text-ink"
-                        : "size-4 text-ink/20"
-                    }
-                  />
-                ))}
-              </div>
+              <StarRating rating={business.googleRating} starClassName="size-4" />
               <span>
                 {business.googleRating.toFixed(1)} on Google ·{" "}
                 {business.googleReviewCount}+ reviews
               </span>
             </div>
+            <a
+              href={socials.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 hover:text-ink transition-colors"
+            >
+              <span
+                className="inline-flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: "#1877F2" }}
+                aria-hidden
+              >
+                f
+              </span>
+              <span>
+                {business.facebookRecommendPercent}% recommend (
+                {business.facebookReviewCount} Reviews) on Facebook
+              </span>
+            </a>
             {business.walkInsWelcome && (
               <span className="inline-flex items-center gap-1.5">
                 Walk-ins welcome
