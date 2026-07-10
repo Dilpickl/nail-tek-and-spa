@@ -774,28 +774,28 @@ function QuickBookingPanel({
         )}
 
         {!isWalkIn && (
-          <>
-            <label className="block min-w-0">
+          <div className="grid min-w-0 grid-cols-2 gap-3 sm:col-span-2 sm:gap-4">
+            <label className="block min-w-0 overflow-hidden">
               <span className="text-sm font-medium text-ink">Date</span>
               <input
                 type="date"
                 value={phoneDate}
                 min={today}
                 onChange={(event) => setPhoneDate(event.target.value)}
-                className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
+                className="mt-2 h-12 w-full min-w-0 max-w-full rounded-xl border border-input bg-background px-2 text-base text-ink [color-scheme:light] sm:px-3"
               />
             </label>
 
-            <label className="block min-w-0">
+            <label className="block min-w-0 overflow-hidden">
               <span className="text-sm font-medium text-ink">Start Time</span>
               <input
                 type="time"
                 value={time}
                 onChange={(event) => setTime(event.target.value)}
-                className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
+                className="mt-2 h-12 w-full min-w-0 max-w-full rounded-xl border border-input bg-background px-2 text-base text-ink [color-scheme:light] sm:px-3"
               />
             </label>
-          </>
+          </div>
         )}
       </div>
 

@@ -14,7 +14,7 @@ export function Reviews() {
             Loved by our clients
           </p>
           <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-            Real Google reviews from Algonquin & beyond
+            Real reviews from Crystal Lake & beyond
           </h2>
         </Reveal>
 

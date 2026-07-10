@@ -2,18 +2,30 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, Star, Phone, Gift } from "lucide-react";
 
-import { business, socials } from "@/lib/config/salonData";
+import { business, galleryImages, socials } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/ui/StarRating";
 
+const HERO_SLIDES = galleryImages.slice(0, 8);
+const HERO_INTERVAL_MS = 4000;
+
 export function Hero() {
   const [ready, setReady] = useState(false);
+  const [slide, setSlide] = useState(0);
 
   useEffect(() => {
     setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (HERO_SLIDES.length < 2) return;
+    const id = window.setInterval(() => {
+      setSlide((current) => (current + 1) % HERO_SLIDES.length);
+    }, HERO_INTERVAL_MS);
+    return () => window.clearInterval(id);
   }, []);
 
   const fadeUp = (delay = 0) =>
@@ -125,11 +137,18 @@ export function Hero() {
           className="relative"
         >
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-offwhite shadow-xl ring-1 ring-ink/5">
-            <img
-              src="https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=900&q=80"
-              alt="A relaxing manicure at Nail Tek & Spa"
-              className="h-full w-full object-cover"
-            />
+            <AnimatePresence initial={false} mode="sync">
+              <motion.img
+                key={HERO_SLIDES[slide]?.src ?? "hero"}
+                src={HERO_SLIDES[slide]?.src}
+                alt={HERO_SLIDES[slide]?.alt ?? "Nail Tek & Spa manicure"}
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </AnimatePresence>
           </div>
           <div className="absolute -bottom-5 left-4 right-4 hidden rounded-xl bg-offwhite/95 p-4 shadow-lg ring-1 ring-ink/5 backdrop-blur-sm sm:left-auto sm:right-auto sm:-bottom-6 sm:-left-10 sm:block sm:w-[14.5rem] sm:p-4">
             <div className="space-y-1">
