@@ -49,7 +49,11 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Contact">
-          Questions about these terms? Call us at{" "}
+          Questions about these terms? Email us at{" "}
+          <a className="underline" href={`mailto:${business.email}`}>
+            {business.email}
+          </a>
+          , call{" "}
           <a className="underline" href={`tel:${business.phoneRaw}`}>
             {business.phone}
           </a>

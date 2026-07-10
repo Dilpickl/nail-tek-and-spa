@@ -112,8 +112,8 @@ export const business = {
   phone: "(847) 458-4560",
   /** Digits only — used for tel: links. */
   phoneRaw: "+18474584560",
-  /** No public booking email yet — omit from footer when empty. */
-  email: "",
+  /** Public contact email. */
+  email: "Nailtekandspa52018@yahoo.com",
   address: {
     line1: "2403 W Algonquin Road",
     line2: "",

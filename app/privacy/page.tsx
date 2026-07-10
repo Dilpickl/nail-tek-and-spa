@@ -46,7 +46,11 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="Contact">
-          For privacy questions, call us at{" "}
+          For privacy questions, email us at{" "}
+          <a className="underline" href={`mailto:${business.email}`}>
+            {business.email}
+          </a>
+          , call{" "}
           <a className="underline" href={`tel:${business.phoneRaw}`}>
             {business.phone}
           </a>

@@ -65,14 +65,15 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 4. Run `supabase/migrations/004_anon_any_technician_grant.sql`
 5. Run `supabase/migrations/005_technician_schedules.sql`
 6. Run `supabase/migrations/006_service_variants_and_overrides.sql`
-7. Run `supabase/seed.sql` (dev/staging only — **replace with real data for production**)
-8. Create auth user: Dashboard → Authentication → Users → Add user
-9. Grant admin:
+7. Run `supabase/migrations/007_real_salon_catalog.sql` (**required for production** — real menu + staff)
+8. Run `supabase/seed.sql` (dev/staging only — not needed if 007 applied on prod)
+9. Create auth user: Dashboard → Authentication → Users → Add user
+10. Grant admin:
    ```sql
    insert into public.admin_users (user_id, email)
    values ('USER-UUID-FROM-AUTH', 'owner@email.com');
    ```
-10. Supabase Auth → URL Configuration: add Vercel domain redirect URLs (e.g. `https://nail-tek-and-spa.vercel.app/**`)
+11. Supabase Auth → URL Configuration: add Vercel domain redirect URLs (e.g. `https://nail-tek-and-spa.vercel.app/**`)
 
 ### Security model (important)
 - **Anon key** is public (browser-safe)
@@ -89,9 +90,16 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 |------|-------|
 | Branch | `master` (tracks `origin/master`) |
 | Remote | `https://github.com/Dilpickl/nail-tek-and-spa.git` |
-| HEAD | `132ed92` — Add admin calendar and improve booking/completion workflows |
+| HEAD | `80f3aaf` — Replace placeholder salon content with real Nail Tek & Spa data |
 
-**Recent work (June 28 – July 1, 2026):**
+**Recent work (July 9, 2026):**
+- **Real salon data on customer site:** `lib/config/salonData.ts` — Algonquin address, hours, full menu (pedicures through lashes), waxing, Google reviews/testimonials, social links, Travis/Daisy/Adam/Vickie
+- **Contact:** phone `(847) 458-4560`, email `Nailtekandspa52018@yahoo.com` (footer, careers, terms, privacy)
+- **Migration 007:** `supabase/migrations/007_real_salon_catalog.sql` — sync DB services/technicians with real catalog (must run on production Supabase)
+- **Brand copy:** removed fake “est. 1994 / 30+ years” story; hero uses owner-provided Algonquin description
+- **Google widget:** static 4.3 / 177 reviews with Maps + write-a-review links
+
+**Prior work (June 28 – July 1, 2026):**
 - **Vercel deploy:** production live at `nail-tek-and-spa.vercel.app`; GitHub auto-deploy enabled; env vars configured
 - **Admin Calendar tab** (`/admin/calendar`): Day / Week / Month / Schedule views; status color coding; inline side panel for appointment details; filter by employee, service, status; sort + date range
 - **Guest booking fixes:** cannot select same technician for multiple party guests (UI + API validation); guests who choose **Any** stay unassigned (`any_technician: true`) and appear in Agenda **Any Employee** column
@@ -100,7 +108,7 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 - **Agenda UX:** fixed bottom-right badge showing count still booked; heading shows month+day (e.g. "June 30") for dates other than today/tomorrow/yesterday
 - Prior: nail art variants, per-guest tech prefs, three-layer availability, Playwright E2E (`e2e/booking.spec.ts`)
 
-**Current focus (next session):** **Update production with real data** — employees, schedules, services/prices in Supabase, verify booking + admin against live salon info.
+**Current focus (next session):** Run migration **007** on production Supabase if not done yet; smoke-test `/book` + admin against live menu/staff; update Google rating/count in `salonData.ts` when it changes.
 
 ---
 
@@ -120,7 +128,8 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 - Fonts: Inter (body) + Cormorant Garamond (headings)
 
 ### Data sources
-- **`lib/config/salonData.ts`** — services, prices, durations, **salon-wide hours**, retail products, careers, trust pillars (marketing copy and business hours). Static `technicians[]` is a **marketing mirror only** — operational roster/roles come from Supabase.
+- **`lib/config/salonData.ts`** — services, prices, durations, **salon-wide hours**, retail products, careers, trust pillars, testimonials, Google rating links (marketing copy and business hours). Static `technicians[]` is a **marketing mirror only** — operational roster/roles come from Supabase.
+- **Public contact (Jul 9, 2026):** `(847) 458-4560` · `Nailtekandspa52018@yahoo.com` · 2403 W Algonquin Road, Algonquin, IL 60102
 - **`technicians` + `technician_schedules` + `technician_schedule_overrides` tables (Supabase)** — operational source of truth for **who works when**; admin Employees tab manages CRUD, weekly schedules, and date exceptions
 - **`services` table (Supabase)** — must stay in sync with bookable IDs from `salonData.ts` / migrations `006` + `007_real_salon_catalog.sql` for online booking FK validation
 - Run migration **007** (or refresh `seed.sql`) on production Supabase after deploy so new service/tech IDs validate
@@ -290,7 +299,7 @@ Revenue / avg ticket / tips → **`completed_transactions` only**.
 
 | Area | Notes |
 |------|-------|
-| **Real data migration** | Website copy + `salonData.ts` updated Jul 9, 2026 — run migration **007** on production Supabase, then smoke-test booking |
+| **Real data migration** | Customer site + `salonData.ts` done (Jul 9). **Still pending:** run migration **007** on production Supabase, then smoke-test booking |
 | Supabase migrations | Confirm 002–**007** applied in production Supabase |
 | `services` table sync | Bookable service IDs in DB must match `salonData.ts` / migration 007 |
 | Google rating widget | Static `business.googleRating` / `googleReviewCount` — update when the live Google profile changes |
@@ -310,7 +319,7 @@ Revenue / avg ticket / tips → **`completed_transactions` only**.
 5. **Admin user:** confirm owner account in `admin_users`
 6. **Smoke test on Vercel:** `/book`, `/admin`, `/admin/calendar`, complete flow with real employee assignment
 7. **Remove/clear test appointments** if old seed data was loaded in production
-8. **Optional:** add a public contact email to `business.email` when available
+
 ---
 
 ## 9. File Map (key files)
@@ -346,6 +355,7 @@ lib/
 
 supabase/
   migrations/006_service_variants_and_overrides.sql
+  migrations/007_real_salon_catalog.sql   # Real menu + staff (production)
 
 e2e/
   booking.spec.ts                   # Playwright E2E (5 tests)
