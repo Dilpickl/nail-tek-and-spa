@@ -66,14 +66,15 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 5. Run `supabase/migrations/005_technician_schedules.sql`
 6. Run `supabase/migrations/006_service_variants_and_overrides.sql`
 7. Run `supabase/migrations/007_real_salon_catalog.sql` (**required for production** — real menu + staff)
-8. Run `supabase/seed.sql` (dev/staging only — not needed if 007 applied on prod)
-9. Create auth user: Dashboard → Authentication → Users → Add user
-10. Grant admin:
+8. Run `supabase/migrations/008_remove_legacy_technicians.sql` (removes old seed staff: Linh, Maria, James, Amy)
+9. Run `supabase/seed.sql` (dev/staging only — not needed if 007 applied on prod)
+10. Create auth user: Dashboard → Authentication → Users → Add user
+11. Grant admin:
    ```sql
    insert into public.admin_users (user_id, email)
    values ('USER-UUID-FROM-AUTH', 'owner@email.com');
    ```
-11. Supabase Auth → URL Configuration: add Vercel domain redirect URLs (e.g. `https://nail-tek-and-spa.vercel.app/**`)
+12. Supabase Auth → URL Configuration: add Vercel domain redirect URLs (e.g. `https://nail-tek-and-spa.vercel.app/**`)
 
 ### Security model (important)
 - **Anon key** is public (browser-safe)
@@ -90,9 +91,19 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 |------|-------|
 | Branch | `master` (tracks `origin/master`) |
 | Remote | `https://github.com/Dilpickl/nail-tek-and-spa.git` |
-| HEAD | `5cc7cdb` — Point plan.md HEAD at 9be070e |
+| HEAD | `90937ed` — Improve admin booking UX and tablet layouts |
 
-**Recent work (July 9, 2026):**
+**Recent work (July 9, 2026 — evening):**
+- **Booking timezone fix:** all salon times use `America/Chicago` in `lib/booking/time-utils.ts` (`toLocalDateTime`, `formatInSalonTime`, `formatSalonTime`) — fixes selected slot vs confirmation mismatch on Vercel (UTC server)
+- **Simplified Calendar tab:** week + month views only; employee + status filters; day summary side panel (removed day/schedule views, service/sort/date-range clutter)
+- **Employees:** removed "Week at a glance"; **Delete** button for permanent removal (`DELETE ?hard=true`); migration **008** removes legacy seed staff (`tech-linh`, `tech-maria`, `tech-james`, `tech-amy`)
+- **Analytics:** **This Year** in primary date presets (with Today / This Week / This Month)
+- **Agenda:** black **still booked** badge is clickable — scrolls to next uncompleted (`booked`) appointment with highlight
+- **Manual booking / edits:** no longer blocked by "outside business hours" (quick-booking + `update-appointment.ts`); time wheel uses 6:00 AM–11:45 PM range
+- **iPad/tablet UX:** Employees accordion until `xl` (fixes overlapping white schedule bubbles); phone booking date/phone on separate rows; admin nav pills scroll horizontally; `TimeWheelPicker` infinite loop scroll (iOS-style)
+- **Hero:** compact mobile review chips (desktop keeps floating card)
+
+**Recent work (July 9, 2026 — earlier):**
 - **Real salon data on customer site:** `lib/config/salonData.ts` — Algonquin address, hours, full menu (pedicures through lashes), waxing, Google reviews/testimonials, social links, Travis/Daisy/Adam/Vickie
 - **Contact:** phone `(847) 458-4560`, email `Nailtekandspa52018@yahoo.com` (footer, careers, terms, privacy)
 - **Migration 007:** `supabase/migrations/007_real_salon_catalog.sql` — sync DB services/technicians with real catalog (must run on production Supabase)
@@ -108,7 +119,7 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 - **Agenda UX:** fixed bottom-right badge showing count still booked; heading shows month+day (e.g. "June 30") for dates other than today/tomorrow/yesterday
 - Prior: nail art variants, per-guest tech prefs, three-layer availability, Playwright E2E (`e2e/booking.spec.ts`)
 
-**Current focus (next session):** Run migration **007** on production Supabase if not done yet; smoke-test `/book` + admin against live menu/staff; update Google rating/count in `salonData.ts` when it changes.
+**Current focus (next session):** Run migrations **007** + **008** on production Supabase if not done yet; smoke-test `/book` time selection → confirmation on Vercel; verify iPad admin (Employees, phone booking, time wheel).
 
 ---
 
@@ -182,6 +193,7 @@ Resolution order in `getSchedulesForDate()`: override for that date → weekly r
 **Other booking behavior:**
 - Time slot resets when date/party/technician prefs change (not on step advance)
 - Past slots filtered; closed days disabled; auto-skip to next open day
+- **All times are salon-local (`America/Chicago`)** — slot generation, API storage, and confirmation display use `lib/booking/time-utils.ts` (critical on Vercel UTC)
 
 **APIs:**
 - `GET /api/availability` — accepts `party` JSON query param; rejects duplicate party tech prefs
@@ -189,7 +201,7 @@ Resolution order in `getSchedulesForDate()`: override for that date → weekly r
 - `POST /api/appointments` — creates N appointments for party; rollback on failure; duplicate tech validation
 
 **Logic split (important for imports):**
-- `lib/booking/time-utils.ts` — client-safe date/time helpers
+- `lib/booking/time-utils.ts` — date/time helpers + **`SALON_TIMEZONE` (`America/Chicago`)**; safe on client and server
 - `lib/booking/service-utils.ts` — client-safe service lookups + `BookingPartyMember` type
 - `lib/booking/normalize-services.ts` — **server-only** bookable service ID validation/normalization
 - `lib/booking/technicians.ts` — **server-only** DB technician + schedule + override queries
@@ -208,7 +220,7 @@ Admin pages use `export const dynamic = "force-dynamic"` to avoid stale employee
 **Agenda** (`/admin`):
 - **Day navigation:** `?date=YYYY-MM-DD`, prev/next, "Back to today"
 - Heading: Today / Tomorrow / Yesterday / **Month Day** (e.g. June 30) for other dates
-- **Booked count badge** (fixed bottom-right): shows uncompleted (`booked`) count for viewed day
+- **Booked count badge** (fixed bottom-right): shows uncompleted (`booked`) count; **tap to scroll** to next booked appointment (cycles through day)
 - Columns: **Any Employee** + each **active** technician; subtitle shows **role from DB**
 - Full-day off from agenda toggle **or** schedule override for that date
 - Drag-and-drop booked appointments between columns
@@ -218,17 +230,18 @@ Admin pages use `export const dynamic = "force-dynamic"` to avoid stale employee
 - Click appointment → detail page
 
 **Calendar** (`/admin/calendar`):
-- **Views:** Day, Week, Month, Schedule (list/table)
-- **Status colors:** distinct styles for Booked, Completed, Canceled, No-Show, Pending (+ fallback)
-- **Side panel:** click appointment or day/slot for details without leaving calendar
-- **Filters:** employee, service, status; **sort** by time/employee/service/status; **date range** start/end
-- Data via `GET /api/admin/calendar?start=&end=`
+- **Views:** Week (default) and Month only
+- **Filters:** employee, status
+- **Side panel:** selected day summary or appointment detail
+- **Navigation:** prev/next, Today, Refresh
+- Data via `GET /api/admin/calendar?start=&end=` (salon-timezone day bounds)
 
 **Employees** (`/admin/employees`):
-- Full employee CRUD: add, edit name/role, active/inactive, deactivate or hard delete
+- Full employee CRUD: add, edit name/role, active/inactive, **Deactivate** or **Delete** (permanent; `?hard=true` clears schedules/overrides)
 - **Weekly schedule** editor with **Quick weekly setup** (reset to salon hours, copy Mon → weekdays) + save hint
 - **Schedule exceptions** panel: single date or **date range** (start + optional end); day off or custom hours; list/delete upcoming (60 days)
 - Display order controls; future booking conflict warning on schedule save
+- **Tablet layout:** accordion list below `xl`; side-by-side team list + editor at `xl+` (avoids overlapping schedule rows on iPad)
 - Save profile triggers `router.refresh()` so agenda picks up role changes
 
 **Appointment detail** (`/admin/appointments/[id]`):
@@ -245,6 +258,7 @@ Admin pages use `export const dynamic = "force-dynamic"` to avoid stale employee
 
 **Analytics** (`/admin/analytics`):
 - Revenue from **completed transactions only**
+- Primary date presets: **Today | This Week | This Month | This Year**; extended ranges in Full Report toggle
 
 ### Admin APIs
 | Route | Purpose |
@@ -255,7 +269,7 @@ Admin pages use `export const dynamic = "force-dynamic"` to avoid stale employee
 | `GET /api/admin/analytics` | KPIs + chart data |
 | `GET /api/admin/calendar` | Calendar range query (appointments + technicians) |
 | `GET/POST /api/admin/employees` | List/create employees + schedules |
-| `PATCH/DELETE /api/admin/employees/[id]` | Update profile / deactivate |
+| `PATCH/DELETE /api/admin/employees/[id]` | Update profile / deactivate (`DELETE`) or permanent delete (`DELETE ?hard=true`) |
 | `PUT /api/admin/employees/[id]/schedule` | Replace 7-day schedule |
 | `GET/POST/DELETE /api/admin/employees/[id]/overrides` | Date-specific schedule exceptions (supports range) |
 | `POST /api/admin/employees/reorder` | Update display_order |
@@ -299,26 +313,27 @@ Revenue / avg ticket / tips → **`completed_transactions` only**.
 
 | Area | Notes |
 |------|-------|
-| **Real data migration** | Customer site + `salonData.ts` done (Jul 9). **Still pending:** run migration **007** on production Supabase, then smoke-test booking |
-| Supabase migrations | Confirm 002–**007** applied in production Supabase |
+| **Real data migration** | Customer site + `salonData.ts` done (Jul 9). **Still pending:** run migrations **007** + **008** on production Supabase, then smoke-test booking times on Vercel |
+| Supabase migrations | Confirm 002–**008** applied in production Supabase |
 | `services` table sync | Bookable service IDs in DB must match `salonData.ts` / migration 007 |
 | Google rating widget | Static `business.googleRating` / `googleReviewCount` — update when the live Google profile changes |
 | Dev server cache | If white screen / module errors, delete `.next` and restart `npm run dev` |
 | Legacy party bookings | Old single-row multi-guest bookings may still exist in DB |
 | Partial-day time-off | Schema supports it; agenda toggle is full-day only; use custom-hours override for partial |
 | Employee specialties | Not in DB yet; booking does not filter techs by service type |
-| Salon hours in admin | Still in `salonData.ts`; not editable from admin UI |
+| Salon hours in admin | Still in `salonData.ts`; not editable from admin UI. **Manual admin bookings are NOT blocked** outside salon hours (overlap/tech-off still enforced) |
 | SMS confirmations | Alert stubs only — no Twilio integration yet |
 | Custom domain | Vercel default `*.vercel.app`; add custom domain when ready |
 
 ### Real data checklist (production)
-1. **Run migration 007** (`supabase/migrations/007_real_salon_catalog.sql`) in Supabase SQL Editor — upserts real services + Travis/Daisy/Adam/Vickie + default schedules; soft-deactivates legacy seed staff/services
-2. **Employees:** confirm all four techs are active in `/admin/employees`; adjust weekly schedules if anyone does not work “all hours”
-3. **Schedule exceptions:** add planned time off / custom hours via Employees tab (use date ranges for vacations)
-4. **Salon hours:** Mon–Fri 9–8, Sat 9–6, Sun 11–5 in `salonData.ts` (affects availability)
-5. **Admin user:** confirm owner account in `admin_users`
-6. **Smoke test on Vercel:** `/book`, `/admin`, `/admin/calendar`, complete flow with real employee assignment
-7. **Remove/clear test appointments** if old seed data was loaded in production
+1. **Run migration 007** (`supabase/migrations/007_real_salon_catalog.sql`) in Supabase SQL Editor — upserts real services + Travis/Daisy/Adam/Vickie + default schedules
+2. **Run migration 008** (`supabase/migrations/008_remove_legacy_technicians.sql`) — hard-deletes legacy placeholder staff (Linh, Maria, James, Amy) or use Employees **Delete** in admin
+3. **Employees:** confirm all four techs are active in `/admin/employees`; adjust weekly schedules if anyone does not work “all hours”
+4. **Schedule exceptions:** add planned time off / custom hours via Employees tab (use date ranges for vacations)
+5. **Salon hours:** Mon–Fri 9–8, Sat 9–6, Sun 11–5 in `salonData.ts` (affects **online** availability; admin can book outside hours)
+6. **Admin user:** confirm owner account in `admin_users`
+7. **Smoke test on Vercel:** `/book` (pick time → confirm same time), `/admin`, `/admin/calendar`, phone booking on iPad, complete flow with real employee assignment
+8. **Remove/clear test appointments** if old seed data was loaded in production
 
 ---
 
@@ -337,25 +352,33 @@ app/
     appointments/route.ts
 
 components/
-  booking/BookingFlow.tsx           # Multi-guest, per-guest tech, duplicate-tech guard
+  booking/BookingFlow.tsx           # Multi-guest; salon-timezone confirmation display
+  ui/TimeWheelPicker.tsx            # iOS-style infinite loop time wheel (admin)
   admin/
-    AdminDashboard.tsx              # Agenda + booked count badge
-    AdminCalendar.tsx               # Day/week/month/schedule + side panel
-    AdminNav.tsx                    # Agenda | Calendar | Employees | Analytics
+    AdminDashboard.tsx              # Agenda + clickable booked-count badge + quick booking
+    AdminCalendar.tsx               # Week/month calendar + side panel
+    AdminNav.tsx                    # Agenda | Calendar | Employees | Analytics (scrollable on tablet)
+    EditAppointmentForm.tsx           # Time wheel for reschedule
     CompleteAppointmentForm.tsx     # Inline tech assignment at checkout
   admin/employees/
-    EmployeeScheduleEditor.tsx      # Quick weekly setup
+    EmployeeScheduleEditor.tsx      # Quick weekly setup; tablet-friendly grid
     EmployeeScheduleExceptions.tsx  # Date + range exceptions UI
+  admin/analytics/
+    AnalyticsDatePicker.tsx         # Today / Week / Month / Year primary presets
 
 lib/
-  admin/update-appointment.ts       # forCompletionAssignment bypass
+  admin/format.ts                   # Display times in salon timezone
+  admin/update-appointment.ts       # forCompletionAssignment bypass; no business-hours block
+  booking/time-utils.ts             # America/Chicago timezone helpers (critical)
   booking/normalize-services.ts     # Server validation for bookable service IDs
   booking/party-scheduling.ts       # Party assignment; Any stays unassigned
   booking/technicians.ts            # Schedules + overrides resolution
+  analytics/date-ranges.ts          # Includes this_year preset
 
 supabase/
   migrations/006_service_variants_and_overrides.sql
-  migrations/007_real_salon_catalog.sql   # Real menu + staff (production)
+  migrations/007_real_salon_catalog.sql      # Real menu + staff (production)
+  migrations/008_remove_legacy_technicians.sql  # Delete placeholder staff
 
 e2e/
   booking.spec.ts                   # Playwright E2E (5 tests)
@@ -415,16 +438,22 @@ npm run test:e2e     # in another (or auto-starts dev server via playwright.conf
 ```
 Read plan.md in the project root first.
 
-Status (July 2026): App is live on Vercel (nail-tek-and-spa.vercel.app). Env vars configured. HEAD 132ed92. Current priority: update production with REAL salon data (employees, schedules, services/prices).
+Status (July 2026): App is live on Vercel (nail-tek-and-spa.vercel.app). HEAD 90937ed.
 
-Recent features: Admin Calendar tab (day/week/month/schedule, filters, side panel). Guest booking duplicate-tech prevention; Any guests stay in Any column. Schedule exception date ranges. Completion inline tech assignment (skips schedule constraints). Agenda booked-count badge + date headings.
+Recent features:
+- Booking times fixed for America/Chicago (Vercel UTC) — lib/booking/time-utils.ts
+- Simplified Calendar (week/month only); clickable still-booked badge on Agenda
+- Employees: Delete button + migration 008 for legacy staff; iPad layout fixes
+- Analytics: This Year in primary presets
+- Admin manual bookings NOT blocked by salon hours; TimeWheelPicker infinite scroll
 
-Confirm migrations 002–006 applied in Supabase prod. services table must match salonData bookable IDs.
+Confirm migrations 002–008 applied in Supabase prod. services table must match salonData bookable IDs.
 
 Rules:
 - Revenue metrics = completed transactions only
 - Never overwrite original booking data (appointment_services)
 - Technicians/roles for booking/admin = Supabase DB; salon hours still in salonData.ts
+- All displayed/stored appointment times = America/Chicago via time-utils
 - Match existing design (warm beige, serif headings, sharp black; emerald for Complete)
 - Split client vs server imports: time-utils/service-utils/schedule-utils (client) vs availability/party-scheduling/slot-capacity/technicians/normalize-services (server-only)
 - Only commit when user asks

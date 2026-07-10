@@ -131,25 +131,30 @@ export function Hero() {
               className="h-full w-full object-cover"
             />
           </div>
-          <div className="absolute -bottom-5 left-4 right-4 hidden rounded-xl bg-offwhite/95 p-4 shadow-lg ring-1 ring-ink/5 backdrop-blur-sm sm:left-auto sm:right-auto sm:-bottom-6 sm:-left-6 sm:block sm:w-[15.5rem] sm:p-5">
-            <div className="flex items-baseline justify-between gap-3">
-              <div className="flex items-center gap-1.5">
+          <div className="absolute -bottom-5 left-4 right-4 hidden rounded-xl bg-offwhite/95 p-4 shadow-lg ring-1 ring-ink/5 backdrop-blur-sm sm:left-auto sm:right-auto sm:-bottom-6 sm:-left-10 sm:block sm:w-[14.5rem] sm:p-4">
+            <div className="space-y-1">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-muted">
+                Google
+              </p>
+              <div className="flex items-center gap-2">
                 <StarRating rating={business.googleRating} starClassName="size-3.5" />
-                <span className="text-lg font-semibold leading-none text-ink">
+                <span className="text-base font-semibold leading-none text-ink">
                   {business.googleRating.toFixed(1)}
                 </span>
               </div>
-              <span className="text-xs text-ink-muted">Google</span>
+              <p className="text-xs text-ink-muted">
+                {business.googleReviewCount}+ reviews
+              </p>
             </div>
-            <p className="mt-1 text-xs text-ink-muted">
-              {business.googleReviewCount}+ reviews
-            </p>
-            <div className="mt-3 flex items-center justify-between gap-2 border-t border-ink/8 pt-3">
+            <div className="mt-3 space-y-1 border-t border-ink/8 pt-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-muted">
+                Facebook
+              </p>
               <a
                 href={socials.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-soft hover:text-ink transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink hover:text-ink-soft transition-colors"
               >
                 <span
                   className="inline-flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
@@ -160,9 +165,9 @@ export function Hero() {
                 </span>
                 {business.facebookRecommendPercent}% recommend
               </a>
-              <span className="shrink-0 text-xs text-ink-muted">
+              <p className="text-xs text-ink-muted">
                 {business.facebookReviewCount} reviews
-              </span>
+              </p>
             </div>
           </div>
         </motion.div>

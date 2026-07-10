@@ -20,7 +20,6 @@ import {
 
 import { AppointmentCard } from "@/components/admin/AppointmentCard";
 import { Button } from "@/components/ui/button";
-import { TimeWheelPicker } from "@/components/ui/TimeWheelPicker";
 import { ANY_EMPLOYEE_ID, ANY_EMPLOYEE_LABEL } from "@/lib/admin/constants";
 import {
   clearQueuedAppointmentHighlights,
@@ -732,7 +731,7 @@ function QuickBookingPanel({
           </div>
         </label>
 
-        <div className="block min-w-0 sm:col-span-2">
+        <div className="block min-w-0">
           <span className="text-sm font-medium text-ink">Services</span>
           <ServiceMultiSelect
             selectedIds={selectedServiceIds}
@@ -751,7 +750,7 @@ function QuickBookingPanel({
           />
         </label>
 
-        {!isWalkIn && (
+        {!isWalkIn ? (
           <label className="block min-w-0">
             <span className="text-sm font-medium text-ink">Phone</span>
             <input
@@ -762,31 +761,42 @@ function QuickBookingPanel({
               className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink placeholder:text-ink-muted"
             />
           </label>
-        )}
-
-        {!isWalkIn && (
-          <label className="block min-w-0 sm:col-span-2 sm:max-w-xs">
-            <span className="text-sm font-medium text-ink">Date</span>
+        ) : (
+          <label className="block min-w-0">
+            <span className="text-sm font-medium text-ink">Start Time</span>
             <input
-              type="date"
-              value={phoneDate}
-              min={today}
-              onChange={(event) => setPhoneDate(event.target.value)}
-              className="mt-2 h-12 w-full max-w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
+              type="time"
+              value={time}
+              onChange={(event) => setTime(event.target.value)}
+              className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
             />
           </label>
         )}
-      </div>
 
-      <div className="mt-5">
-        <span className="text-sm font-medium text-ink">Start Time</span>
-        <TimeWheelPicker
-          value={time}
-          onChange={setTime}
-          minTime="06:00"
-          maxTime="23:45"
-          className="mt-3 max-w-md"
-        />
+        {!isWalkIn && (
+          <>
+            <label className="block min-w-0">
+              <span className="text-sm font-medium text-ink">Date</span>
+              <input
+                type="date"
+                value={phoneDate}
+                min={today}
+                onChange={(event) => setPhoneDate(event.target.value)}
+                className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
+              />
+            </label>
+
+            <label className="block min-w-0">
+              <span className="text-sm font-medium text-ink">Start Time</span>
+              <input
+                type="time"
+                value={time}
+                onChange={(event) => setTime(event.target.value)}
+                className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
+              />
+            </label>
+          </>
+        )}
       </div>
 
       {error && (

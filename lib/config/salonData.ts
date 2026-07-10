@@ -108,7 +108,7 @@ export const business = {
   /** Location line used in the header under the salon name. */
   locationLabel: "Algonquin, IL",
   shortDescription:
-    "Located in the heart of Algonquin on Randall Road, Nail Tek & Spa offers premium nail services at highly affordable prices. The beautiful, spacious interior creates a relaxing atmosphere, fully staffed by a team of kind and welcoming nail technicians. Specializing in amazing custom nail art designs, the salon provides high-quality, professional care and luxurious results without the luxury price tag. Walk-ins are always welcome.",
+    "Located in the heart of Algonquin and Randall Road, Nail Tek & Spa offers premium nail services at affordable prices. The beautiful interior creates a relaxing atmosphere, fully staffed by a team of welcoming technicians. Offering a wide variety of services—ranging from classic manicures and relaxing spa pedicures to custom nail enhancements—the salon provides professional care without the luxury price tag. Walk-ins are always welcome.",
   /** Shorter blurb shown in the footer only. */
   footerDescription:
     "Located in the heart of Algonquin on Randall Road, Nail Tek & Spa offers premium nail services at highly affordable prices. Specializing in amazing custom nail art designs, the salon provides high-quality, professional care and luxurious results.",

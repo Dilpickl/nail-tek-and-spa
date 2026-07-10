@@ -113,19 +113,22 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-4 border-t border-beige-300/20 pt-6 text-xs text-beige-300/70 md:flex-row md:items-center md:justify-between">
-          <p>
-            &copy; {new Date().getFullYear()} {business.name}. All rights
-            reserved.
-          </p>
-          <div className="flex gap-6">
-            <Link href="/terms" className="hover:text-offwhite transition-colors">
-              Terms of Service
-            </Link>
-            <Link href="/privacy" className="hover:text-offwhite transition-colors">
-              Privacy Policy
-            </Link>
+        <div className="mt-14 border-t border-beige-300/20 pt-6">
+          <div className="flex flex-col gap-4 text-xs text-beige-300/70 md:flex-row md:items-center md:justify-between">
+            <p>
+              &copy; {new Date().getFullYear()} {business.name}. All rights
+              reserved.
+            </p>
+            <div className="flex gap-6">
+              <Link href="/terms" className="hover:text-offwhite transition-colors">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="hover:text-offwhite transition-colors">
+                Privacy Policy
+              </Link>
+            </div>
           </div>
+          <p className="mt-4 text-center text-xs text-beige-300/60">Made with love</p>
         </div>
       </div>
     </footer>
