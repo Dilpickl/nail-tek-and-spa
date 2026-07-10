@@ -31,22 +31,22 @@ export function ServiceGallery() {
           </Link>
         </Reveal>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 md:mt-12 md:gap-6 lg:grid-cols-3">
           {featured.map((service, i) => (
             <Reveal key={service.id} delay={(i % 3) * 0.08}>
-              <div className="group flex h-full flex-col rounded-2xl bg-background p-7 ring-1 ring-ink/5 transition-shadow hover:shadow-lg">
+              <div className="group flex h-full flex-col rounded-2xl bg-background p-4 ring-1 ring-ink/5 transition-shadow hover:shadow-lg md:p-7">
                 <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="text-xl font-semibold text-ink">
+                  <h3 className="text-lg font-semibold text-ink md:text-xl">
                     {service.name}
                   </h3>
-                  <span className="shrink-0 font-serif text-2xl font-semibold text-ink">
+                  <span className="shrink-0 font-serif text-xl font-semibold text-ink md:text-2xl">
                     {formatServiceDisplayPrice(service)}
                   </span>
                 </div>
-                <p className="mt-3 flex-1 leading-relaxed text-ink-muted">
+                <p className="mt-3 hidden flex-1 leading-relaxed text-ink-muted md:block">
                   {service.description}
                 </p>
-                <div className="mt-6 flex items-center justify-between">
+                <div className="mt-4 flex items-center justify-between md:mt-6">
                   <span className="text-sm text-ink-muted">
                     {formatDuration(service.durationMinutes)}
                   </span>
