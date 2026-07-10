@@ -165,6 +165,96 @@ export const socials = {
 } as const;
 
 /* ------------------------------------------------------------------ */
+/*  Nail art gallery (home strip + /gallery page)                      */
+/* ------------------------------------------------------------------ */
+
+export type GalleryImage = {
+  src: string;
+  alt: string;
+};
+
+/** Full salon portfolio — used on /gallery and the home horizontal strip. */
+export const galleryImages: GalleryImage[] = [
+  { src: "/gallery/nail-01.png", alt: "Custom nail art with floral and glitter accents" },
+  { src: "/gallery/nail-02.png", alt: "Bold colorful manicure with detailed nail art" },
+  { src: "/gallery/nail-03.png", alt: "Elegant manicure with shimmer and design accents" },
+  { src: "/gallery/nail-04.png", alt: "Seasonal nail art with festive details" },
+  { src: "/gallery/nail-05.png", alt: "Glossy manicure with hand-painted accents" },
+  { src: "/gallery/nail-06.png", alt: "Creative nail designs with mixed patterns" },
+  { src: "/gallery/nail-07.png", alt: "Luxury manicure with crystal and glitter details" },
+  { src: "/gallery/nail-08.png", alt: "Custom nail enhancements with artistic finishes" },
+  { src: "/gallery/nail-09.png", alt: "Food-themed custom nail art with playful details" },
+  { src: "/gallery/nail-10.png", alt: "Hot pink manicure with tropical palm tree accent" },
+  { src: "/gallery/nail-11.png", alt: "St. Patrick's Day green and gold glitter manicure" },
+  { src: "/gallery/nail-12.png", alt: "Winter holiday nails with candy cane and snowflake art" },
+  { src: "/gallery/nail-13.png", alt: "Festive mauve and candy cane holiday manicure" },
+  { src: "/gallery/nail-14.png", alt: "Christmas character nail art with peppermint designs" },
+  { src: "/gallery/nail-15.png", alt: "French tips with holly and snowflake holiday accents" },
+  { src: "/gallery/nail-16.png", alt: "Hot pink nails with crystal butterfly statement art" },
+  { src: "/gallery/nail-17.png", alt: "Christmas red and green nails with poinsettia art" },
+  { src: "/gallery/nail-19.png", alt: "Pink, black, and gold geometric nail art" },
+  { src: "/gallery/nail-20.png", alt: "Purple ombre nails with delicate floral painting" },
+  { src: "/gallery/nail-21.png", alt: "Fall glitter nails with hand-painted pumpkins" },
+  { src: "/gallery/nail-22.png", alt: "Halloween orange and black bat nail art" },
+  { src: "/gallery/nail-23.png", alt: "Nude French manicure with wavy metallic gold tips" },
+  { src: "/gallery/nail-24.png", alt: "Classic French manicure with subtle white accents" },
+  { src: "/gallery/nail-25.png", alt: "Custom nail art showcase from Nail Tek & Spa" },
+  { src: "/gallery/nail-26.png", alt: "Detailed salon manicure with glossy finish" },
+  { src: "/gallery/nail-27.png", alt: "Artistic nail designs with seasonal inspiration" },
+  { src: "/gallery/nail-28.png", alt: "Premium nail enhancements with creative details" },
+  { src: "/gallery/nail-29.png", alt: "Hand-painted nail art with glitter accents" },
+  { src: "/gallery/nail-30.png", alt: "Elegant manicure featuring custom salon designs" },
+  { src: "/gallery/nail-31.png", alt: "Bold nail art with polished professional finish" },
+  { src: "/gallery/nail-32.png", alt: "Signature Nail Tek & Spa custom nail work" },
+  { src: "/gallery/nail-33.png", alt: "Custom nail art with creative color and detail" },
+  { src: "/gallery/nail-34.png", alt: "Glossy manicure with hand-painted accents" },
+  { src: "/gallery/nail-35.png", alt: "Seasonal nail designs with glitter finishes" },
+  { src: "/gallery/nail-36.png", alt: "Detailed salon manicure with artistic flair" },
+  { src: "/gallery/nail-37.png", alt: "Bold color manicure with custom nail art" },
+  { src: "/gallery/nail-38.png", alt: "Elegant nail enhancements with shimmer" },
+  { src: "/gallery/nail-39.png", alt: "Creative mixed-pattern nail designs" },
+  { src: "/gallery/nail-40.png", alt: "Premium manicure with polished finish" },
+  { src: "/gallery/nail-41.png", alt: "Custom nail art showcase from Nail Tek & Spa" },
+  { src: "/gallery/nail-42.png", alt: "Festive and seasonal hand-painted nails" },
+  { src: "/gallery/nail-43.png", alt: "Glitter and accent nail art designs" },
+  { src: "/gallery/nail-44.png", alt: "Artistic manicure with fine detail work" },
+  { src: "/gallery/nail-45.png", alt: "Luxury nail enhancements with sparkle" },
+  { src: "/gallery/nail-46.png", alt: "Colorful custom nail art designs" },
+  { src: "/gallery/nail-47.png", alt: "Classic and creative manicure styles" },
+  { src: "/gallery/nail-48.png", alt: "Hand-painted nail art with glossy finish" },
+  { src: "/gallery/nail-49.png", alt: "Statement nails with custom salon designs" },
+  { src: "/gallery/nail-50.png", alt: "Breakfast-themed egg and bacon nail art" },
+  { src: "/gallery/nail-51.png", alt: "Coral French tips with silver glitter accents" },
+  { src: "/gallery/nail-52.png", alt: "St. Patrick's Day green glitter and shamrock nails" },
+  { src: "/gallery/nail-53.png", alt: "Chicago Blackhawks themed pedicure nail art" },
+  { src: "/gallery/nail-54.png", alt: "Metallic purple nails with rhinestone accents" },
+  { src: "/gallery/nail-55.png", alt: "Patriotic red white and blue star nail art" },
+  { src: "/gallery/nail-56.png", alt: "Blue marble and cat-eye magnetic nail art" },
+  { src: "/gallery/nail-57.png", alt: "Pink glitter coffin nails with floral painting" },
+  { src: "/gallery/nail-58.png", alt: "White and glitter statement nails with bling" },
+  { src: "/gallery/nail-59.png", alt: "Orange manicure with silver glitter floral accents" },
+  { src: "/gallery/nail-60.png", alt: "Christmas lights and glitter holiday nail art" },
+  { src: "/gallery/nail-61.png", alt: "Tropical sunset ombre nails with palm silhouettes" },
+  { src: "/gallery/nail-62.png", alt: "Red glitter Christmas nails with candy cane art" },
+  { src: "/gallery/nail-63.png", alt: "American flag inspired red white and blue nails" },
+  { src: "/gallery/nail-64.png", alt: "Pastel geometric color-block coffin nail art" },
+  { src: "/gallery/nail-65.png", alt: "Holiday red glitter nails with poinsettia accent" },
+  { src: "/gallery/nail-66.png", alt: "Custom nail art with creative salon detailing" },
+  { src: "/gallery/nail-67.png", alt: "Glossy manicure featuring hand-painted designs" },
+  { src: "/gallery/nail-68.png", alt: "Seasonal nail enhancements with sparkle accents" },
+  { src: "/gallery/nail-69.png", alt: "Bold artistic nails with polished professional finish" },
+  { src: "/gallery/nail-70.png", alt: "Elegant custom manicure from Nail Tek & Spa" },
+  { src: "/gallery/nail-71.png", alt: "Detailed nail art with mixed color and glitter" },
+  { src: "/gallery/nail-72.png", alt: "Creative salon nails with statement accents" },
+  { src: "/gallery/nail-73.png", alt: "Premium manicure with artistic hand-painted work" },
+  { src: "/gallery/nail-74.png", alt: "Colorful custom nail designs with glossy finish" },
+  { src: "/gallery/nail-75.png", alt: "Festive nail art with glitter and fine details" },
+  { src: "/gallery/nail-76.png", alt: "Signature Nail Tek & Spa custom nail enhancements" },
+  { src: "/gallery/nail-77.png", alt: "Hand-painted seasonal nails with polished shine" },
+  { src: "/gallery/nail-78.png", alt: "Artistic manicure showcasing salon craftsmanship" },
+];
+
+/* ------------------------------------------------------------------ */
 /*  Services (grouped by category)                                     */
 /* ------------------------------------------------------------------ */
 

@@ -128,7 +128,16 @@ export function Footer() {
               </Link>
             </div>
           </div>
-          <p className="mt-4 text-center text-xs text-beige-300/60">Made with love</p>
+          <p className="mt-4 text-center text-xs text-beige-300/60">
+            Interested in a professional website? Text inquiries to{" "}
+            <a
+              href="sms:+18153457343"
+              className="underline hover:text-offwhite transition-colors"
+            >
+              815-345-7343
+            </a>
+            .
+          </p>
         </div>
       </div>
     </footer>
