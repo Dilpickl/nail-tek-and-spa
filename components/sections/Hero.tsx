@@ -9,24 +9,55 @@ import { business, galleryImages, socials } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/ui/StarRating";
 
-const HERO_SLIDES = galleryImages.slice(0, 8);
-const HERO_INTERVAL_MS = 4000;
+/** Curated hero cycle — matched from homepage screenshot picks to gallery files. */
+const HERO_SLIDE_SRCS = [
+  "/gallery/nail-01.png",
+  "/gallery/nail-03.png",
+  "/gallery/nail-04.png",
+  "/gallery/nail-05.png",
+  "/gallery/nail-08.png",
+  "/gallery/nail-10.png",
+  "/gallery/nail-11.png",
+  "/gallery/nail-15.png",
+  "/gallery/nail-17.png",
+  "/gallery/nail-20.png",
+  "/gallery/nail-21.png",
+  "/gallery/nail-27.png",
+  "/gallery/nail-29.png",
+  "/gallery/nail-31.png",
+  "/gallery/nail-32.png",
+  "/gallery/nail-33.png",
+  "/gallery/nail-34.png",
+  "/gallery/nail-37.png",
+  "/gallery/nail-57.png",
+  "/gallery/nail-70.png",
+] as const;
+
+const HERO_SLIDES = HERO_SLIDE_SRCS.map(
+  (src) => galleryImages.find((image) => image.src === src) ?? { src, alt: "Nail Tek & Spa manicure" }
+);
+/** Auto-advance interval — 1s less than the original 4s. */
+const HERO_INTERVAL_MS = 3000;
 
 export function Hero() {
   const [ready, setReady] = useState(false);
-  const [slide, setSlide] = useState(0);
+  // null until mount so we never flash slide 0 before the random pick
+  const [slide, setSlide] = useState<number | null>(null);
 
   useEffect(() => {
     setReady(true);
+    setSlide(Math.floor(Math.random() * HERO_SLIDES.length));
   }, []);
 
   useEffect(() => {
-    if (HERO_SLIDES.length < 2) return;
+    if (slide === null || HERO_SLIDES.length < 2) return;
     const id = window.setInterval(() => {
-      setSlide((current) => (current + 1) % HERO_SLIDES.length);
+      setSlide((current) =>
+        current === null ? 0 : (current + 1) % HERO_SLIDES.length
+      );
     }, HERO_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, []);
+  }, [slide === null]);
 
   const fadeUp = (delay = 0) =>
     ready
@@ -137,18 +168,20 @@ export function Hero() {
           className="relative"
         >
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-offwhite shadow-xl ring-1 ring-ink/5">
-            <AnimatePresence initial={false} mode="sync">
-              <motion.img
-                key={HERO_SLIDES[slide]?.src ?? "hero"}
-                src={HERO_SLIDES[slide]?.src}
-                alt={HERO_SLIDES[slide]?.alt ?? "Nail Tek & Spa manicure"}
-                initial={{ opacity: 0, scale: 1.04 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            </AnimatePresence>
+            {slide !== null && (
+              <AnimatePresence initial={false} mode="sync">
+                <motion.img
+                  key={HERO_SLIDES[slide]?.src ?? "hero"}
+                  src={HERO_SLIDES[slide]?.src}
+                  alt={HERO_SLIDES[slide]?.alt ?? "Nail Tek & Spa manicure"}
+                  initial={{ opacity: 0, scale: 1.04 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </AnimatePresence>
+            )}
           </div>
           <div className="absolute -bottom-5 left-4 right-4 hidden rounded-xl bg-offwhite/95 p-4 shadow-lg ring-1 ring-ink/5 backdrop-blur-sm sm:left-auto sm:right-auto sm:-bottom-6 sm:-left-10 sm:block sm:w-[14.5rem] sm:p-4">
             <div className="space-y-1">
