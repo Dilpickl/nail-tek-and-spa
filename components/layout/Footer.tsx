@@ -114,12 +114,12 @@ export function Footer() {
         </div>
 
         <div className="mt-14 border-t border-beige-300/20 pt-6">
-          <div className="flex flex-col gap-4 text-xs text-beige-300/70 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col items-center gap-4 text-center text-xs text-beige-300/70 md:flex-row md:items-center md:justify-between md:text-left">
             <p>
               &copy; {new Date().getFullYear()} {business.name}. All rights
               reserved.
             </p>
-            <div className="flex gap-6">
+            <div className="flex justify-center gap-6">
               <Link href="/terms" className="hover:text-offwhite transition-colors">
                 Terms of Service
               </Link>

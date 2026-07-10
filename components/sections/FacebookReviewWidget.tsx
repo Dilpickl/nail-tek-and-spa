@@ -7,7 +7,53 @@ import { Button } from "@/components/ui/button";
  * Facebook Reviews summary — recommend % and count from salonData (keep in sync
  * with the live Facebook page). Links out to the salon profile.
  */
-export function FacebookReviewWidget() {
+export function FacebookReviewWidget({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
+  if (compact) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-background p-5 text-center ring-1 ring-ink/5">
+        <div className="flex items-center gap-2 text-sm font-medium text-ink-muted">
+          <span
+            className="inline-flex size-6 items-center justify-center rounded-full bg-white text-xs font-bold shadow-sm ring-1 ring-ink/10"
+            style={{ color: "#1877F2" }}
+            aria-hidden
+          >
+            f
+          </span>
+          Facebook
+        </div>
+
+        <p className="mt-3 font-serif text-3xl font-semibold text-ink">
+          {business.facebookRecommendPercent}%
+        </p>
+
+        <div className="mt-1.5 flex items-center gap-1.5 text-ink">
+          <ThumbsUp className="size-4 fill-ink text-ink" aria-hidden />
+          <span className="text-xs font-medium">recommend</span>
+        </div>
+
+        <p className="mt-1.5 text-xs text-ink-muted">
+          ({business.facebookReviewCount.toLocaleString()} Reviews)
+        </p>
+
+        <a
+          href={socials.facebook}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 w-full"
+        >
+          <Button variant="outline" size="sm" className="w-full">
+            See on Facebook
+            <ExternalLink className="size-3.5" />
+          </Button>
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex max-w-md flex-col items-center rounded-2xl bg-background p-8 text-center ring-1 ring-ink/5 lg:bg-offwhite">
       <div className="flex items-center gap-2 text-sm font-medium text-ink-muted">

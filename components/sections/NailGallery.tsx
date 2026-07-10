@@ -70,12 +70,12 @@ export function NailGallery() {
       <div className="mt-10">
         <div
           ref={scrollerRef}
-          className="flex gap-4 overflow-x-auto px-[max(1.5rem,calc((100vw-72rem)/2+1.5rem))] pb-4 scroll-smooth snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="h-scroll"
         >
           {preview.map((image) => (
             <figure
               key={image.src}
-              className="relative w-[72vw] max-w-[18rem] shrink-0 snap-start overflow-hidden rounded-2xl bg-offwhite shadow-sm ring-1 ring-ink/5 sm:w-[16rem] sm:max-w-none"
+              className="relative h-scroll-item overflow-hidden rounded-2xl bg-offwhite shadow-sm ring-1 ring-ink/5 sm:w-[16rem] sm:max-w-none"
             >
               <div className="aspect-[4/5] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,7 +90,7 @@ export function NailGallery() {
           ))}
           <Link
             href="/gallery"
-            className="flex w-[72vw] max-w-[18rem] shrink-0 snap-start flex-col items-center justify-center gap-3 rounded-2xl bg-offwhite px-6 text-center ring-1 ring-ink/5 transition-colors hover:bg-secondary sm:w-[16rem] sm:max-w-none"
+            className="h-scroll-item flex flex-col items-center justify-center gap-3 rounded-2xl bg-offwhite px-6 text-center ring-1 ring-ink/5 transition-colors hover:bg-secondary sm:w-[16rem] sm:max-w-none"
           >
             <span className="text-lg font-semibold text-ink">See all {galleryImages.length} looks</span>
             <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted">

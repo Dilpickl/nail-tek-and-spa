@@ -58,4 +58,13 @@
   .section-padding {
     @apply py-20 md:py-28;
   }
+  /* Full-bleed horizontal snap scroller (gallery / mobile carousels) */
+  .h-scroll {
+    @apply flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4
+      [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+    padding-inline: max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem));
+  }
+  .h-scroll-item {
+    @apply w-[72vw] max-w-[18rem] shrink-0 snap-start;
+  }
 }
