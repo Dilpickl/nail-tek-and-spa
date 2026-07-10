@@ -14,13 +14,13 @@ export function About() {
             About Us
           </p>
           <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-            Care that has stood the test of time
+            Quality you can feel — prices you&apos;ll love
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-muted">
-            For over {business.yearsOfExperience} years, our family has welcomed
-            clients into a space built on three promises: exceptional artistry,
-            uncompromising sanitation, and genuine relaxation. We treat every set
-            of hands and feet like our own.
+            At {business.name}, every visit is designed to feel welcoming and
+            unhurried. Our spacious Algonquin salon specializes in custom nail
+            art, restorative spa pedicures, and lasting color — all delivered
+            by a team known for kindness, skill, and treating guests like family.
           </p>
         </Reveal>
 

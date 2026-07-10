@@ -5,6 +5,7 @@ function nextOpenWeekday(): string {
   for (let i = 1; i <= 14; i++) {
     date.setDate(date.getDate() + 1);
     const day = date.getDay();
+    // Salon is open every day; prefer Mon–Sat for slightly longer hours
     if (day >= 1 && day <= 6) {
       return date.toISOString().slice(0, 10);
     }
@@ -13,12 +14,12 @@ function nextOpenWeekday(): string {
 }
 
 test.describe("Online booking", () => {
-  test("nail art multi-select returns availability slots", async ({ page, request }) => {
+  test("enhancement multi-select returns availability slots", async ({ page, request }) => {
     const date = nextOpenWeekday();
     const party = JSON.stringify([
       {
         label: "You",
-        serviceIds: ["addon-art-hand-painted", "addon-art-gemstones"],
+        serviceIds: ["enh-acrylic-full", "enh-acrylic-fill"],
         technicianId: "any",
       },
     ]);
@@ -33,11 +34,11 @@ test.describe("Online booking", () => {
     expect(Array.isArray(body.slots)).toBeTruthy();
   });
 
-  test("nail art booking flow reaches confirm step", async ({ page }) => {
+  test("enhancement booking flow reaches confirm step", async ({ page }) => {
     await page.goto("/book");
 
-    await page.getByRole("checkbox", { name: /Hand-painted design/i }).check();
-    await page.getByRole("checkbox", { name: /Gemstones/i }).check();
+    await page.getByRole("checkbox", { name: /Full Set/i }).first().check();
+    await page.getByRole("checkbox", { name: /Fill-In/i }).first().check();
     await page.getByRole("button", { name: "Continue" }).click();
 
     await page.getByRole("button", { name: /Any available technician/i }).click();
@@ -55,7 +56,7 @@ test.describe("Online booking", () => {
     await page.getByRole("button", { name: "Continue" }).click();
 
     await expect(page.getByRole("heading", { name: "Confirm appointment" })).toBeVisible();
-    await expect(page.getByRole("listitem").filter({ hasText: "Hand-painted design" }).first()).toBeVisible();
+    await expect(page.getByRole("listitem").filter({ hasText: /Acrylic/i }).first()).toBeVisible();
   });
 
   test("party booking supports per-guest technician preferences in API", async ({ request }) => {
@@ -82,11 +83,11 @@ test.describe("Online booking", () => {
     expect(Array.isArray(body.slots)).toBeTruthy();
   });
 
-  test("invalid parent nail art id is rejected by appointments API", async ({ request }) => {
+  test("invalid parent enhancement id is rejected by appointments API", async ({ request }) => {
     const date = nextOpenWeekday();
     const response = await request.post("/api/appointments", {
       data: {
-        party: [{ label: "You", serviceIds: ["addon-art-simple"], technicianId: "any" }],
+        party: [{ label: "You", serviceIds: ["enh-acrylic"], technicianId: "any" }],
         technicianId: "any",
         date,
         time: "10:00",

@@ -1,6 +1,6 @@
 # Nail Tek & Spa
 
-A premium website and booking management app for a 30+ year nail salon.
+A premium website and booking management app for Nail Tek & Spa in Algonquin, IL.
 
 **Stack:** Next.js (App Router) · React · Tailwind CSS · Framer Motion · Supabase · shadcn-style UI · Lucide icons.
 
@@ -31,7 +31,7 @@ structure (the keys) intact.
 ## Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. In the SQL Editor, run `supabase/schema.sql`, then `supabase/seed.sql`.
+2. In the SQL Editor, run `supabase/schema.sql`, then migrations `002`–`007`, then `supabase/seed.sql` for a fresh environment.
 3. Copy your Project URL + anon key into `.env.local` (see `.env.example`).
 
 The schema covers `services`, `technicians`, `appointments`,

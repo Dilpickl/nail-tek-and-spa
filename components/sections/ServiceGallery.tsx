@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { allServices } from "@/lib/config/salonData";
-import { formatPrice, formatDuration } from "@/lib/utils";
+import { formatServiceDisplayPrice } from "@/lib/booking/pricing";
+import { formatDuration } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 
@@ -18,8 +19,12 @@ export function ServiceGallery() {
               Our Services
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-              Signature treatments, perfected over decades
+              Signature treatments for every visit
             </h2>
+            <p className="mt-2 text-ink-muted">
+              Spa pedicures, lasting color, and custom nail art — priced to feel
+              as good as they look.
+            </p>
           </div>
           <Link href="/services">
             <Button variant="outline">View full menu</Button>
@@ -34,8 +39,8 @@ export function ServiceGallery() {
                   <h3 className="text-xl font-semibold text-ink">
                     {service.name}
                   </h3>
-                  <span className="font-serif text-2xl font-semibold text-ink">
-                    {formatPrice(service.price)}
+                  <span className="shrink-0 font-serif text-2xl font-semibold text-ink">
+                    {formatServiceDisplayPrice(service)}
                   </span>
                 </div>
                 <p className="mt-3 flex-1 leading-relaxed text-ink-muted">
@@ -45,7 +50,9 @@ export function ServiceGallery() {
                   <span className="text-sm text-ink-muted">
                     {formatDuration(service.durationMinutes)}
                   </span>
-                  <Link href={`/book?service=${service.id}`}>
+                  <Link
+                    href={`/book?service=${service.variants?.[0]?.id ?? service.id}`}
+                  >
                     <Button size="sm">Book This</Button>
                   </Link>
                 </div>

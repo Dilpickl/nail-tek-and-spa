@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, Star, Phone } from "lucide-react";
+import { Calendar, Star, Phone, Gift } from "lucide-react";
 
 import { business } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
@@ -39,23 +39,23 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-offwhite px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-ink-soft"
           >
             <Star className="size-3.5 fill-ink text-ink" />
-            {business.yearsOfExperience}+ Years of Trusted Craft
+            Algonquin&apos;s welcoming nail destination
           </motion.div>
 
           <motion.h1
             {...fadeUp(0.05)}
             className="mt-6 text-balance text-4xl font-semibold leading-[1.05] text-ink sm:text-5xl lg:text-6xl"
           >
-            Decades of artistry, sanitation & serenity.
+            Premium nails.
+            <br />
+            Refreshing prices.
           </motion.h1>
 
           <motion.p
             {...fadeUp(0.12)}
             className="mt-5 max-w-xl text-lg leading-relaxed text-ink-muted"
           >
-            Since {business.establishedYear}, {business.name} has set the
-            standard for premium nail care — meticulous technique, hospital-grade
-            cleanliness, and a calm escape you can feel the moment you walk in.
+            {business.shortDescription}
           </motion.p>
 
           <motion.div
@@ -78,14 +78,37 @@ export function Hero() {
 
           <motion.div
             {...fadeUp(0.3)}
-            className="mt-8 flex items-center gap-4 text-sm text-ink-muted"
+            className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-muted"
           >
-            <div className="flex">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="size-4 fill-ink text-ink" />
-              ))}
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={
+                      i < Math.round(business.googleRating)
+                        ? "size-4 fill-ink text-ink"
+                        : "size-4 text-ink/20"
+                    }
+                  />
+                ))}
+              </div>
+              <span>
+                {business.googleRating.toFixed(1)} on Google ·{" "}
+                {business.googleReviewCount}+ reviews
+              </span>
             </div>
-            <span>Loved by generations of clients</span>
+            {business.walkInsWelcome && (
+              <span className="inline-flex items-center gap-1.5">
+                Walk-ins welcome
+              </span>
+            )}
+            {business.giftCardsAvailable && (
+              <span className="inline-flex items-center gap-1.5">
+                <Gift className="size-3.5" />
+                Gift cards available
+              </span>
+            )}
           </motion.div>
         </div>
 
@@ -99,16 +122,16 @@ export function Hero() {
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-offwhite shadow-xl ring-1 ring-ink/5">
             <img
               src="https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=900&q=80"
-              alt="A relaxing manicure at the salon"
+              alt="A relaxing manicure at Nail Tek & Spa"
               className="h-full w-full object-cover"
             />
           </div>
-          <div className="absolute -bottom-6 -left-6 hidden rounded-xl bg-offwhite p-5 shadow-lg ring-1 ring-ink/5 sm:block">
-            <p className="font-serif text-3xl font-semibold text-ink">
-              {business.establishedYear}
+          <div className="absolute -bottom-6 -left-6 hidden max-w-[11rem] rounded-xl bg-offwhite p-5 shadow-lg ring-1 ring-ink/5 sm:block">
+            <p className="font-serif text-2xl font-semibold leading-tight text-ink">
+              Kind care
             </p>
-            <p className="text-xs uppercase tracking-wider text-ink-muted">
-              Family established
+            <p className="mt-1 text-xs uppercase tracking-wider text-ink-muted">
+              Walk-ins welcome
             </p>
           </div>
         </motion.div>

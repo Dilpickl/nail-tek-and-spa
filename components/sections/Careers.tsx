@@ -16,8 +16,9 @@ export function Careers() {
             Build your career with us
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-muted">
-            We're always looking for passionate, talented people to join a
-            team that has thrived for {business.yearsOfExperience} years.
+            We&apos;re always looking for passionate, talented people to join
+            our friendly Algonquin team — kind care, skilled work, and guests
+            who feel like family.
           </p>
         </Reveal>
 
@@ -48,9 +49,15 @@ export function Careers() {
                     </p>
                   </div>
                 </div>
-                <a href={`mailto:${business.email}?subject=Application: ${job.title}`}>
+                <a
+                  href={
+                    business.email
+                      ? `mailto:${business.email}?subject=Application: ${job.title}`
+                      : `tel:${business.phoneRaw}`
+                  }
+                >
                   <Button variant="outline" className="w-full sm:w-auto">
-                    Apply
+                    {business.email ? "Apply" : "Call to Apply"}
                     <ArrowRight className="size-4" />
                   </Button>
                 </a>

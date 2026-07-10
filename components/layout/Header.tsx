@@ -42,7 +42,7 @@ export function Header() {
             {business.name}
           </span>
           <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-ink-muted">
-            Est. {business.establishedYear}
+            {business.locationLabel}
           </span>
         </Link>
 

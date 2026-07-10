@@ -25,13 +25,15 @@ export function Footer() {
                 <Phone className="size-4 shrink-0" />
                 {business.phone}
               </a>
-              <a
-                href={`mailto:${business.email}`}
-                className="flex items-center gap-3 hover:text-offwhite transition-colors"
-              >
-                <Mail className="size-4 shrink-0" />
-                {business.email}
-              </a>
+              {business.email ? (
+                <a
+                  href={`mailto:${business.email}`}
+                  className="flex items-center gap-3 hover:text-offwhite transition-colors"
+                >
+                  <Mail className="size-4 shrink-0" />
+                  {business.email}
+                </a>
+              ) : null}
               <p className="flex items-start gap-3">
                 <MapPin className="size-4 shrink-0 mt-0.5" />
                 <span>
@@ -41,6 +43,16 @@ export function Footer() {
                   {address.city}, {address.state} {address.zip}
                 </span>
               </p>
+              {(business.walkInsWelcome || business.giftCardsAvailable) && (
+                <p className="text-beige-300/80 pt-1">
+                  {[
+                    business.walkInsWelcome ? "Walk-ins welcome" : null,
+                    business.giftCardsAvailable ? "Gift cards available" : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
             </div>
 
             <div className="mt-6 flex items-center gap-3">

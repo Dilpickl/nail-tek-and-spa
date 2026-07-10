@@ -59,6 +59,7 @@ interface BookingConfirmation {
   party: PartyMember[];
   estimatedTotal: number;
   hasTbdPricing: boolean;
+  hasFromPricing: boolean;
   durationMinutes: number;
 }
 
@@ -414,13 +415,15 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
           <span className="text-right text-xl font-semibold text-ink">
             {formatBookingTotalLabel(
               confirmation.estimatedTotal,
-              confirmation.hasTbdPricing
+              confirmation.hasTbdPricing,
+              confirmation.hasFromPricing
             )}
           </span>
         </div>
-        {confirmation.hasTbdPricing && (
+        {(confirmation.hasTbdPricing || confirmation.hasFromPricing) && (
           <p className="mt-2 text-sm text-ink-muted">
-            Nail art is priced at your visit based on nails done and design detail.
+            Final pricing for custom nail art and &ldquo;from&rdquo; services is
+            confirmed at your visit based on design and coverage.
           </p>
         )}
       </section>
@@ -1169,7 +1172,12 @@ function BookingSummary({
   technicians,
 }: {
   party: PartyMember[];
-  totals: { confirmedTotal: number; durationMinutes: number; hasTbdPricing: boolean };
+  totals: {
+    confirmedTotal: number;
+    durationMinutes: number;
+    hasTbdPricing: boolean;
+    hasFromPricing: boolean;
+  };
   selectedDate: string;
   selectedTime: string;
   technicians: BookingTechnicianOption[];
@@ -1205,12 +1213,16 @@ function BookingSummary({
         <SummaryRow label="Duration" value={totals.durationMinutes ? formatDuration(totals.durationMinutes) : "0 min"} />
         <SummaryRow
           label="Total"
-          value={formatBookingTotalLabel(totals.confirmedTotal, totals.hasTbdPricing)}
+          value={formatBookingTotalLabel(
+            totals.confirmedTotal,
+            totals.hasTbdPricing,
+            totals.hasFromPricing
+          )}
         />
       </div>
-      {totals.hasTbdPricing && (
+      {(totals.hasTbdPricing || totals.hasFromPricing) && (
         <p className="mt-3 text-xs text-ink-muted">
-          Nail art is priced at your visit based on nails done and design detail.
+          Custom nail art and &ldquo;from&rdquo; services are confirmed at your visit.
         </p>
       )}
 
@@ -1360,6 +1372,7 @@ async function submitBooking({
       party,
       estimatedTotal: bookingTotals.confirmedTotal,
       hasTbdPricing: bookingTotals.hasTbdPricing,
+      hasFromPricing: bookingTotals.hasFromPricing,
       durationMinutes: bookingTotals.durationMinutes,
     });
   } catch (error) {

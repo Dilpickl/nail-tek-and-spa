@@ -1,29 +1,8 @@
 import { Star, Quote } from "lucide-react";
 
+import { testimonials } from "@/lib/config/salonData";
 import { Reveal } from "@/components/ui/reveal";
 import { GoogleReviewWidget } from "@/components/sections/GoogleReviewWidget";
-
-/**
- * Placeholder testimonials. Replace with real client quotes (or wire the
- * GoogleReviewWidget to a live feed).
- */
-const testimonials = [
-  {
-    quote:
-      "I've been coming here for 15 years. The care and attention to cleanliness is unmatched — it always feels like a treat.",
-    name: "Sandra M.",
-  },
-  {
-    quote:
-      "Linh is a true artist. My gel manicure lasted three full weeks without a single chip. Worth every penny.",
-    name: "Priya K.",
-  },
-  {
-    quote:
-      "The spa pedicure is the most relaxing hour of my month. Spotlessly clean and so welcoming.",
-    name: "Diane R.",
-  },
-];
 
 export function Reviews() {
   return (
@@ -34,7 +13,7 @@ export function Reviews() {
             Loved by our clients
           </p>
           <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-            Generations of five-star care
+            Real Google reviews from Algonquin & beyond
           </h2>
         </Reveal>
 
@@ -45,15 +24,22 @@ export function Reviews() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             {testimonials.map((t, i) => (
-              <Reveal key={t.name} delay={i * 0.07}>
+              <Reveal key={`${t.name}-${i}`} delay={i * 0.07}>
                 <figure className="flex h-full flex-col rounded-2xl bg-background p-6 ring-1 ring-ink/5">
                   <Quote className="size-6 text-ink/30" />
-                  <blockquote className="mt-3 flex-1 leading-relaxed text-ink-soft">
+                  <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft sm:text-base">
                     &ldquo;{t.quote}&rdquo;
                   </blockquote>
-                  <figcaption className="mt-4 flex items-center justify-between">
-                    <span className="font-medium text-ink">{t.name}</span>
-                    <span className="flex">
+                  <figcaption className="mt-4 flex items-center justify-between gap-3">
+                    <span>
+                      <span className="font-medium text-ink">{t.name}</span>
+                      {t.source && (
+                        <span className="mt-0.5 block text-xs text-ink-muted">
+                          {t.source}
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex shrink-0">
                       {Array.from({ length: 5 }).map((_, j) => (
                         <Star key={j} className="size-3.5 fill-ink text-ink" />
                       ))}

@@ -20,9 +20,10 @@ export default function ServicesPage() {
             Services & Pricing
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-ink-muted">
-            Every treatment is performed with meticulous sanitation, experienced
-            technique, and an eye for the looks people are asking for now. Prices
-            are starting points and may vary with length and design.
+            Premium pedicures, manicures, enhancements, waxing, and lash
+            services — all at highly affordable prices. Some services marked
+            &ldquo;from&rdquo; may vary with length, coverage, or design.
+            Walk-ins are always welcome.
           </p>
         </div>
       </section>
