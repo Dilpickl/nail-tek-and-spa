@@ -30,10 +30,13 @@ import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import { formatDuration, formatPrice, cn } from "@/lib/utils";
 import {
   filterPastSlots,
+  formatInSalonTime,
   getDefaultBookingDate,
   getNextOpenDate,
   isSalonClosed,
+  shiftIsoDate,
   toIsoDate,
+  toLocalDateTime,
 } from "@/lib/booking/time-utils";
 import { Button } from "@/components/ui/button";
 
@@ -341,16 +344,15 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
 }
 
 function BookingConfirmationView({ confirmation }: { confirmation: BookingConfirmation }) {
-  const startsAt = new Date(confirmation.startsAt);
-  const dateLabel = new Intl.DateTimeFormat("en-US", {
+  const dateLabel = formatInSalonTime(confirmation.startsAt, {
     weekday: "long",
     month: "long",
     day: "numeric",
-  }).format(startsAt);
-  const timeLabel = new Intl.DateTimeFormat("en-US", {
+  });
+  const timeLabel = formatInSalonTime(confirmation.startsAt, {
     hour: "numeric",
     minute: "2-digit",
-  }).format(startsAt);
+  });
 
   return (
     <div className="mx-auto max-w-2xl rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5 sm:p-8">
@@ -888,11 +890,9 @@ function DateTimeStep({
   const timeFieldId = "booking-time-slots";
   const hasAnyTechnician = party.some((member) => member.technicianId === "any");
   const dateOptions = useMemo(() => {
-    const today = new Date();
+    const today = toIsoDate(new Date());
     return Array.from({ length: 14 }, (_, index) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() + index);
-      const iso = toIsoDate(date);
+      const iso = index === 0 ? today : shiftIsoDate(today, index);
       return { iso, closed: isSalonClosed(iso) };
     });
   }, []);
@@ -1384,15 +1384,14 @@ async function submitBooking({
 
 
 function formatWeekday(date: string) {
-  return new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(
-    new Date(`${date}T00:00:00`)
-  );
+  return formatInSalonTime(toLocalDateTime(date, "12:00"), { weekday: "short" });
 }
 
 function formatMonthDay(date: string) {
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(
-    new Date(`${date}T00:00:00`)
-  );
+  return formatInSalonTime(toLocalDateTime(date, "12:00"), {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function getStepValidationError(
@@ -1456,11 +1455,11 @@ function scrollToBookingField(fieldId: string) {
 }
 
 function formatReadableDate(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInSalonTime(toLocalDateTime(date, "12:00"), {
     weekday: "short",
     month: "short",
     day: "numeric",
-  }).format(new Date(`${date}T00:00:00`));
+  });
 }
 
 function formatTimeLabel(time: string) {

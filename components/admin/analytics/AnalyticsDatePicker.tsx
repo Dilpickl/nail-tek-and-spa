@@ -14,6 +14,7 @@ const EXTENDED_PRESETS: { value: DateRangePreset; label: string }[] = [
   { value: "last_week", label: "Last Week" },
   { value: "last_month", label: "Last Month" },
   { value: "last_90_days", label: "Last 90 Days" },
+  { value: "this_year", label: "This Year" },
   { value: "custom", label: "Custom" },
 ];
 

@@ -6,6 +6,7 @@ export type DateRangePreset =
   | "this_month"
   | "last_month"
   | "last_90_days"
+  | "this_year"
   | "custom";
 
 export interface DateRange {
@@ -23,6 +24,7 @@ export const DATE_RANGE_OPTIONS: { value: DateRangePreset; label: string }[] = [
   { value: "this_month", label: "This Month" },
   { value: "last_month", label: "Last Month" },
   { value: "last_90_days", label: "Last 90 Days" },
+  { value: "this_year", label: "This Year" },
   { value: "custom", label: "Custom" },
 ];
 
@@ -100,6 +102,15 @@ export function resolveDateRange(
         label: "Last 90 Days",
       };
     }
+    case "this_year": {
+      const from = startOfYear(now);
+      return {
+        preset: "this_year",
+        from,
+        to: endOfDay(now),
+        label: "This Year",
+      };
+    }
     case "custom": {
       if (!customFrom || !customTo) return null;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(customFrom) || !/^\d{4}-\d{2}-\d{2}$/.test(customTo)) {
@@ -149,6 +160,12 @@ function startOfWeek(date: Date): Date {
 function startOfMonth(date: Date): Date {
   const d = startOfDay(date);
   d.setDate(1);
+  return d;
+}
+
+function startOfYear(date: Date): Date {
+  const d = startOfDay(date);
+  d.setMonth(0, 1);
   return d;
 }
 

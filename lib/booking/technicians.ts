@@ -2,7 +2,10 @@ import "server-only";
 
 import { hours } from "@/lib/config/salonData";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { parseLocalDate } from "@/lib/booking/time-utils";
+import {
+  getDayOfWeek as getDayOfWeekFromDate,
+  toLocalDateTime,
+} from "@/lib/booking/time-utils";
 import type {
   DbTechnician,
   ResolvedTechnicianSchedule,
@@ -30,7 +33,7 @@ export function normalizeTimeValue(value: string | null | undefined): string | n
 }
 
 export function getDayOfWeek(date: string): number {
-  return parseLocalDate(date).getDay();
+  return getDayOfWeekFromDate(date);
 }
 
 export function defaultScheduleFromSalonHours(): TechnicianScheduleInput[] {
@@ -258,27 +261,8 @@ export function isTechnicianScheduledForSlot(
     return false;
   }
 
-  const [startHour, startMinute] = schedule.startTime.split(":").map(Number);
-  const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
-  const parsed = parseLocalDate(date);
-  const windowStart = new Date(
-    parsed.getFullYear(),
-    parsed.getMonth(),
-    parsed.getDate(),
-    startHour,
-    startMinute,
-    0,
-    0
-  );
-  const windowEnd = new Date(
-    parsed.getFullYear(),
-    parsed.getMonth(),
-    parsed.getDate(),
-    endHour,
-    endMinute,
-    0,
-    0
-  );
+  const windowStart = toLocalDateTime(date, schedule.startTime.slice(0, 5));
+  const windowEnd = toLocalDateTime(date, schedule.endTime.slice(0, 5));
 
   return slotStart >= windowStart && slotEnd <= windowEnd;
 }

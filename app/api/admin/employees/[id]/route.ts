@@ -54,7 +54,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   return NextResponse.json({ employee: employee ? { ...employee, schedule } : null });
 }
 
-export async function DELETE(_request: Request, { params }: RouteContext) {
+export async function DELETE(request: Request, { params }: RouteContext) {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
@@ -63,17 +63,12 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Employee not found." }, { status: 404 });
   }
 
+  const url = new URL(request.url);
+  const hardDelete = url.searchParams.get("hard") === "true";
+
   const supabase = createAdminClient();
-  const { count, error: countError } = await supabase
-    .from("appointments")
-    .select("id", { count: "exact", head: true })
-    .eq("technician_id", params.id);
 
-  if (countError) {
-    return NextResponse.json({ error: countError.message }, { status: 500 });
-  }
-
-  if ((count ?? 0) > 0) {
+  if (!hardDelete) {
     const { error } = await supabase
       .from("technicians")
       .update({ is_active: false })
@@ -86,6 +81,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     return NextResponse.json({ ok: true, deactivated: true });
   }
 
+  // Appointments.technician_id is ON DELETE SET NULL — past bookings stay, staff row goes.
   const { error: scheduleError } = await supabase
     .from("technician_schedules")
     .delete()
@@ -93,6 +89,24 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
 
   if (scheduleError) {
     return NextResponse.json({ error: scheduleError.message }, { status: 500 });
+  }
+
+  const { error: overridesError } = await supabase
+    .from("technician_schedule_overrides")
+    .delete()
+    .eq("technician_id", params.id);
+
+  if (overridesError) {
+    return NextResponse.json({ error: overridesError.message }, { status: 500 });
+  }
+
+  const { error: timeOffError } = await supabase
+    .from("technician_time_off")
+    .delete()
+    .eq("technician_id", params.id);
+
+  if (timeOffError) {
+    return NextResponse.json({ error: timeOffError.message }, { status: 500 });
   }
 
   const { error } = await supabase.from("technicians").delete().eq("id", params.id);

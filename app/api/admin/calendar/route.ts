@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { ANY_EMPLOYEE_LABEL } from "@/lib/admin/constants";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { getServiceById } from "@/lib/config/salonData";
-import { toIsoDate } from "@/lib/booking/time-utils";
+import { toIsoDate, toLocalDateTime } from "@/lib/booking/time-utils";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface AppointmentRow {
@@ -34,14 +34,6 @@ function isValidIsoDate(value: string | null): value is string {
   return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
 }
 
-function toStartOfDayIso(value: string): string {
-  return `${value}T00:00:00.000Z`;
-}
-
-function toEndOfDayIso(value: string): string {
-  return `${value}T23:59:59.999Z`;
-}
-
 export async function GET(request: Request) {
   const auth = await requireAdmin();
   if ("error" in auth && auth.error) return auth.error;
@@ -65,14 +57,19 @@ export async function GET(request: Request) {
   }
 
   const supabase = createAdminClient();
+  const rangeStart = toLocalDateTime(start, "00:00");
+  const rangeEnd = toLocalDateTime(end, "23:59");
+  // Include the full last minute
+  rangeEnd.setSeconds(59, 999);
+
   const [appointmentsResult, techniciansResult] = await Promise.all([
     supabase
       .from("appointments")
       .select(
         "id, technician_id, any_technician, customer_name, customer_phone, customer_email, starts_at, ends_at, status, source, notes, party_group_id, is_guest, appointment_services(service_id)"
       )
-      .gte("starts_at", toStartOfDayIso(start))
-      .lte("starts_at", toEndOfDayIso(end))
+      .gte("starts_at", rangeStart.toISOString())
+      .lte("starts_at", rangeEnd.toISOString())
       .order("starts_at", { ascending: true }),
     supabase
       .from("technicians")

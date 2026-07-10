@@ -17,6 +17,7 @@ import {
 import {
   filterPastSlots,
   getBusinessHoursForDate,
+  formatSalonTime,
   SLOT_INTERVAL_MINUTES,
   toLocalDateTime,
 } from "@/lib/booking/time-utils";
@@ -66,10 +67,6 @@ interface TimeOffWindow {
 
 function addMinutes(date: Date, minutes: number): Date {
   return new Date(date.getTime() + minutes * 60_000);
-}
-
-function formatTime(date: Date): string {
-  return date.toTimeString().slice(0, 5);
 }
 
 function overlaps(start: Date, end: Date, busyStart: Date, busyEnd: Date) {
@@ -249,7 +246,7 @@ export async function getAvailableSlots({
     if (availableTechnicians.length === 0) continue;
 
     slots.push({
-      time: formatTime(slotStart),
+      time: formatSalonTime(slotStart),
       technicianIds: availableTechnicians.map((technician) => technician.id),
     });
   }

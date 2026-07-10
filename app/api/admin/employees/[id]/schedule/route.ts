@@ -6,6 +6,7 @@ import {
   getTechnicianByIdFromDb,
   validateScheduleInput,
 } from "@/lib/booking/technicians";
+import { formatSalonTime, toIsoDate, getDayOfWeek } from "@/lib/booking/time-utils";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { TechnicianScheduleInput } from "@/lib/technicians/types";
 
@@ -89,11 +90,10 @@ async function countFutureScheduleConflicts(
 
   return data.filter((appointment) => {
     const startsAt = new Date(appointment.starts_at);
-    const dayOfWeek = startsAt.getDay();
-    const daySchedule = scheduleByDay.get(dayOfWeek);
+    const daySchedule = scheduleByDay.get(getDayOfWeek(toIsoDate(startsAt)));
     if (!daySchedule?.isWorking) return true;
 
-    const time = `${String(startsAt.getHours()).padStart(2, "0")}:${String(startsAt.getMinutes()).padStart(2, "0")}`;
+    const time = formatSalonTime(startsAt);
     if (!daySchedule.startTime || !daySchedule.endTime) return true;
     return time < daySchedule.startTime || time >= daySchedule.endTime;
   }).length;

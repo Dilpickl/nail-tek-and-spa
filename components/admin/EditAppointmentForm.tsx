@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { TimeWheelPicker } from "@/components/ui/TimeWheelPicker";
 import {
   clampTime,
+  formatSalonTime,
   getBusinessTimeBounds,
   getNextTimeSlot,
   maxTime,
@@ -47,9 +48,7 @@ export function EditAppointmentForm({
 
   const [technicianId, setTechnicianId] = useState(initialTechId);
   const [date, setDate] = useState(toIsoDate(start));
-  const [time, setTime] = useState(
-    `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`
-  );
+  const [time, setTime] = useState(formatSalonTime(start));
   const [customerName, setCustomerName] = useState(initialName);
   const [customerPhone, setCustomerPhone] = useState(initialPhone);
   const [customerEmail, setCustomerEmail] = useState(initialEmail ?? "");

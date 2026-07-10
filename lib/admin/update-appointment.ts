@@ -2,7 +2,7 @@ import "server-only";
 
 import { ANY_EMPLOYEE_ID } from "@/lib/admin/constants";
 import { getConfirmedServicePrice } from "@/lib/booking/pricing";
-import { getBusinessHoursForDate, toLocalDateTime } from "@/lib/booking/time-utils";
+import { getBusinessHoursForDate, formatSalonTime, toIsoDate, toLocalDateTime } from "@/lib/booking/time-utils";
 import { getSlotUsage, type BusyWindow } from "@/lib/booking/slot-capacity";
 import {
   getServicesByIds,
@@ -94,12 +94,8 @@ export async function validateAndBuildUpdate(
   }
 
   const existingStart = new Date(row.starts_at);
-  const date =
-    payload.date ??
-    `${existingStart.getFullYear()}-${String(existingStart.getMonth() + 1).padStart(2, "0")}-${String(existingStart.getDate()).padStart(2, "0")}`;
-  const time =
-    payload.time ??
-    `${String(existingStart.getHours()).padStart(2, "0")}:${String(existingStart.getMinutes()).padStart(2, "0")}`;
+  const date = payload.date ?? toIsoDate(existingStart);
+  const time = payload.time ?? formatSalonTime(existingStart);
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return { error: "A valid date is required.", status: 400 };

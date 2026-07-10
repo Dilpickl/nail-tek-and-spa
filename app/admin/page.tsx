@@ -6,7 +6,7 @@ import { getCurrentUser, isAdminUser } from "@/lib/admin/auth";
 import { getServiceById } from "@/lib/config/salonData";
 import { getActiveTechnicians, getScheduleOverridesForDate } from "@/lib/booking/technicians";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isValidIsoDate, toIsoDate } from "@/lib/booking/time-utils";
+import { isValidIsoDate, toIsoDate, toLocalDateTime } from "@/lib/booking/time-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -64,8 +64,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const requestedDate = searchParams?.date;
   const agendaDate =
     requestedDate && isValidIsoDate(requestedDate) ? requestedDate : today;
-  const start = new Date(`${agendaDate}T00:00:00`);
-  const end = new Date(`${agendaDate}T23:59:59`);
+  const start = toLocalDateTime(agendaDate, "00:00");
+  const end = toLocalDateTime(agendaDate, "23:59");
+  end.setSeconds(59, 999);
   const supabase = createAdminClient();
 
   const [{ data: appointmentRows, error: appointmentsError }, { data: timeOffRows, error: timeOffError }, technicians, scheduleOverrides] =

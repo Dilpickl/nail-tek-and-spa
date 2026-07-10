@@ -6,16 +6,17 @@ import {
   getTechnicianByIdFromDb,
   getSalonHoursForDay,
 } from "@/lib/booking/technicians";
-import { parseLocalDate, toIsoDate } from "@/lib/booking/time-utils";
+import {
+  getDayOfWeek,
+  isValidIsoDate,
+  shiftIsoDate,
+  toIsoDate,
+} from "@/lib/booking/time-utils";
 import type { TechnicianScheduleOverrideInput } from "@/lib/technicians/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface RouteContext {
   params: { id: string };
-}
-
-function isValidIsoDate(value: string | null | undefined): value is string {
-  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
 }
 
 function validateOverrideInputForDate(
@@ -26,7 +27,7 @@ function validateOverrideInputForDate(
     return "A valid date is required.";
   }
 
-  const dayOfWeek = parseLocalDate(overrideDate).getDay();
+  const dayOfWeek = getDayOfWeek(overrideDate);
   const salonDay = getSalonHoursForDay(dayOfWeek);
   if (!salonDay?.open || !salonDay.close) {
     return `The salon is closed on ${overrideDate}.`;
@@ -59,9 +60,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
   }
 
   const today = toIsoDate(new Date());
-  const end = new Date();
-  end.setDate(end.getDate() + 60);
-  const toDate = toIsoDate(end);
+  const toDate = shiftIsoDate(today, 60);
 
   const overrides = await getScheduleOverridesForTechnician(params.id, today, toDate);
   return NextResponse.json({ overrides });
@@ -88,10 +87,8 @@ export async function POST(request: Request, { params }: RouteContext) {
     );
   }
 
-  const startDate = parseLocalDate(payload.overrideDate);
-  const rangeEndDate = payload.rangeEndDate
-    ? parseLocalDate(payload.rangeEndDate)
-    : startDate;
+  const startDate = payload.overrideDate;
+  const rangeEndDate = payload.rangeEndDate ?? startDate;
   if (rangeEndDate < startDate) {
     return NextResponse.json(
       { error: "Range end date must be the same day or after the start date." },
@@ -100,12 +97,11 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const overrideDates: string[] = [];
-  for (
-    let cursor = new Date(startDate);
-    cursor <= rangeEndDate;
-    cursor.setDate(cursor.getDate() + 1)
-  ) {
-    overrideDates.push(toIsoDate(cursor));
+  let cursor = startDate;
+  while (cursor <= rangeEndDate) {
+    overrideDates.push(cursor);
+    if (cursor === rangeEndDate) break;
+    cursor = shiftIsoDate(cursor, 1);
   }
 
   for (const overrideDate of overrideDates) {
@@ -162,7 +158,7 @@ export async function DELETE(request: Request, { params }: RouteContext) {
     return NextResponse.json({ ok: true });
   }
 
-  if (!overrideDate || !/^\d{4}-\d{2}-\d{2}$/.test(overrideDate)) {
+  if (!overrideDate || !isValidIsoDate(overrideDate)) {
     return NextResponse.json({ error: "overrideId or date is required." }, { status: 400 });
   }
 

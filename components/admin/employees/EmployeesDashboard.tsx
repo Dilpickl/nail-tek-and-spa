@@ -15,10 +15,7 @@ import { EmployeeForm } from "@/components/admin/employees/EmployeeForm";
 import { EmployeeScheduleEditor } from "@/components/admin/employees/EmployeeScheduleEditor";
 import { EmployeeScheduleExceptions } from "@/components/admin/employees/EmployeeScheduleExceptions";
 import { Button } from "@/components/ui/button";
-import {
-  getWeekOverview,
-  scheduleRowsToInput,
-} from "@/lib/technicians/schedule-utils";
+import { scheduleRowsToInput } from "@/lib/technicians/schedule-utils";
 import type { EmployeeWithSchedule, TechnicianScheduleInput } from "@/lib/technicians/types";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +28,7 @@ export function EmployeesDashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingSchedule, setSavingSchedule] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [conflictWarning, setConflictWarning] = useState("");
   const [mobileExpandedId, setMobileExpandedId] = useState<string | null>(null);
 
@@ -43,8 +41,6 @@ export function EmployeesDashboard() {
     () => employees.find((employee) => employee.id === selectedId) ?? null,
     [employees, selectedId]
   );
-
-  const weekOverview = useMemo(() => getWeekOverview(employees), [employees]);
 
   const loadEmployees = useCallback(async () => {
     setLoading(true);
@@ -205,6 +201,38 @@ export function EmployeesDashboard() {
     }
   }
 
+  async function deleteEmployee() {
+    if (!selectedEmployee) return;
+    if (
+      !window.confirm(
+        `Permanently delete ${selectedEmployee.name}? Their past appointments will be kept but unassigned. This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/employees/${selectedEmployee.id}?hard=true`,
+        { method: "DELETE" }
+      );
+
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(body.error || "Unable to delete employee.");
+
+      setSelectedId(null);
+      await loadEmployees();
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   async function moveEmployee(id: string, direction: "up" | "down") {
     const index = employees.findIndex((employee) => employee.id === id);
     if (index < 0) return;
@@ -272,25 +300,6 @@ export function EmployeesDashboard() {
           </div>
         </section>
       )}
-
-      <section className="mb-8 rounded-3xl bg-offwhite p-4 ring-1 ring-ink/5 md:p-6">
-        <p className="text-sm font-semibold text-ink">Week at a glance</p>
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-          {weekOverview.map((day) => (
-            <div
-              key={day.dayOfWeek}
-              className="min-w-[4.5rem] rounded-2xl bg-background px-3 py-3 text-center"
-            >
-              <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-                {day.label}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-ink">
-                {day.closed ? "Closed" : day.count}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {employees.length === 0 ? (
         <section className="rounded-3xl bg-offwhite p-8 text-center ring-1 ring-ink/5">
@@ -419,6 +428,8 @@ export function EmployeesDashboard() {
                           onSaveProfile={saveProfile}
                           onSaveSchedule={saveSchedule}
                           onDeactivate={deactivateEmployee}
+                          onDelete={deleteEmployee}
+                          deleting={deleting}
                         />
                       ) : (
                         <Button
@@ -456,6 +467,8 @@ export function EmployeesDashboard() {
                 onSaveProfile={saveProfile}
                 onSaveSchedule={saveSchedule}
                 onDeactivate={deactivateEmployee}
+                onDelete={deleteEmployee}
+                deleting={deleting}
               />
             ) : (
               <p className="text-ink-muted">Select an employee to edit their schedule.</p>
@@ -510,6 +523,7 @@ function EmployeeEditorPanel({
   conflictWarning,
   savingProfile,
   savingSchedule,
+  deleting,
   onNameChange,
   onRoleChange,
   onActiveChange,
@@ -517,6 +531,7 @@ function EmployeeEditorPanel({
   onSaveProfile,
   onSaveSchedule,
   onDeactivate,
+  onDelete,
 }: {
   employeeId: string;
   draftName: string;
@@ -526,6 +541,7 @@ function EmployeeEditorPanel({
   conflictWarning: string;
   savingProfile: boolean;
   savingSchedule: boolean;
+  deleting: boolean;
   onNameChange: (value: string) => void;
   onRoleChange: (value: string) => void;
   onActiveChange: (value: boolean) => void;
@@ -533,6 +549,7 @@ function EmployeeEditorPanel({
   onSaveProfile: () => void;
   onSaveSchedule: () => void;
   onDeactivate: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div className="space-y-8">
@@ -566,11 +583,19 @@ function EmployeeEditorPanel({
       </label>
 
       <div className="flex flex-wrap gap-3">
-        <Button onClick={onSaveProfile} disabled={savingProfile || !draftName.trim()}>
+        <Button onClick={onSaveProfile} disabled={savingProfile || deleting || !draftName.trim()}>
           {savingProfile ? "Saving…" : "Save profile"}
         </Button>
-        <Button variant="outline" onClick={onDeactivate} disabled={savingProfile}>
+        <Button variant="outline" onClick={onDeactivate} disabled={savingProfile || deleting}>
           Deactivate
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onDelete}
+          disabled={savingProfile || deleting}
+          className="border-rose-200 text-rose-700 hover:bg-rose-50"
+        >
+          {deleting ? "Deleting…" : "Delete"}
         </Button>
       </div>
 

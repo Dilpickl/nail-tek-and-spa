@@ -16,9 +16,17 @@ on conflict (id) do update
       is_active = excluded.is_active,
       display_order = excluded.display_order;
 
--- Soft-deactivate legacy placeholder technicians (if present)
-update public.technicians
-set is_active = false
+-- Remove legacy placeholder technicians (if present)
+delete from public.technician_schedule_overrides
+where technician_id in ('tech-linh', 'tech-maria', 'tech-james', 'tech-amy');
+
+delete from public.technician_schedules
+where technician_id in ('tech-linh', 'tech-maria', 'tech-james', 'tech-amy');
+
+delete from public.technician_time_off
+where technician_id in ('tech-linh', 'tech-maria', 'tech-james', 'tech-amy');
+
+delete from public.technicians
 where id in ('tech-linh', 'tech-maria', 'tech-james', 'tech-amy');
 
 -- Services ------------------------------------------------------------------

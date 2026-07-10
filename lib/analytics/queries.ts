@@ -14,6 +14,7 @@ import type {
   TrendPoint,
   UpcomingAppointment,
 } from "@/lib/analytics/types";
+import { getSalonDateParts } from "@/lib/booking/time-utils";
 import {
   allServices,
   getServiceById,
@@ -342,7 +343,7 @@ function computeAppointmentsByHour(appointments: AppointmentRow[]): HourCount[] 
 
   for (const appt of appointments) {
     if (appt.status === "cancelled") continue;
-    const hour = new Date(appt.starts_at).getHours();
+    const hour = getSalonDateParts(new Date(appt.starts_at)).hour;
     counts.set(hour, (counts.get(hour) ?? 0) + 1);
   }
 
@@ -356,7 +357,7 @@ function computeBusyDays(appointments: AppointmentRow[]): DayCount[] {
 
   for (const appt of appointments) {
     if (appt.status === "cancelled") continue;
-    const day = DAY_NAMES[new Date(appt.starts_at).getDay()];
+    const day = DAY_NAMES[getSalonDateParts(new Date(appt.starts_at)).dayOfWeek];
     counts.set(day, (counts.get(day) ?? 0) + 1);
   }
 

@@ -1,8 +1,10 @@
+import { formatInSalonTime, toLocalDateTime } from "@/lib/booking/time-utils";
+
 export function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInSalonTime(value, {
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(value));
+  });
 }
 
 export function formatTimeRange(startsAt: string, endsAt: string) {
@@ -10,29 +12,29 @@ export function formatTimeRange(startsAt: string, endsAt: string) {
 }
 
 export function formatReadableDate(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInSalonTime(toLocalDateTime(date, "12:00"), {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(`${date}T00:00:00`));
+  });
 }
 
 export function formatMonthDay(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInSalonTime(toLocalDateTime(date, "12:00"), {
     month: "long",
     day: "numeric",
-  }).format(new Date(`${date}T00:00:00`));
+  });
 }
 
 export function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInSalonTime(value, {
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(value));
+  });
 }
 
 export { formatMoney } from "@/lib/utils";

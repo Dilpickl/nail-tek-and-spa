@@ -79,33 +79,30 @@ export function Hero() {
 
           <motion.div
             {...fadeUp(0.3)}
-            className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-muted"
+            className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-ink-muted"
           >
-            <div className="flex items-center gap-2">
-              <StarRating rating={business.googleRating} starClassName="size-4" />
-              <span>
-                {business.googleRating.toFixed(1)} on Google ·{" "}
-                {business.googleReviewCount}+ reviews
+            {/* Compact reviews on mobile — desktop uses the floating card */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:hidden">
+              <span className="inline-flex items-center gap-1.5">
+                <StarRating rating={business.googleRating} starClassName="size-3.5" />
+                {business.googleRating.toFixed(1)} Google
               </span>
-            </div>
-            <a
-              href={socials.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 hover:text-ink transition-colors"
-            >
-              <span
-                className="inline-flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: "#1877F2" }}
-                aria-hidden
+              <a
+                href={socials.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 hover:text-ink transition-colors"
               >
-                f
-              </span>
-              <span>
-                {business.facebookRecommendPercent}% recommend (
-                {business.facebookReviewCount} Reviews) on Facebook
-              </span>
-            </a>
+                <span
+                  className="inline-flex size-3.5 items-center justify-center rounded-full text-[8px] font-bold text-white"
+                  style={{ backgroundColor: "#1877F2" }}
+                  aria-hidden
+                >
+                  f
+                </span>
+                {business.facebookRecommendPercent}% recommend
+              </a>
+            </div>
             {business.walkInsWelcome && (
               <span className="inline-flex items-center gap-1.5">
                 Walk-ins welcome
@@ -134,13 +131,39 @@ export function Hero() {
               className="h-full w-full object-cover"
             />
           </div>
-          <div className="absolute -bottom-6 -left-6 hidden max-w-[11rem] rounded-xl bg-offwhite p-5 shadow-lg ring-1 ring-ink/5 sm:block">
-            <p className="font-serif text-2xl font-semibold leading-tight text-ink">
-              Kind care
+          <div className="absolute -bottom-5 left-4 right-4 hidden rounded-xl bg-offwhite/95 p-4 shadow-lg ring-1 ring-ink/5 backdrop-blur-sm sm:left-auto sm:right-auto sm:-bottom-6 sm:-left-6 sm:block sm:w-[15.5rem] sm:p-5">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="flex items-center gap-1.5">
+                <StarRating rating={business.googleRating} starClassName="size-3.5" />
+                <span className="text-lg font-semibold leading-none text-ink">
+                  {business.googleRating.toFixed(1)}
+                </span>
+              </div>
+              <span className="text-xs text-ink-muted">Google</span>
+            </div>
+            <p className="mt-1 text-xs text-ink-muted">
+              {business.googleReviewCount}+ reviews
             </p>
-            <p className="mt-1 text-xs uppercase tracking-wider text-ink-muted">
-              Walk-ins welcome
-            </p>
+            <div className="mt-3 flex items-center justify-between gap-2 border-t border-ink/8 pt-3">
+              <a
+                href={socials.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-soft hover:text-ink transition-colors"
+              >
+                <span
+                  className="inline-flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                  style={{ backgroundColor: "#1877F2" }}
+                  aria-hidden
+                >
+                  f
+                </span>
+                {business.facebookRecommendPercent}% recommend
+              </a>
+              <span className="shrink-0 text-xs text-ink-muted">
+                {business.facebookReviewCount} reviews
+              </span>
+            </div>
           </div>
         </motion.div>
       </div>

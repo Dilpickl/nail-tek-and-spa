@@ -1,6 +1,5 @@
 import { hours } from "@/lib/config/salonData";
 import type {
-  EmployeeWithSchedule,
   TechnicianScheduleInput,
   TechnicianScheduleRow,
 } from "@/lib/technicians/types";
@@ -24,23 +23,6 @@ export function getSalonHoursLabel(dayOfWeek: number): string {
   const salonDay = hours.find((entry) => entry.day === dayName);
   if (!salonDay?.open || !salonDay.close) return "Closed";
   return `${salonDay.open}–${salonDay.close}`;
-}
-
-export function getWeekOverview(employees: EmployeeWithSchedule[]) {
-  return DAY_LABELS.map((label, dayOfWeek) => {
-    const salonDay = hours.find((entry) => entry.day === label);
-    if (!salonDay?.open || !salonDay.close) {
-      return { dayOfWeek, label: label.slice(0, 3), count: 0, closed: true };
-    }
-
-    const count = employees.filter((employee) => {
-      if (!employee.is_active) return false;
-      const day = employee.schedule.find((row) => row.day_of_week === dayOfWeek);
-      return day?.is_working;
-    }).length;
-
-    return { dayOfWeek, label: label.slice(0, 3), count, closed: false };
-  });
 }
 
 export function copyMondayToWeekdays(schedule: TechnicianScheduleInput[]): TechnicianScheduleInput[] {

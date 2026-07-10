@@ -202,10 +202,34 @@ export function AdminDashboard({
     return map;
   }, [appointments, columns]);
 
-  const bookedCount = useMemo(
-    () => appointments.filter((appointment) => appointment.status === "booked").length,
+  const bookedAppointments = useMemo(
+    () =>
+      appointments
+        .filter((appointment) => appointment.status === "booked")
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
     [appointments]
   );
+  const bookedCount = bookedAppointments.length;
+  const bookedScrollIndexRef = useRef(0);
+
+  useEffect(() => {
+    bookedScrollIndexRef.current = 0;
+  }, [agendaDate, bookedCount]);
+
+  function scrollToNextBookedAppointment() {
+    if (bookedAppointments.length === 0) return;
+
+    const index = bookedScrollIndexRef.current % bookedAppointments.length;
+    const target = bookedAppointments[index];
+    bookedScrollIndexRef.current = index + 1;
+
+    const element = document.getElementById(`appointment-${target.id}`);
+    element?.scrollIntoView({ behavior: "smooth", block: "center" });
+    element?.classList.add("ring-2", "ring-ink", "ring-offset-2");
+    window.setTimeout(() => {
+      element?.classList.remove("ring-2", "ring-ink", "ring-offset-2");
+    }, 1600);
+  }
 
   async function toggleOff(technicianId: string) {
     const nextOff = !offIds.has(technicianId);
@@ -287,39 +311,43 @@ export function AdminDashboard({
 
   return (
     <div className="container py-8 md:py-10">
-      <aside
-        aria-live="polite"
-        className={cn(
-          "fixed bottom-6 right-6 z-30 flex max-w-[min(18rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl px-4 py-3 shadow-lg ring-1",
-          bookedCount > 0
-            ? "bg-ink text-offwhite ring-ink/20"
-            : "bg-offwhite text-ink ring-ink/10"
-        )}
-      >
-        <span
-          className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-xl",
-            bookedCount > 0 ? "bg-offwhite/10" : "bg-secondary"
-          )}
+      {bookedCount > 0 ? (
+        <button
+          type="button"
+          aria-live="polite"
+          onClick={scrollToNextBookedAppointment}
+          className="fixed bottom-6 right-6 z-30 flex max-w-[min(18rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-left text-offwhite shadow-lg ring-1 ring-ink/20 transition hover:bg-ink/90"
         >
-          <CalendarClock className="size-5" />
-        </span>
-        <span>
-          <span className="block text-lg font-semibold leading-tight">
-            {bookedCount} still booked
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-offwhite/10">
+            <CalendarClock className="size-5" />
           </span>
-          <span
-            className={cn(
-              "mt-0.5 block text-xs",
-              bookedCount > 0 ? "text-offwhite/70" : "text-ink-muted"
-            )}
-          >
-            {bookedCount === 0
-              ? `All done for ${formatReadableDate(agendaDate)}`
-              : `Uncompleted on ${formatReadableDate(agendaDate)}`}
+          <span>
+            <span className="block text-lg font-semibold leading-tight">
+              {bookedCount} still booked
+            </span>
+            <span className="mt-0.5 block text-xs text-offwhite/70">
+              Tap to jump to next · {formatReadableDate(agendaDate)}
+            </span>
           </span>
-        </span>
-      </aside>
+        </button>
+      ) : (
+        <aside
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-30 flex max-w-[min(18rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl bg-offwhite px-4 py-3 text-ink shadow-lg ring-1 ring-ink/10"
+        >
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
+            <CalendarClock className="size-5" />
+          </span>
+          <span>
+            <span className="block text-lg font-semibold leading-tight">
+              0 still booked
+            </span>
+            <span className="mt-0.5 block text-xs text-ink-muted">
+              All done for {formatReadableDate(agendaDate)}
+            </span>
+          </span>
+        </aside>
+      )}
 
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
@@ -546,7 +574,11 @@ export function AdminDashboard({
                 )}
 
                 {items.map((appointment) => (
-                  <div key={appointment.id} className="relative">
+                  <div
+                    key={appointment.id}
+                    id={`appointment-${appointment.id}`}
+                    className="relative scroll-mt-28 rounded-xl transition ring-offset-background"
+                  >
                     {assigningId === appointment.id && (
                       <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/80">
                         <Loader2 className="size-5 animate-spin text-ink" />
