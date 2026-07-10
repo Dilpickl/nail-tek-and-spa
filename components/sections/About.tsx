@@ -23,27 +23,53 @@ export function About() {
             by a team known for kindness, skill, and treating guests like family.
           </p>
         </Reveal>
+      </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+      {/* Mobile: horizontal swipe */}
+      <div className="mt-14 md:hidden">
+        <div className="h-scroll">
           {trustPillars.map((pillar, i) => {
             const Icon = icons[i % icons.length];
             return (
-              <Reveal key={pillar.title} delay={i * 0.08}>
-                <div className="h-full rounded-2xl bg-offwhite p-8 ring-1 ring-ink/5 transition-shadow hover:shadow-md">
-                  <div className="inline-flex size-12 items-center justify-center rounded-xl bg-ink text-offwhite">
-                    <Icon className="size-6" />
-                  </div>
-                  <h3 className="mt-5 text-xl font-semibold text-ink">
-                    {pillar.title}
-                  </h3>
-                  <p className="mt-2 leading-relaxed text-ink-muted">
-                    {pillar.description}
-                  </p>
+              <div
+                key={pillar.title}
+                className="h-scroll-item rounded-2xl bg-offwhite p-7 ring-1 ring-ink/5"
+              >
+                <div className="inline-flex size-12 items-center justify-center rounded-xl bg-ink text-offwhite">
+                  <Icon className="size-6" />
                 </div>
-              </Reveal>
+                <h3 className="mt-5 text-xl font-semibold text-ink">
+                  {pillar.title}
+                </h3>
+                <p className="mt-2 leading-relaxed text-ink-muted">
+                  {pillar.description}
+                </p>
+              </div>
             );
           })}
         </div>
+      </div>
+
+      {/* Desktop: grid */}
+      <div className="container mt-14 hidden gap-6 md:grid md:grid-cols-3">
+        {trustPillars.map((pillar, i) => {
+          const Icon = icons[i % icons.length];
+          return (
+            <Reveal key={pillar.title} delay={i * 0.08}>
+              <div className="h-full rounded-2xl bg-offwhite p-8 ring-1 ring-ink/5 transition-shadow hover:shadow-md">
+                <div className="inline-flex size-12 items-center justify-center rounded-xl bg-ink text-offwhite">
+                  <Icon className="size-6" />
+                </div>
+                <h3 className="mt-5 text-xl font-semibold text-ink">
+                  {pillar.title}
+                </h3>
+                <p className="mt-2 leading-relaxed text-ink-muted">
+                  {pillar.description}
+                </p>
+              </div>
+            </Reveal>
+          );
+        })}
       </div>
     </section>
   );

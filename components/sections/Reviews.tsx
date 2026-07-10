@@ -17,42 +17,81 @@ export function Reviews() {
             Real reviews from Crystal Lake & beyond
           </h2>
         </Reveal>
+      </div>
 
-        <div className="mt-12 grid items-start gap-8 lg:grid-cols-[1fr_1.3fr]">
-          <Reveal>
-            <div className="space-y-4">
-              <GoogleReviewWidget />
-              <FacebookReviewWidget />
-            </div>
-          </Reveal>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            {testimonials.map((t, i) => (
-              <Reveal key={`${t.name}-${i}`} delay={i * 0.07}>
-                <figure className="flex h-full flex-col rounded-2xl bg-background p-6 ring-1 ring-ink/5">
-                  <Quote className="size-6 text-ink/30" />
-                  <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft sm:text-base">
-                    &ldquo;{t.quote}&rdquo;
-                  </blockquote>
-                  <figcaption className="mt-4 flex items-center justify-between gap-3">
-                    <span>
-                      <span className="font-medium text-ink">{t.name}</span>
-                      {t.source && (
-                        <span className="mt-0.5 block text-xs text-ink-muted">
-                          {t.source}
-                        </span>
-                      )}
+      {/* Mobile: swipe testimonials, then compact Google / Facebook cards */}
+      <div className="mt-10 md:hidden">
+        <div className="h-scroll">
+          {testimonials.map((t, i) => (
+            <figure
+              key={`${t.name}-${i}`}
+              className="h-scroll-item flex flex-col rounded-2xl bg-background p-6 ring-1 ring-ink/5"
+            >
+              <Quote className="size-6 text-ink/30" />
+              <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft">
+                &ldquo;{t.quote}&rdquo;
+              </blockquote>
+              <figcaption className="mt-4 flex items-center justify-between gap-3">
+                <span>
+                  <span className="font-medium text-ink">{t.name}</span>
+                  {t.source && (
+                    <span className="mt-0.5 block text-xs text-ink-muted">
+                      {t.source}
                     </span>
-                    <span className="flex shrink-0">
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <Star key={j} className="size-3.5 fill-ink text-ink" />
-                      ))}
-                    </span>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
+                  )}
+                </span>
+                <span className="flex shrink-0">
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <Star key={j} className="size-3.5 fill-ink text-ink" />
+                  ))}
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+          <div className="h-scroll-item">
+            <GoogleReviewWidget compact />
           </div>
+          <div className="h-scroll-item">
+            <FacebookReviewWidget compact />
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop: widgets + review grid */}
+      <div className="container mt-12 hidden items-start gap-8 md:grid lg:grid-cols-[1fr_1.3fr]">
+        <Reveal>
+          <div className="space-y-4">
+            <GoogleReviewWidget />
+            <FacebookReviewWidget />
+          </div>
+        </Reveal>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          {testimonials.map((t, i) => (
+            <Reveal key={`${t.name}-${i}`} delay={i * 0.07}>
+              <figure className="flex h-full flex-col rounded-2xl bg-background p-6 ring-1 ring-ink/5">
+                <Quote className="size-6 text-ink/30" />
+                <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft sm:text-base">
+                  &ldquo;{t.quote}&rdquo;
+                </blockquote>
+                <figcaption className="mt-4 flex items-center justify-between gap-3">
+                  <span>
+                    <span className="font-medium text-ink">{t.name}</span>
+                    {t.source && (
+                      <span className="mt-0.5 block text-xs text-ink-muted">
+                        {t.source}
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex shrink-0">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} className="size-3.5 fill-ink text-ink" />
+                    ))}
+                  </span>
+                </figcaption>
+              </figure>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
