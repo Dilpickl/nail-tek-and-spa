@@ -30,6 +30,8 @@ import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
 import {
   getNextTimeSlot,
   shiftIsoDate,
+  formatInSalonTime,
+  toLocalDateTime,
 } from "@/lib/booking/time-utils";
 import { serviceCategories, getServiceById } from "@/lib/config/salonData";
 import type { BookingTechnicianOption } from "@/lib/technicians/types";
@@ -775,25 +777,37 @@ function QuickBookingPanel({
 
         {!isWalkIn && (
           <div className="grid min-w-0 grid-cols-2 gap-3 sm:col-span-2 sm:gap-4">
-            <label className="block min-w-0 overflow-hidden">
+            <label className="block min-w-0">
               <span className="text-sm font-medium text-ink">Date</span>
-              <input
-                type="date"
-                value={phoneDate}
-                min={today}
-                onChange={(event) => setPhoneDate(event.target.value)}
-                className="mt-2 h-12 w-full min-w-0 max-w-full rounded-xl border border-input bg-background px-2 text-base text-ink [color-scheme:light] sm:px-3"
-              />
+              <div className="relative mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background">
+                <span className="pointer-events-none absolute inset-0 flex items-center truncate px-3 text-base text-ink">
+                  {formatPhoneBookingDate(phoneDate)}
+                </span>
+                <input
+                  type="date"
+                  value={phoneDate}
+                  min={today}
+                  onChange={(event) => setPhoneDate(event.target.value)}
+                  aria-label="Date"
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0 [color-scheme:light]"
+                />
+              </div>
             </label>
 
-            <label className="block min-w-0 overflow-hidden">
+            <label className="block min-w-0">
               <span className="text-sm font-medium text-ink">Start Time</span>
-              <input
-                type="time"
-                value={time}
-                onChange={(event) => setTime(event.target.value)}
-                className="mt-2 h-12 w-full min-w-0 max-w-full rounded-xl border border-input bg-background px-2 text-base text-ink [color-scheme:light] sm:px-3"
-              />
+              <div className="relative mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background">
+                <span className="pointer-events-none absolute inset-0 flex items-center truncate px-3 text-base text-ink">
+                  {formatPhoneBookingTime(time)}
+                </span>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(event) => setTime(event.target.value)}
+                  aria-label="Start Time"
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0 [color-scheme:light]"
+                />
+              </div>
             </label>
           </div>
         )}
@@ -811,6 +825,22 @@ function QuickBookingPanel({
       </Button>
     </div>
   );
+}
+
+function formatPhoneBookingDate(isoDate: string) {
+  return formatInSalonTime(toLocalDateTime(isoDate, "12:00"), {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatPhoneBookingTime(value: string) {
+  if (!value) return "";
+  return formatInSalonTime(toLocalDateTime("2000-01-01", value), {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function serviceSelectionLabel(selectedIds: string[]) {
