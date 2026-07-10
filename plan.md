@@ -90,7 +90,7 @@ Copy values from local `.env.local` (project root). Redeploy after adding/changi
 |------|-------|
 | Branch | `master` (tracks `origin/master`) |
 | Remote | `https://github.com/Dilpickl/nail-tek-and-spa.git` |
-| HEAD | `9be070e` — Add public contact email and refresh plan.md handoff |
+| HEAD | `5cc7cdb` — Point plan.md HEAD at 9be070e |
 
 **Recent work (July 9, 2026):**
 - **Real salon data on customer site:** `lib/config/salonData.ts` — Algonquin address, hours, full menu (pedicures through lashes), waxing, Google reviews/testimonials, social links, Travis/Daisy/Adam/Vickie
