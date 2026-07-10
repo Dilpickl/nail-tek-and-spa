@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Star, Phone, Gift } from "lucide-react";
+import { Calendar, Phone, Gift } from "lucide-react";
 
 import { business, galleryImages, socials } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
@@ -78,17 +78,9 @@ export function Hero() {
 
       <div className="container grid items-center gap-12 py-20 md:py-28 lg:grid-cols-2 lg:gap-8">
         <div>
-          <motion.div
-            {...fadeUp()}
-            className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-offwhite px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-ink-soft"
-          >
-            <Star className="size-3.5 fill-ink text-ink" />
-            Crystal Lake&apos;s premier nail destination
-          </motion.div>
-
           <motion.h1
-            {...fadeUp(0.05)}
-            className="mt-6 text-balance text-4xl font-semibold leading-[1.05] text-ink sm:text-5xl lg:text-6xl"
+            {...fadeUp()}
+            className="text-balance text-4xl font-semibold leading-[1.05] text-ink sm:text-5xl lg:text-6xl"
           >
             Premium nails.
             <br />
@@ -96,14 +88,14 @@ export function Hero() {
           </motion.h1>
 
           <motion.p
-            {...fadeUp(0.12)}
+            {...fadeUp(0.08)}
             className="mt-5 max-w-xl text-lg leading-relaxed text-ink-muted"
           >
             {business.shortDescription}
           </motion.p>
 
           <motion.div
-            {...fadeUp(0.2)}
+            {...fadeUp(0.16)}
             className="mt-8 flex flex-col gap-3 sm:flex-row"
           >
             <Link href="/book">
@@ -121,7 +113,7 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            {...fadeUp(0.3)}
+            {...fadeUp(0.24)}
             className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-ink-muted"
           >
             {/* Compact reviews on mobile — desktop uses the floating card */}
