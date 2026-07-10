@@ -761,6 +761,24 @@ export function getTechnicianById(id: string): Technician | undefined {
 export const testimonials: Testimonial[] = [
   {
     quote:
+      "I am always super nervous to try anything but a solid color at new salons. I was looking in the area for well rated nail salons when I came across this one and decided to give it a try. Glad I did. The staff was extremely friendly and respectful. I can’t say enough good things about them. It was all smiles. They did a wonderful job. I live an hour away but would definitely make the trip to return back to this salon. Thank you Travis & Daisy!!!",
+    name: "Jozie T.",
+    source: "Google",
+  },
+  {
+    quote:
+      "I’ve been getting my No-Chip manicures & pedicures at Nail Tek & Spa in Algonquin for 4+ years now. Couldn’t be happier with their services! The welcome you receive when you walk in is like walking into a family reunion! Friendly, clean, great hours, complimentary bottled water & the best manicures & pedicures given in relaxing massage recliners, I’ve consistently had in my 64 years! They have countless colors to choose from. However, in the rare event you can’t decide on the exact color you’d like, just ask Travis! He’s created wonderful colors for me on several occasions! It’s a real treat being a long time client of Nail Tek & Spa!!!",
+    name: "Mary",
+    source: "Testimony",
+  },
+  {
+    quote:
+      "I’ve lived in the Algonquin area for some time and it’s been so hard to find a nail salon I can actually go back to!! I stumbled upon Nail Tek & Spa being that it is super close to my house and YAY amazing work. My shape is beautiful and I actually found a place I’ll be more than happy to go back to. 10/10 recommended (:",
+    name: "Julie T.",
+    source: "Google",
+  },
+  {
+    quote:
       "They were kind enough to accommodate me right away! It was actually my first time having a male technician do my eyebrows, which was a fun surprise. I started to explain exactly what I wanted, but he confidently assured me not to worry and promised I’d be happy with the outcome. He absolutely delivered……I couldn’t be more pleased with the results!",
     name: "Iris",
     source: "Testimony",
@@ -769,18 +787,6 @@ export const testimonials: Testimonial[] = [
     quote:
       "Travis and Daisy always leave me happy with my nails and always treat me like family! Travis goes above and beyond with his nail designs and we always have a great time at my appointments. You can show Travis any inspiration pictures and he can recreate them perfectly! They are also very efficient with their time and get you done within an hour. This will forever be my nail salon!",
     name: "Samantha F.",
-    source: "Google",
-  },
-  {
-    quote:
-      "I am always super nervous to try anything but a solid color at new salons. I was looking in the area for well rated nail salons when I came across this one and decided to give it a try. Glad I did. The staff was extremely friendly and respectful. I can’t say enough good things about them. It was all smiles. They did a wonderful job. I live an hour away but would definitely make the trip to return back to this salon. Thank you Travis & Daisy!!!",
-    name: "Jozie T.",
-    source: "Google",
-  },
-  {
-    quote:
-      "I’ve lived in the Algonquin area for some time and it’s been so hard to find a nail salon I can actually go back to!! I stumbled upon Nail Tek & Spa being that it is super close to my house and YAY amazing work. My shape is beautiful and I actually found a place I’ll be more than happy to go back to. 10/10 recommended (:",
-    name: "Julie T.",
     source: "Google",
   },
 ];
