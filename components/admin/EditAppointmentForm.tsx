@@ -2,20 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
+import { useState } from "react";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 
 import { ANY_EMPLOYEE_ID, ANY_EMPLOYEE_LABEL } from "@/lib/admin/constants";
 import { Button } from "@/components/ui/button";
 import { TimeWheelPicker } from "@/components/ui/TimeWheelPicker";
-import {
-  clampTime,
-  formatSalonTime,
-  getBusinessTimeBounds,
-  getNextTimeSlot,
-  maxTime,
-  toIsoDate,
-} from "@/lib/booking/time-utils";
+import { formatSalonTime, toIsoDate } from "@/lib/booking/time-utils";
 import { serviceCategories } from "@/lib/config/salonData";
 import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import { formatMoney } from "@/lib/utils";
@@ -56,20 +49,6 @@ export function EditAppointmentForm({
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const bounds = useMemo(() => getBusinessTimeBounds(date), [date]);
-  const earliestTime = useMemo(() => {
-    if (date !== toIsoDate(new Date())) return bounds.minTime;
-    return clampTime(
-      maxTime(bounds.minTime, getNextTimeSlot()),
-      bounds.minTime,
-      bounds.maxTime
-    );
-  }, [bounds.minTime, bounds.maxTime, date]);
-
-  useEffect(() => {
-    setTime((current) => clampTime(current, earliestTime, bounds.maxTime));
-  }, [earliestTime, bounds.maxTime]);
 
   async function submit() {
     setLoading(true);
@@ -146,8 +125,8 @@ export function EditAppointmentForm({
           <TimeWheelPicker
             value={time}
             onChange={setTime}
-            minTime={bounds.minTime}
-            maxTime={bounds.maxTime}
+            minTime="06:00"
+            maxTime="23:45"
             className="mt-3"
           />
         </div>

@@ -11,7 +11,6 @@ import {
 } from "@/lib/technicians/schedule-utils";
 import type { TechnicianScheduleInput } from "@/lib/technicians/types";
 import { DAY_LABELS } from "@/lib/technicians/types";
-import { cn } from "@/lib/utils";
 
 interface EmployeeScheduleEditorProps {
   schedule: TechnicianScheduleInput[];
@@ -102,14 +101,16 @@ export function EmployeeScheduleEditor({
           return (
             <div
               key={day.dayOfWeek}
-              className={cn(
-                "grid gap-3 rounded-2xl bg-background px-4 py-3",
-                "sm:grid-cols-[7rem_6rem_1fr_1fr_auto] sm:items-center"
-              )}
+              className="grid gap-3 rounded-2xl bg-background px-3 py-3 sm:px-4 md:grid-cols-[6.5rem_auto] md:items-start lg:grid-cols-[7rem_6rem_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center"
             >
-              <p className="font-semibold text-ink">{DAY_LABELS[day.dayOfWeek]}</p>
+              <div className="flex items-center justify-between gap-3 md:block">
+                <p className="font-semibold text-ink">{DAY_LABELS[day.dayOfWeek]}</p>
+                <p className="text-xs text-ink-muted md:mt-1 lg:hidden">
+                  Salon: {salonHint}
+                </p>
+              </div>
 
-              <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-ink">
+              <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-ink md:justify-self-start">
                 <input
                   type="checkbox"
                   checked={day.isWorking}
@@ -120,33 +121,35 @@ export function EmployeeScheduleEditor({
                 {day.isWorking ? "Working" : "Off"}
               </label>
 
-              <label className="block text-sm">
-                <span className="mb-1 block text-ink-muted sm:sr-only">Start</span>
-                <input
-                  type="time"
-                  value={day.startTime ?? ""}
-                  disabled={disabled || !day.isWorking || salonClosed}
-                  onChange={(event) =>
-                    updateDay(day.dayOfWeek, { startTime: event.target.value || null })
-                  }
-                  className="h-11 w-full rounded-xl border border-ink/15 bg-offwhite px-3 text-ink disabled:opacity-50"
-                />
-              </label>
+              <div className="grid grid-cols-2 gap-3 md:col-span-2 lg:col-span-2 lg:contents">
+                <label className="block min-w-0 text-sm">
+                  <span className="mb-1 block text-ink-muted lg:sr-only">Start</span>
+                  <input
+                    type="time"
+                    value={day.startTime ?? ""}
+                    disabled={disabled || !day.isWorking || salonClosed}
+                    onChange={(event) =>
+                      updateDay(day.dayOfWeek, { startTime: event.target.value || null })
+                    }
+                    className="h-11 w-full min-w-0 rounded-xl border border-ink/15 bg-offwhite px-2 text-ink disabled:opacity-50 sm:px-3"
+                  />
+                </label>
 
-              <label className="block text-sm">
-                <span className="mb-1 block text-ink-muted sm:sr-only">End</span>
-                <input
-                  type="time"
-                  value={day.endTime ?? ""}
-                  disabled={disabled || !day.isWorking || salonClosed}
-                  onChange={(event) =>
-                    updateDay(day.dayOfWeek, { endTime: event.target.value || null })
-                  }
-                  className="h-11 w-full rounded-xl border border-ink/15 bg-offwhite px-3 text-ink disabled:opacity-50"
-                />
-              </label>
+                <label className="block min-w-0 text-sm">
+                  <span className="mb-1 block text-ink-muted lg:sr-only">End</span>
+                  <input
+                    type="time"
+                    value={day.endTime ?? ""}
+                    disabled={disabled || !day.isWorking || salonClosed}
+                    onChange={(event) =>
+                      updateDay(day.dayOfWeek, { endTime: event.target.value || null })
+                    }
+                    className="h-11 w-full min-w-0 rounded-xl border border-ink/15 bg-offwhite px-2 text-ink disabled:opacity-50 sm:px-3"
+                  />
+                </label>
+              </div>
 
-              <p className="text-xs text-ink-muted sm:text-right">
+              <p className="hidden text-xs text-ink-muted lg:block lg:text-right">
                 Salon: {salonHint}
               </p>
             </div>

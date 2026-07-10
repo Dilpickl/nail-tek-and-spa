@@ -13,7 +13,7 @@ import {
   getSchedulesForDate,
   isTechnicianScheduledForSlot,
 } from "@/lib/booking/technicians";
-import { getBusinessHoursForDate, toLocalDateTime } from "@/lib/booking/time-utils";
+import { toLocalDateTime } from "@/lib/booking/time-utils";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface QuickBookingRequest {
@@ -58,16 +58,6 @@ export async function POST(request: Request) {
   const supabase = createAdminClient();
 
   const date = payload.date!;
-  const dayHours = getBusinessHoursForDate(date);
-  if (!dayHours?.open || !dayHours.close) {
-    return NextResponse.json({ error: "The salon is closed on that date." }, { status: 400 });
-  }
-
-  const open = toLocalDateTime(date, dayHours.open);
-  const close = toLocalDateTime(date, dayHours.close);
-  if (startsAt < open || endsAt > close) {
-    return NextResponse.json({ error: "That time is outside business hours." }, { status: 400 });
-  }
 
   const { data: overlapping, error: overlapError } = await supabase
     .from("appointments")

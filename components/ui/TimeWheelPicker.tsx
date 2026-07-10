@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 const ITEM_HEIGHT = 44;
 const VISIBLE_ROWS = 5;
 const PADDING_ROWS = Math.floor(VISIBLE_ROWS / 2);
+/** How many copies of the list to render for seamless looping. */
+const LOOP_COPIES = 9;
+const LOOP_MID = Math.floor(LOOP_COPIES / 2);
 
 interface TimeWheelPickerProps {
   value: string;
@@ -22,8 +25,8 @@ interface TimeWheelPickerProps {
 export function TimeWheelPicker({
   value,
   onChange,
-  minTime = "08:00",
-  maxTime = "20:00",
+  minTime = "06:00",
+  maxTime = "23:45",
   stepMinutes = 15,
   className,
 }: TimeWheelPickerProps) {
@@ -111,30 +114,33 @@ export function TimeWheelPicker({
         </p>
       ) : (
         <>
-      <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-11 -translate-y-1/2 rounded-lg bg-ink/[0.06] ring-1 ring-ink/10" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-background to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-background to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-11 -translate-y-1/2 rounded-lg bg-ink/[0.06] ring-1 ring-ink/10" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-background to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-background to-transparent" />
 
-      <div className="grid grid-cols-3 divide-x divide-ink/8">
-        <WheelColumn
-          items={hours.map(String)}
-          selected={String(selectedHour)}
-          onSelect={(v) => setSelectedHour(Number(v))}
-          formatLabel={(v) => v}
-        />
-        <WheelColumn
-          items={availableMinutes.map((m) => String(m).padStart(2, "0"))}
-          selected={String(selectedMinute).padStart(2, "0")}
-          onSelect={(v) => setSelectedMinute(Number(v))}
-          formatLabel={(v) => v}
-        />
-        <WheelColumn
-          items={ampmOptions}
-          selected={selectedAmpm}
-          onSelect={(v) => setSelectedAmpm(v as "AM" | "PM")}
-          formatLabel={(v) => v}
-        />
-      </div>
+          <div className="grid grid-cols-3 divide-x divide-ink/8">
+            <WheelColumn
+              items={hours.map(String)}
+              selected={String(selectedHour)}
+              onSelect={(v) => setSelectedHour(Number(v))}
+              formatLabel={(v) => v}
+              infinite
+            />
+            <WheelColumn
+              items={availableMinutes.map((m) => String(m).padStart(2, "0"))}
+              selected={String(selectedMinute).padStart(2, "0")}
+              onSelect={(v) => setSelectedMinute(Number(v))}
+              formatLabel={(v) => v}
+              infinite
+            />
+            <WheelColumn
+              items={ampmOptions}
+              selected={selectedAmpm}
+              onSelect={(v) => setSelectedAmpm(v as "AM" | "PM")}
+              formatLabel={(v) => v}
+              infinite={ampmOptions.length > 1}
+            />
+          </div>
         </>
       )}
     </div>
@@ -146,76 +152,129 @@ function WheelColumn({
   selected,
   onSelect,
   formatLabel,
+  infinite = false,
 }: {
   items: string[];
   selected: string;
   onSelect: (value: string) => void;
   formatLabel: (value: string) => string;
+  infinite?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const scrollTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const isJumping = useRef(false);
+  const canLoop = infinite && items.length > 1;
 
-  const paddedItems = useMemo(
-    () => [...Array(PADDING_ROWS).fill(""), ...items, ...Array(PADDING_ROWS).fill("")],
-    [items]
-  );
+  const renderedItems = useMemo(() => {
+    if (!canLoop) {
+      return [...Array(PADDING_ROWS).fill(""), ...items, ...Array(PADDING_ROWS).fill("")];
+    }
+    const copies: string[] = [];
+    for (let copy = 0; copy < LOOP_COPIES; copy++) {
+      copies.push(...items);
+    }
+    return copies;
+  }, [canLoop, items]);
 
-  const scrollToIndex = useCallback(
-    (index: number, smooth = false) => {
-      const el = ref.current;
-      if (!el) return;
-      el.scrollTo({ top: index * ITEM_HEIGHT, behavior: smooth ? "smooth" : "auto" });
-    },
-    []
-  );
+  const scrollToIndex = useCallback((index: number, smooth = false) => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTo({ top: index * ITEM_HEIGHT, behavior: smooth ? "smooth" : "auto" });
+  }, []);
+
+  const midBaseIndex = useMemo(() => {
+    if (!canLoop) return 0;
+    return LOOP_MID * items.length;
+  }, [canLoop, items.length]);
 
   useEffect(() => {
     const idx = items.indexOf(selected);
-    if (idx >= 0) scrollToIndex(idx);
-  }, [items, selected, scrollToIndex]);
+    if (idx < 0) return;
+    if (canLoop) {
+      scrollToIndex(midBaseIndex + idx);
+    } else {
+      scrollToIndex(idx);
+    }
+  }, [items, selected, scrollToIndex, canLoop, midBaseIndex]);
+
+  function normalizeLoopPosition() {
+    const el = ref.current;
+    if (!el || !canLoop || items.length === 0) return;
+
+    const rawIndex = Math.round(el.scrollTop / ITEM_HEIGHT);
+    const itemIndex = ((rawIndex % items.length) + items.length) % items.length;
+    const centered = midBaseIndex + itemIndex;
+
+    if (Math.abs(rawIndex - centered) >= items.length) {
+      isJumping.current = true;
+      scrollToIndex(centered);
+      requestAnimationFrame(() => {
+        isJumping.current = false;
+      });
+    }
+
+    onSelect(items[itemIndex]);
+  }
 
   function handleScroll() {
+    if (isJumping.current) return;
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     scrollTimeout.current = setTimeout(() => {
       const el = ref.current;
       if (!el || items.length === 0) return;
+
+      if (canLoop) {
+        normalizeLoopPosition();
+        return;
+      }
+
       const rawIndex = Math.round(el.scrollTop / ITEM_HEIGHT);
       const index = Math.max(0, Math.min(items.length - 1, rawIndex));
       scrollToIndex(index, true);
       onSelect(items[index]);
-    }, 80);
+    }, 60);
   }
 
   return (
     <div
       ref={ref}
-      className="h-[220px] overflow-y-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      style={{ scrollSnapType: "y mandatory" }}
+      className="h-[220px] overflow-y-auto overscroll-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      style={{
+        scrollSnapType: "y mandatory",
+        WebkitOverflowScrolling: "touch",
+      }}
       onScroll={handleScroll}
     >
-      {paddedItems.map((item, index) => (
-        <button
-          key={`${item}-${index}`}
-          type="button"
-          disabled={!item}
-          onClick={() => {
-            if (!item) return;
-            const idx = items.indexOf(item);
-            if (idx >= 0) {
-              scrollToIndex(idx, true);
+      {renderedItems.map((item, index) => {
+        const isSpacer = !item;
+        const isSelected = item === selected;
+        return (
+          <button
+            key={`${item || "pad"}-${index}`}
+            type="button"
+            disabled={isSpacer}
+            onClick={() => {
+              if (!item) return;
+              const idx = items.indexOf(item);
+              if (idx < 0) return;
+              if (canLoop) {
+                scrollToIndex(midBaseIndex + idx, true);
+              } else {
+                scrollToIndex(idx, true);
+              }
               onSelect(item);
-            }
-          }}
-          className={cn(
-            "flex h-11 w-full items-center justify-center text-lg font-semibold transition-colors",
-            item === selected ? "text-ink" : item ? "text-ink-muted/50" : "invisible",
-            item && "hover:text-ink"
-          )}
-          style={{ scrollSnapAlign: "center" }}
-        >
-          {item ? formatLabel(item) : ""}
-        </button>
-      ))}
+            }}
+            className={cn(
+              "flex h-11 w-full shrink-0 items-center justify-center text-lg font-semibold transition-colors",
+              isSelected ? "text-ink" : item ? "text-ink-muted/50" : "invisible",
+              item && "hover:text-ink"
+            )}
+            style={{ scrollSnapAlign: "center", height: ITEM_HEIGHT }}
+          >
+            {item ? formatLabel(item) : ""}
+          </button>
+        );
+      })}
     </div>
   );
 }

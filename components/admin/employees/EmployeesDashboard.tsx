@@ -308,8 +308,8 @@ export function EmployeesDashboard() {
           <p className="mt-2 text-ink-muted">Add your first team member to set up schedules.</p>
         </section>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(16rem,22rem)_1fr]">
-          <section className="hidden rounded-3xl bg-offwhite p-4 ring-1 ring-ink/5 lg:block">
+        <div className="grid gap-6 xl:grid-cols-[minmax(16rem,20rem)_1fr]">
+          <section className="hidden rounded-3xl bg-offwhite p-4 ring-1 ring-ink/5 xl:block">
             <p className="px-2 text-sm font-semibold text-ink">Team</p>
             <ul className="mt-3 space-y-2">
               {employees.map((employee, index) => {
@@ -345,7 +345,7 @@ export function EmployeesDashboard() {
                       <button
                         type="button"
                         onClick={() => setSelectedId(employee.id)}
-                        className="flex min-h-12 flex-1 items-center gap-3 rounded-2xl px-3 py-3 text-left"
+                        className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-2xl px-3 py-3 text-left"
                       >
                         <GripVertical className="size-4 shrink-0 text-ink-muted" />
                         <span className="min-w-0 flex-1">
@@ -357,7 +357,7 @@ export function EmployeesDashboard() {
                           </span>
                         </span>
                         {!employee.is_active && (
-                          <span className="rounded-full bg-secondary px-2 py-1 text-xs font-semibold text-ink-muted">
+                          <span className="shrink-0 rounded-full bg-secondary px-2 py-1 text-xs font-semibold text-ink-muted">
                             Inactive
                           </span>
                         )}
@@ -369,13 +369,13 @@ export function EmployeesDashboard() {
             </ul>
           </section>
 
-          <section className="space-y-4 lg:hidden">
+          <section className="space-y-4 xl:hidden">
             {employees.map((employee, index) => {
               const expanded = mobileExpandedId === employee.id;
               return (
                 <article
                   key={employee.id}
-                  className="rounded-3xl bg-offwhite ring-1 ring-ink/5"
+                  className="overflow-hidden rounded-3xl bg-offwhite ring-1 ring-ink/5"
                 >
                   <button
                     type="button"
@@ -384,23 +384,23 @@ export function EmployeesDashboard() {
                     }
                     className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
                   >
-                    <span>
-                      <span className="block font-semibold text-ink">{employee.name}</span>
-                      <span className="block text-sm text-ink-muted">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-ink">{employee.name}</span>
+                      <span className="block truncate text-sm text-ink-muted">
                         {employee.role || "Team member"}
                         {!employee.is_active ? " · Inactive" : ""}
                       </span>
                     </span>
                     <ChevronDown
                       className={cn(
-                        "size-5 text-ink-muted transition-transform",
+                        "size-5 shrink-0 text-ink-muted transition-transform",
                         expanded && "rotate-180"
                       )}
                     />
                   </button>
 
                   {expanded && (
-                    <div className="border-t border-ink/8 px-5 pb-5 pt-4">
+                    <div className="overflow-hidden border-t border-ink/8 px-4 pb-5 pt-4 sm:px-5">
                       <MobileEmployeeActions
                         index={index}
                         total={employees.length}
@@ -449,7 +449,7 @@ export function EmployeesDashboard() {
             })}
           </section>
 
-          <section className="hidden rounded-3xl bg-offwhite p-6 ring-1 ring-ink/5 lg:block md:p-8">
+          <section className="hidden overflow-hidden rounded-3xl bg-offwhite p-6 ring-1 ring-ink/5 xl:block md:p-8">
             {selectedEmployee ? (
               <EmployeeEditorPanel
                 employeeId={selectedEmployee.id}
@@ -559,7 +559,7 @@ function EmployeeEditorPanel({
           <input
             value={draftName}
             onChange={(event) => onNameChange(event.target.value)}
-            className="h-11 w-full rounded-xl border border-ink/15 bg-background px-4 text-ink"
+            className="h-11 w-full min-w-0 rounded-xl border border-ink/15 bg-background px-4 text-ink"
           />
         </label>
         <label className="block text-sm">
@@ -567,7 +567,7 @@ function EmployeeEditorPanel({
           <input
             value={draftRole}
             onChange={(event) => onRoleChange(event.target.value)}
-            className="h-11 w-full rounded-xl border border-ink/15 bg-background px-4 text-ink"
+            className="h-11 w-full min-w-0 rounded-xl border border-ink/15 bg-background px-4 text-ink"
           />
         </label>
       </div>

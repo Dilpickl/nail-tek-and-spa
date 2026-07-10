@@ -7,6 +7,7 @@ const PRIMARY_PRESETS: { value: DateRangePreset; label: string }[] = [
   { value: "today", label: "Today" },
   { value: "this_week", label: "This Week" },
   { value: "this_month", label: "This Month" },
+  { value: "this_year", label: "This Year" },
 ];
 
 const EXTENDED_PRESETS: { value: DateRangePreset; label: string }[] = [
@@ -14,7 +15,6 @@ const EXTENDED_PRESETS: { value: DateRangePreset; label: string }[] = [
   { value: "last_week", label: "Last Week" },
   { value: "last_month", label: "Last Month" },
   { value: "last_90_days", label: "Last 90 Days" },
-  { value: "this_year", label: "This Year" },
   { value: "custom", label: "Custom" },
 ];
 
@@ -39,7 +39,7 @@ export function AnalyticsDatePicker({
 }: AnalyticsDatePickerProps) {
   return (
     <div className="space-y-3">
-      <div className="inline-flex rounded-full bg-offwhite p-1 ring-1 ring-ink/8">
+      <div className="inline-flex max-w-full flex-wrap rounded-full bg-offwhite p-1 ring-1 ring-ink/8">
         {PRIMARY_PRESETS.map((option) => (
           <PresetButton
             key={option.value}
@@ -121,7 +121,7 @@ function PresetButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "min-h-11 rounded-full px-5 text-sm font-semibold transition-all",
+        "min-h-11 rounded-full px-3 text-sm font-semibold transition-all sm:px-5",
         active ? "bg-ink text-offwhite shadow-sm" : "text-ink-muted hover:text-ink"
       )}
     >

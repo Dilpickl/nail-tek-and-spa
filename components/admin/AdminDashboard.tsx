@@ -29,10 +29,7 @@ import {
 } from "@/lib/admin/highlight-appointments";
 import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
 import {
-  clampTime,
-  getBusinessTimeBounds,
   getNextTimeSlot,
-  maxTime,
   shiftIsoDate,
 } from "@/lib/booking/time-utils";
 import { serviceCategories, getServiceById } from "@/lib/config/salonData";
@@ -628,19 +625,9 @@ function QuickBookingPanel({
   const [phoneDate, setPhoneDate] = useState(today);
   const activeDate = isWalkIn ? agendaDate : phoneDate;
 
-  const bounds = useMemo(() => getBusinessTimeBounds(activeDate), [activeDate]);
-  const defaultTime = useMemo(
-    () =>
-      clampTime(
-        maxTime(
-          bounds.minTime,
-          activeDate === today ? getNextTimeSlot() : bounds.minTime
-        ),
-        bounds.minTime,
-        bounds.maxTime
-      ),
-    [activeDate, bounds.minTime, bounds.maxTime, today]
-  );
+  const defaultTime = useMemo(() => {
+    return activeDate === today ? getNextTimeSlot() : "09:00";
+  }, [activeDate, today]);
 
   const [technicianId, setTechnicianId] = useState(ANY_EMPLOYEE_ID);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(() =>
@@ -723,14 +710,14 @@ function QuickBookingPanel({
         </Button>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <label className="block">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <label className="block min-w-0">
           <span className="text-sm font-medium text-ink">Technician</span>
           <div className="relative mt-2">
             <select
               value={technicianId}
               onChange={(event) => setTechnicianId(event.target.value)}
-              className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-3 pr-10 text-ink"
+              className="h-12 w-full min-w-0 appearance-none rounded-xl border border-input bg-background px-3 pr-10 text-ink"
             >
               <option value={ANY_EMPLOYEE_ID}>{ANY_EMPLOYEE_LABEL}</option>
               {technicians.map((technician) => (
@@ -745,7 +732,7 @@ function QuickBookingPanel({
           </div>
         </label>
 
-        <div className="block md:col-span-2 lg:col-span-1">
+        <div className="block min-w-0 sm:col-span-2">
           <span className="text-sm font-medium text-ink">Services</span>
           <ServiceMultiSelect
             selectedIds={selectedServiceIds}
@@ -754,39 +741,40 @@ function QuickBookingPanel({
           />
         </div>
 
-        <label className="block">
+        <label className="block min-w-0">
           <span className="text-sm font-medium text-ink">Guest name</span>
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Type guest name here"
-            className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink placeholder:text-ink-muted"
+            className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink placeholder:text-ink-muted"
           />
         </label>
 
         {!isWalkIn && (
-          <>
-            <label className="block">
-              <span className="text-sm font-medium text-ink">Date</span>
-              <input
-                type="date"
-                value={phoneDate}
-                min={today}
-                onChange={(event) => setPhoneDate(event.target.value)}
-                className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink"
-              />
-            </label>
+          <label className="block min-w-0">
+            <span className="text-sm font-medium text-ink">Phone</span>
+            <input
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="(555) 123-4567"
+              inputMode="tel"
+              className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink placeholder:text-ink-muted"
+            />
+          </label>
+        )}
 
-            <label className="block">
-              <span className="text-sm font-medium text-ink">Phone</span>
-              <input
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="(555) 123-4567"
-                className="mt-2 h-12 w-full rounded-xl border border-input bg-background px-3 text-ink placeholder:text-ink-muted"
-              />
-            </label>
-          </>
+        {!isWalkIn && (
+          <label className="block min-w-0 sm:col-span-2 sm:max-w-xs">
+            <span className="text-sm font-medium text-ink">Date</span>
+            <input
+              type="date"
+              value={phoneDate}
+              min={today}
+              onChange={(event) => setPhoneDate(event.target.value)}
+              className="mt-2 h-12 w-full max-w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
+            />
+          </label>
         )}
       </div>
 
@@ -795,8 +783,8 @@ function QuickBookingPanel({
         <TimeWheelPicker
           value={time}
           onChange={setTime}
-          minTime={bounds.minTime}
-          maxTime={bounds.maxTime}
+          minTime="06:00"
+          maxTime="23:45"
           className="mt-3 max-w-md"
         />
       </div>

@@ -2,7 +2,7 @@ import "server-only";
 
 import { ANY_EMPLOYEE_ID } from "@/lib/admin/constants";
 import { getConfirmedServicePrice } from "@/lib/booking/pricing";
-import { getBusinessHoursForDate, formatSalonTime, toIsoDate, toLocalDateTime } from "@/lib/booking/time-utils";
+import { formatSalonTime, toIsoDate, toLocalDateTime } from "@/lib/booking/time-utils";
 import { getSlotUsage, type BusyWindow } from "@/lib/booking/slot-capacity";
 import {
   getServicesByIds,
@@ -106,11 +106,6 @@ export async function validateAndBuildUpdate(
 
   const skipScheduleConstraints = payload.forCompletionAssignment === true;
 
-  const dayHours = getBusinessHoursForDate(date);
-  if (!skipScheduleConstraints && (!dayHours?.open || !dayHours.close)) {
-    return { error: "The salon is closed on that date.", status: 400 };
-  }
-
   const existingEnd = new Date(row.ends_at);
   const existingDurationMs = existingEnd.getTime() - existingStart.getTime();
 
@@ -171,16 +166,6 @@ export async function validateAndBuildUpdate(
   }
 
   if (!skipScheduleConstraints) {
-    if (!dayHours?.open || !dayHours.close) {
-      return { error: "The salon is closed on that date.", status: 400 };
-    }
-
-    const open = toLocalDateTime(date, dayHours.open);
-    const close = toLocalDateTime(date, dayHours.close);
-    if (startsAt < open || endsAt > close) {
-      return { error: "That time is outside business hours.", status: 400 };
-    }
-
     const { data: overlapping, error: overlapError } = await supabase
       .from("appointments")
       .select("id, technician_id, any_technician, starts_at, ends_at")
