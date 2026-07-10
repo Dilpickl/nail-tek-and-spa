@@ -76,7 +76,7 @@ export function Hero() {
         <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-secondary/50 blur-3xl" />
       </div>
 
-      <div className="container grid items-center gap-12 py-20 md:py-28 lg:grid-cols-2 lg:gap-8">
+      <div className="container grid items-center gap-10 pt-4 pb-14 sm:gap-12 md:py-28 lg:grid-cols-2 lg:gap-8">
         <div>
           <motion.h1
             {...fadeUp()}
