@@ -27,6 +27,7 @@ export function Reviews() {
                 key={`${t.name}-${i}`}
                 testimonial={t}
                 collapsible
+                equalHeight
                 className="h-scroll-item"
               />
             ))}

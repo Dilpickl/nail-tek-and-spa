@@ -9,16 +9,25 @@ import { cn } from "@/lib/utils";
 /** Only unusually long quotes (e.g. Mary) collapse on mobile. */
 const COLLAPSE_AT = 480;
 
+/**
+ * Shared mobile card height — roughly the pre-Mary carousel size
+ * (driven by the longer Google reviews like Jozie / Samantha).
+ */
+const MOBILE_CARD_HEIGHT = "h-[25rem]";
+
 export function TestimonialCard({
   testimonial,
   className,
   quoteClassName,
   collapsible = false,
+  equalHeight = false,
 }: {
   testimonial: Testimonial;
   className?: string;
   quoteClassName?: string;
   collapsible?: boolean;
+  /** Lock cards to a shared mobile height (unless a long quote is expanded). */
+  equalHeight?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const canCollapse = collapsible && testimonial.quote.length > COLLAPSE_AT;
@@ -28,6 +37,8 @@ export function TestimonialCard({
     <figure
       className={cn(
         "flex flex-col rounded-2xl bg-background p-6 ring-1 ring-ink/5",
+        equalHeight && !expanded && MOBILE_CARD_HEIGHT,
+        equalHeight && expanded && "min-h-[25rem]",
         className
       )}
     >
@@ -35,7 +46,8 @@ export function TestimonialCard({
       <blockquote
         className={cn(
           "mt-3 text-sm leading-relaxed text-ink-soft",
-          clamped && "line-clamp-5",
+          equalHeight && "flex-1",
+          clamped && "line-clamp-10",
           quoteClassName
         )}
       >
