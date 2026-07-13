@@ -767,7 +767,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     quote:
-      "I’ve been getting my No-Chip manicures & pedicures at Nail Tek & Spa in Algonquin for 4+ years now. Couldn’t be happier with their services! The welcome you receive when you walk in is like walking into a family reunion! Friendly, clean, great hours, complimentary bottled water & the best manicures & pedicures given in relaxing massage recliners, I’ve consistently had in my 64 years! They have countless colors to choose from. However, in the rare event you can’t decide on the exact color you’d like, just ask Travis! He’s created wonderful colors for me on several occasions! It’s a real treat being a long time client of Nail Tek & Spa!!!",
+      "I’ve been getting my No-Chip mani & pedis at Nail Tek & Spa for 4+ years now. The welcome you receive when you walk in is like walking into a family reunion! Friendly, clean, great hours, complimentary bottled water & the best manicures & pedicures given in relaxing massage recliners, I’ve consistently had in my 64 years! They have countless colors to choose from. However, in the rare event you can’t decide on the exact color you’d like, just ask Travis! He’s created wonderful colors for me on several occasions!",
     name: "Mary",
     source: "Testimony",
   },
