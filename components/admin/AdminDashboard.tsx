@@ -631,9 +631,7 @@ function QuickBookingPanel({
   }, [activeDate, today]);
 
   const [technicianId, setTechnicianId] = useState(ANY_EMPLOYEE_ID);
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(() =>
-    serviceCategories[0]?.services[0]?.id ? [serviceCategories[0].services[0].id] : []
-  );
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [time, setTime] = useState(defaultTime);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
