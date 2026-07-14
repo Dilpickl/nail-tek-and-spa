@@ -110,14 +110,14 @@ const TECH = {
 };
 
 const SVC = {
-  pediVolcanic: { id: "pedi-volcanic", name: "Volcanic Spa Pedicure", price: 65, mins: 75 },
-  pediOrganic: { id: "pedi-organic", name: "Organic Spa Pedicure", price: 55, mins: 70 },
+  pediVolcanic: { id: "pedi-volcanic", name: "Volcanic Spa Pedicure", price: 65, mins: 60 },
+  pediOrganic: { id: "pedi-organic", name: "Organic Spa Pedicure", price: 55, mins: 60 },
   pediDeluxe: { id: "pedi-deluxe", name: "Deluxe Spa Pedicure", price: 45, mins: 60 },
-  pediLuxury: { id: "pedi-luxury", name: "Luxury Spa Pedicure", price: 35, mins: 55 },
-  pediClassic: { id: "pedi-classic", name: "Classic Pedicure", price: 25, mins: 45 },
+  pediLuxury: { id: "pedi-luxury", name: "Luxury Spa Pedicure", price: 35, mins: 40 },
+  pediClassic: { id: "pedi-classic", name: "Classic Pedicure", price: 25, mins: 30 },
   maniClassic: { id: "mani-classic", name: "Classic Manicure", price: 15, mins: 30 },
   maniNoChip: { id: "mani-no-chip", name: "No-Chip Manicure", price: 35, mins: 45 },
-  combo: { id: "combo-mani-pedi", name: "Classic Mani & Pedi Combo", price: 40, mins: 75 },
+  combo: { id: "combo-mani-pedi", name: "Classic Mani & Pedi Combo", price: 40, mins: 60 },
   acrylicFull: { id: "enh-acrylic-full", name: "Acrylic — Full Set", price: 35, mins: 75 },
   acrylicFill: { id: "enh-acrylic-fill", name: "Acrylic — Fill-In", price: 25, mins: 60 },
   gelFull: { id: "enh-gel-full", name: "Gel — Full Set", price: 45, mins: 75 },
@@ -126,7 +126,7 @@ const SVC = {
   french: { id: "addon-french", name: "French Tip Add-On", price: 10, mins: 15 },
   paraffin: { id: "addon-paraffin", name: "Paraffin Treatment", price: 10, mins: 15 },
   waxBrows: { id: "wax-eyebrows", name: "Eyebrows", price: 10, mins: 15 },
-  lashExt: { id: "lash-extensions", name: "Eyelash Extensions", price: 40, mins: 60 },
+  lashExt: { id: "lash-extensions", name: "Eyelash Extensions", price: 40, mins: 15 },
 };
 
 const RETAIL = {

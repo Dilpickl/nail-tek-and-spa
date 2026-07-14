@@ -36,7 +36,11 @@ export function ServiceList() {
                         {service.name}
                       </h3>
                       <span className="text-sm text-ink-muted">
-                        · {formatDuration(service.durationMinutes)}
+                        ·{" "}
+                        {formatDuration(
+                          service.durationMinutes,
+                          service.durationMinutesMin
+                        )}
                       </span>
                     </div>
                     <p className="mt-1 text-ink-muted">{service.description}</p>

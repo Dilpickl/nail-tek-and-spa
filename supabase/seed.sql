@@ -32,17 +32,17 @@ where id in ('tech-linh', 'tech-maria', 'tech-james', 'tech-amy');
 -- Services ------------------------------------------------------------------
 insert into public.services (id, category_id, name, description, price, duration_minutes, is_active) values
   -- Pedicures
-  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 65, 75, true),
-  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 55, 70, true),
+  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 65, 60, true),
+  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 55, 60, true),
   ('pedi-deluxe',    'pedicures', 'Deluxe Spa Pedicure',    'Sea scrub, hydrating massage cream, hot stones, and paraffin.', 45, 60, true),
-  ('pedi-luxury',    'pedicures', 'Luxury Spa Pedicure',    'Sugar or sea salt scrub with hot stone and leg massage.', 35, 55, true),
+  ('pedi-luxury',    'pedicures', 'Luxury Spa Pedicure',    'Sugar or sea salt scrub with hot stone and leg massage.', 35, 40, true),
   ('pedi-princess',  'pedicures', 'Princess Spa Pedicure',  'Classic pedicure plus exfoliation and paraffin for dry skin.', 35, 55, true),
-  ('pedi-classic',   'pedicures', 'Classic Pedicure',       'Nail shaping, cuticle care, moisturizing massage, and polish.', 25, 45, true),
+  ('pedi-classic',   'pedicures', 'Classic Pedicure',       'Nail shaping, cuticle care, moisturizing massage, and polish.', 25, 30, true),
 
   -- Manicures & Combos
   ('mani-classic',   'manicures', 'Classic Manicure',       'Nail shaping, cuticle care, moisturizing massage, and polish.', 15, 30, true),
   ('mani-no-chip',   'manicures', 'No-Chip Manicure',       'Classic manicure finished with long-lasting gel polish.', 35, 45, true),
-  ('combo-mani-pedi','manicures', 'Classic Mani & Pedi Combo', 'Classic Manicure paired with Classic Pedicure.', 40, 75, true),
+  ('combo-mani-pedi','manicures', 'Classic Mani & Pedi Combo', 'Classic Manicure paired with Classic Pedicure.', 40, 60, true),
 
   -- Enhancements (parent rows + variants)
   ('enh-acrylic',          'enhancements', 'Acrylic',              'Custom-sculpted acrylic — select full set or fill-in.', 35, 75, true),
@@ -71,17 +71,16 @@ insert into public.services (id, category_id, name, description, price, duration
   -- Waxing
   ('wax-eyebrows',   'waxing', 'Eyebrows',        'Precise eyebrow wax.', 10, 15, true),
   ('wax-lips',       'waxing', 'Lips',            'Upper lip wax.', 10, 10, true),
-  ('wax-brows-lips', 'waxing', 'Eyebrows & Lips', 'Brow shaping and lip wax.', 15, 20, true),
-  ('wax-chin',       'waxing', 'Chin',            'Chin wax.', 5, 10, true),
-  ('wax-underarms',  'waxing', 'Under Arms',      'Underarm wax.', 25, 20, true),
+  ('wax-chin',       'waxing', 'Chin',            'Chin wax.', 10, 10, true),
+  ('wax-underarms',  'waxing', 'Under Arms',      'Underarm wax.', 30, 20, true),
   ('wax-half-arms',  'waxing', 'Half Arms',       'Wrist to elbow wax.', 35, 30, true),
   ('wax-half-legs',  'waxing', 'Half Legs',       'Ankle to knee wax.', 45, 35, true),
   ('wax-back',       'waxing', 'Back',            'Back wax starting at $50.', 50, 40, true),
   ('wax-bikini',     'waxing', 'Bikini Lines',    'Bikini-line wax starting at $40.', 40, 30, true),
 
   -- Eyelashes
-  ('lash-extensions', 'eyelashes', 'Eyelash Extensions', 'Natural-looking eyelash extensions.', 40, 60, true),
-  ('lash-tinting',    'eyelashes', 'Eyelash Tinting',    'Natural lash tint for definition.', 30, 30, true)
+  ('lash-extensions', 'eyelashes', 'Eyelash Extensions', 'Natural-looking eyelash extensions.', 40, 15, true),
+  ('lash-tinting',    'eyelashes', 'Eyelash Tinting',    'Natural lash tint for definition.', 30, 15, true)
 on conflict (id) do update
   set category_id = excluded.category_id,
       name = excluded.name,

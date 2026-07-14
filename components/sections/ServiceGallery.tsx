@@ -50,7 +50,10 @@ export function ServiceGallery() {
                 </div>
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-sm text-ink-muted">
-                    {formatDuration(service.durationMinutes)}
+                    {formatDuration(
+                      service.durationMinutes,
+                      service.durationMinutesMin
+                    )}
                   </span>
                   <Link
                     href={`/book?service=${service.variants?.[0]?.id ?? service.id}`}
@@ -92,7 +95,10 @@ export function ServiceGallery() {
               </p>
               <div className="mt-6 flex items-center justify-between">
                 <span className="text-sm text-ink-muted">
-                  {formatDuration(service.durationMinutes)}
+                  {formatDuration(
+                    service.durationMinutes,
+                    service.durationMinutesMin
+                  )}
                 </span>
                 <Link
                   href={`/book?service=${service.variants?.[0]?.id ?? service.id}`}
