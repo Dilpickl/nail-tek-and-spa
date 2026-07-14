@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
+import { Analytics } from '@vercel/analytics/next';
 
 import { business } from "@/lib/config/salonData";
 import { SiteChrome } from "@/components/layout/SiteChrome";
@@ -55,6 +56,7 @@ export default function RootLayout({
         <SiteChrome>
           <main className="flex-1">{children}</main>
         </SiteChrome>
+        <Analytics />
       </body>
     </html>
   );
