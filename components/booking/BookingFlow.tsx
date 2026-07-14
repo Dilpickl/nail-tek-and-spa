@@ -424,8 +424,9 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
         </div>
         {(confirmation.hasTbdPricing || confirmation.hasFromPricing) && (
           <p className="mt-2 text-sm text-ink-muted">
-            Final pricing for custom nail art and &ldquo;from&rdquo; services is
-            confirmed at your visit based on design and coverage.
+            Prices marked &ldquo;From&rdquo; and custom nail art are starting
+            estimates — the final amount is confirmed in person based on length,
+            design, and coverage.
           </p>
         )}
       </section>
@@ -1226,7 +1227,8 @@ function BookingSummary({
       </div>
       {(totals.hasTbdPricing || totals.hasFromPricing) && (
         <p className="mt-3 text-xs text-ink-muted">
-          Custom nail art and &ldquo;from&rdquo; services are confirmed at your visit.
+          &ldquo;From&rdquo; prices and custom nail art are confirmed in person
+          and may change based on length, design, and coverage.
         </p>
       )}
 

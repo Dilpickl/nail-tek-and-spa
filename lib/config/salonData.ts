@@ -346,27 +346,31 @@ export const serviceCategories: ServiceCategory[] = [
   {
     id: "enhancements",
     name: "Nail Enhancements",
-    blurb: "Durable, flawless, and beautifully crafted artificial nail services.",
+    blurb: "Durable, flawless, and beautifully crafted artificial nail services. Listed prices are starting rates — final pricing is confirmed in person based on length, shape, and design.",
     services: [
       {
         id: "enh-acrylic",
         name: "Acrylic",
         description:
-          "Custom-sculpted acrylic nails — choose a full set or a fill-in to refresh your existing set.",
+          "Custom-sculpted acrylic nails — choose a full set or a fill-in to refresh your existing set. Final price is confirmed at your visit.",
         price: 35,
         durationMinutes: 75,
+        priceFrom: true,
+        priceNote: "Starting price — final amount depends on length, shape, and design.",
         variants: [
           {
             id: "enh-acrylic-full",
             name: "Full Set",
             price: 35,
             durationMinutes: 75,
+            priceFrom: true,
           },
           {
             id: "enh-acrylic-fill",
             name: "Fill-In",
             price: 25,
             durationMinutes: 60,
+            priceFrom: true,
           },
         ],
       },
@@ -374,21 +378,25 @@ export const serviceCategories: ServiceCategory[] = [
         id: "enh-gel",
         name: "Gel",
         description:
-          "Strong, natural-looking gel enhancements for a polished, lasting finish.",
+          "Strong, natural-looking gel enhancements for a polished, lasting finish. Final price is confirmed at your visit.",
         price: 45,
         durationMinutes: 75,
+        priceFrom: true,
+        priceNote: "Starting price — final amount depends on length, shape, and design.",
         variants: [
           {
             id: "enh-gel-full",
             name: "Full Set",
             price: 45,
             durationMinutes: 75,
+            priceFrom: true,
           },
           {
             id: "enh-gel-fill",
             name: "Fill-In",
             price: 35,
             durationMinutes: 60,
+            priceFrom: true,
           },
         ],
       },
@@ -400,7 +408,7 @@ export const serviceCategories: ServiceCategory[] = [
         price: 45,
         durationMinutes: 80,
         priceFrom: true,
-        priceNote: "Pink Fill available for $40",
+        priceNote: "Starting price — final amount depends on length, shape, and design. Pink Fill available for $40.",
         variants: [
           {
             id: "enh-pink-white-full",
@@ -421,6 +429,7 @@ export const serviceCategories: ServiceCategory[] = [
             name: "Pink Fill",
             price: 40,
             durationMinutes: 65,
+            priceFrom: true,
           },
         ],
       },
@@ -428,17 +437,21 @@ export const serviceCategories: ServiceCategory[] = [
         id: "enh-gel-powder",
         name: "Gel Powder Color",
         description:
-          "Vibrant gel powder color applied for a smooth, lasting finish. Full set only.",
+          "Vibrant gel powder color applied for a smooth, lasting finish. Full set only. Final price is confirmed at your visit.",
         price: 45,
         durationMinutes: 70,
+        priceFrom: true,
+        priceNote: "Starting price — final amount depends on length, shape, and design.",
       },
       {
         id: "enh-dipping",
         name: "Dipping Powder",
         description:
-          "Lightweight, durable dipping powder color — no UV lamp required. Full set only.",
+          "Lightweight, durable dipping powder color — no UV lamp required. Full set only. Final price is confirmed at your visit.",
         price: 45,
         durationMinutes: 70,
+        priceFrom: true,
+        priceNote: "Starting price — final amount depends on length, shape, and design.",
         featured: true,
       },
     ],
@@ -589,9 +602,11 @@ export const serviceCategories: ServiceCategory[] = [
         id: "lash-extensions",
         name: "Eyelash Extensions",
         description:
-          "Beautiful, natural-looking eyelash extensions applied with care for added length and volume.",
+          "Beautiful, natural-looking eyelash extensions applied with care for added length and volume. Final price is confirmed at your visit based on style and volume.",
         price: 40,
         durationMinutes: 15,
+        priceFrom: true,
+        priceNote: "Starting price — final amount depends on style and volume.",
       },
       {
         id: "lash-tinting",
