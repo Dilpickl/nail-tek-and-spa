@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell,
   CalendarClock,
   ChevronLeft,
   ChevronRight,
@@ -26,7 +25,7 @@ import {
   queueAppointmentHighlights,
   readQueuedAppointmentHighlights,
 } from "@/lib/admin/highlight-appointments";
-import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
+import { areNotificationAlertsEnabled } from "@/lib/admin/notification-preferences";import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
 import {
   getNextTimeSlot,
   shiftIsoDate,
@@ -93,7 +92,6 @@ export function AdminDashboard({
       : isYesterday
         ? "Yesterday"
         : formatMonthDay(agendaDate);
-  const [notice, setNotice] = useState("");
   const [quickSource, setQuickSource] = useState<QuickSource | null>(null);
   const [pendingOffId, setPendingOffId] = useState("");
   const [offIds, setOffIds] = useState(new Set(offTechnicianIds));
@@ -137,6 +135,11 @@ export function AdminDashboard({
   }, []);
 
   useEffect(() => {
+    if (!areNotificationAlertsEnabled()) {
+      clearQueuedAppointmentHighlights();
+      return;
+    }
+
     const queued = readQueuedAppointmentHighlights();
     const fromPush = highlightId ? [highlightId] : [];
     const ids = Array.from(new Set([...queued, ...fromPush]));
@@ -160,9 +163,12 @@ export function AdminDashboard({
           const appointmentDate = row.starts_at.slice(0, 10);
           if (appointmentDate !== agendaDate) return;
 
+          router.refresh();
+
+          if (!areNotificationAlertsEnabled()) return;
+
           queueAppointmentHighlights([row.id]);
           addHighlights([row.id]);
-          router.refresh();
         }
       )
       .subscribe();
@@ -387,24 +393,15 @@ export function AdminDashboard({
             <ChevronRight className="size-4" />
           </Button>
           {!isToday && (
-            <Button variant="secondary" onClick={() => goToAgendaDate(today)}>
+            <Button
+              onClick={() => goToAgendaDate(today)}
+              className="shadow-md ring-2 ring-ink/30 ring-offset-2 ring-offset-background"
+            >
               Back to today
             </Button>
           )}
         </div>
       </div>
-
-      {notice && (
-        <div className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-ink px-5 py-4 text-offwhite">
-          <span className="flex items-center gap-2">
-            <Bell className="size-5" />
-            {notice}
-          </span>
-          <Button variant="secondary" onClick={() => router.refresh()}>
-            Refresh
-          </Button>
-        </div>
-      )}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <button

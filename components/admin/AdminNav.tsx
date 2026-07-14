@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, CalendarDays, CalendarRange, LogOut, Users } from "lucide-react";
+import { BarChart3, CalendarDays, CalendarRange, LogOut, Settings, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -13,8 +13,8 @@ const NAV_ITEMS = [
   { href: "/admin/calendar", label: "Calendar", icon: CalendarRange, exact: false },
   { href: "/admin/employees", label: "Employees", icon: Users, exact: false },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, exact: false },
+  { href: "/admin/settings", label: "Settings", icon: Settings, exact: false },
 ];
-
 export function AdminNav() {
   const pathname = usePathname();
   const router = useRouter();
