@@ -112,7 +112,6 @@ const TECH = {
 const SVC = {
   pediVolcanic: { id: "pedi-volcanic", name: "Volcanic Spa Pedicure", price: 65, mins: 60 },
   pediOrganic: { id: "pedi-organic", name: "Organic Spa Pedicure", price: 55, mins: 60 },
-  pediDeluxe: { id: "pedi-deluxe", name: "Deluxe Spa Pedicure", price: 45, mins: 60 },
   pediLuxury: { id: "pedi-luxury", name: "Luxury Spa Pedicure", price: 35, mins: 40 },
   pediClassic: { id: "pedi-classic", name: "Classic Pedicure", price: 25, mins: 30 },
   maniClassic: { id: "mani-classic", name: "Classic Manicure", price: 15, mins: 30 },
@@ -276,7 +275,7 @@ function buildDemo() {
     startsAt: onDay(-11, "11:00"),
     status: "completed",
     source: "walk_in",
-    services: [SVC.pediDeluxe, SVC.waxBrows],
+    services: [SVC.pediLuxury, SVC.waxBrows],
     notes: "Preferred soft pink polish",
     transaction: {
       payment: "card",
@@ -439,7 +438,7 @@ function buildDemo() {
     startsAt: onDay(-2, "10:00"),
     status: "completed",
     source: "online",
-    services: [SVC.pediDeluxe],
+    services: [SVC.pediLuxury],
     notes: "Regular — every other week",
     transaction: {
       payment: "card",
@@ -584,7 +583,7 @@ function buildDemo() {
     startsAt: onDay(1, "11:30"),
     status: "booked",
     source: "online",
-    services: [SVC.pediDeluxe, SVC.maniNoChip],
+    services: [SVC.pediLuxury, SVC.maniNoChip],
   });
 
   addAppt({
@@ -620,7 +619,7 @@ function buildDemo() {
     source: "online",
     partyGroupId: partyId,
     isGuest: true,
-    services: [SVC.pediDeluxe, SVC.maniClassic],
+    services: [SVC.pediLuxury, SVC.maniClassic],
   });
 
   addAppt({

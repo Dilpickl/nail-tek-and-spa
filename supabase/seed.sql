@@ -34,9 +34,7 @@ insert into public.services (id, category_id, name, description, price, duration
   -- Pedicures
   ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 65, 60, true),
   ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 55, 60, true),
-  ('pedi-deluxe',    'pedicures', 'Deluxe Spa Pedicure',    'Sea scrub, hydrating massage cream, hot stones, and paraffin.', 45, 60, true),
   ('pedi-luxury',    'pedicures', 'Luxury Spa Pedicure',    'Sugar or sea salt scrub with hot stone and leg massage.', 35, 40, true),
-  ('pedi-princess',  'pedicures', 'Princess Spa Pedicure',  'Classic pedicure plus exfoliation and paraffin for dry skin.', 35, 55, true),
   ('pedi-classic',   'pedicures', 'Classic Pedicure',       'Nail shaping, cuticle care, moisturizing massage, and polish.', 25, 30, true),
 
   -- Manicures & Combos
