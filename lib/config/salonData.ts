@@ -290,14 +290,6 @@ export const serviceCategories: ServiceCategory[] = [
         featured: true,
       },
       {
-        id: "pedi-deluxe",
-        name: "Deluxe Spa Pedicure",
-        description:
-          "The ideal rescue for dry and cracked heels. This deluxe service includes a special sea scrub to gently buff away rough spots, followed by a hydrating massage cream. Complete with a relaxing hot stone massage and a deep-moisturizing paraffin treatment.",
-        price: 45,
-        durationMinutes: 60,
-      },
-      {
         id: "pedi-luxury",
         name: "Luxury Spa Pedicure",
         description:
@@ -305,14 +297,6 @@ export const serviceCategories: ServiceCategory[] = [
         price: 35,
         durationMinutes: 40,
         durationMinutesMin: 30,
-      },
-      {
-        id: "pedi-princess",
-        name: "Princess Spa Pedicure",
-        description:
-          "Give your feet the royal treatment! This service upgrades our Classic Pedicure by adding a gentle exfoliation of the legs and feet, followed by a dip into warm, soothing paraffin—perfect for healing dry and cracked skin.",
-        price: 35,
-        durationMinutes: 55,
       },
       {
         id: "pedi-classic",
