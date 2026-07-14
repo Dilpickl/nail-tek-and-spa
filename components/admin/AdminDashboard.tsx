@@ -769,7 +769,7 @@ function QuickBookingPanel({
         ) : (
           <label className="block min-w-0">
             <span className="text-sm font-medium text-ink">Start Time</span>
-            <div className="relative mt-2 h-12 w-full max-w-[11rem] rounded-xl border border-input bg-background">
+            <div className="relative mt-2 h-12 w-full rounded-xl border border-input bg-background">
               <span className="pointer-events-none absolute inset-0 flex items-center truncate px-3 text-base text-ink">
                 {formatPhoneBookingTime(time)}
               </span>
