@@ -14,6 +14,7 @@ import {
   isTechnicianScheduledForSlot,
 } from "@/lib/booking/technicians";
 import { toLocalDateTime } from "@/lib/booking/time-utils";
+import { notifyNewBooking } from "@/lib/admin/push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface QuickBookingRequest {
@@ -178,6 +179,15 @@ export async function POST(request: Request) {
   if (servicesError) {
     return NextResponse.json({ error: servicesError.message }, { status: 500 });
   }
+
+  void notifyNewBooking({
+    customerName: payload.customerName!.trim(),
+    startsAt,
+    appointmentId: appointment.id,
+    source: payload.source!,
+  }).catch((error) => {
+    console.error("Quick booking push failed", error);
+  });
 
   return NextResponse.json({ ok: true, appointmentId: appointment.id });
 }

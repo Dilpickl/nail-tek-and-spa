@@ -35,7 +35,7 @@ interface TimeOffRow {
 }
 
 interface AdminPageProps {
-  searchParams?: { date?: string };
+  searchParams?: { date?: string; highlight?: string };
 }
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
@@ -143,6 +143,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       agendaDate={agendaDate}
       appointments={appointments}
       offTechnicianIds={offTechnicianIds}
+      highlightId={searchParams?.highlight ?? null}
       technicians={technicians.map((technician) => ({
         id: technician.id,
         name: technician.name,
