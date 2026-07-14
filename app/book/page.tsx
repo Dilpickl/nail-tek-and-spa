@@ -20,8 +20,8 @@ export default async function BookPage({
   const technicians = await getActiveTechnicians();
 
   return (
-    <section className="section-padding overflow-x-clip">
-      <div className="container min-w-0">
+    <section className="section-padding">
+      <div className="container">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
             Booking

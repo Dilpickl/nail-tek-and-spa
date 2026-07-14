@@ -228,11 +228,11 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
   }
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-5xl">
+    <div className="mx-auto max-w-5xl">
       <BookingSteps step={step} />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_340px]">
-        <div className="min-w-0 rounded-2xl bg-offwhite p-5 ring-1 ring-ink/5 sm:p-8">
+        <div className="rounded-2xl bg-offwhite p-5 ring-1 ring-ink/5 sm:p-8">
           {step === 1 && (
             <ServiceStep
               party={party}
@@ -443,7 +443,7 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
 
 function BookingSteps({ step }: { step: Step }) {
   return (
-    <ol className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+    <ol className="grid gap-2 sm:grid-cols-5">
       {stepLabels.map((label, index) => {
         const number = (index + 1) as Step;
         const active = step === number;
@@ -451,15 +451,15 @@ function BookingSteps({ step }: { step: Step }) {
         return (
           <li
             key={label}
-            className={`min-w-0 rounded-full px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.12em] sm:px-4 sm:text-xs sm:tracking-[0.16em] ${
+            className={`rounded-full px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.16em] ${
               active
                 ? "bg-ink text-offwhite"
                 : complete
                   ? "bg-secondary text-ink"
                   : "bg-offwhite text-ink-muted"
-            } ${number === 5 ? "col-span-2 sm:col-span-1" : ""}`}
+            }`}
           >
-            <span className="block truncate">{label}</span>
+            {label}
           </li>
         );
       })}
@@ -911,22 +911,22 @@ function DateTimeStep({
       : 'No times available for this date. Try another day or choose "Any" technician.';
 
   return (
-    <div className="min-w-0 w-full">
+    <div>
       <StepHeading
         icon={<Calendar className="size-5" />}
         title="Choose date and time"
         description="Times are shown in 15-minute blocks based on your selected services."
       />
 
-      <div className="mt-6 min-w-0">
+      <div className="mt-6">
         <label className="text-sm font-medium text-ink">Calendar</label>
-        <div className="mt-3 grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
           {dateOptions.map(({ iso, closed }) => (
             <button
               key={iso}
               type="button"
               disabled={closed}
-              className={`w-full min-w-0 rounded-xl border px-2 py-3 text-left transition-colors sm:px-3 ${
+              className={`rounded-xl border px-3 py-3 text-left transition-colors ${
                 closed
                   ? "cursor-not-allowed border-border/60 bg-secondary/50 text-ink-muted opacity-60"
                   : selectedDate === iso
@@ -935,12 +935,10 @@ function DateTimeStep({
               }`}
               onClick={() => !closed && setSelectedDate(iso)}
             >
-              <span className="block truncate text-xs uppercase tracking-[0.14em] opacity-70">
+              <span className="block text-xs uppercase tracking-[0.14em] opacity-70">
                 {formatWeekday(iso)}
               </span>
-              <span className="mt-1 block truncate font-semibold">
-                {formatMonthDay(iso)}
-              </span>
+              <span className="mt-1 block font-semibold">{formatMonthDay(iso)}</span>
               {closed && (
                 <span className="mt-1 block text-[10px] font-medium uppercase tracking-wide">
                   Closed
@@ -950,32 +948,36 @@ function DateTimeStep({
           ))}
         </div>
 
-        <input
-          type="date"
-          min={toIsoDate(new Date())}
-          value={selectedDate}
-          onChange={(event) => {
-            const value = event.target.value;
-            if (value && !isSalonClosed(value)) setSelectedDate(value);
-          }}
-          className="mt-4 h-12 w-full min-w-0 rounded-md border border-input bg-background px-4 text-ink outline-none focus:ring-2 focus:ring-ring"
-        />
+        <div className="relative mt-4 h-12 w-full min-w-0 rounded-md border border-input bg-background sm:max-w-xs">
+          <span className="pointer-events-none absolute inset-0 flex items-center px-4 text-ink">
+            {formatSelectedDateBubble(selectedDate)}
+          </span>
+          <input
+            type="date"
+            min={toIsoDate(new Date())}
+            value={selectedDate}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value && !isSalonClosed(value)) setSelectedDate(value);
+            }}
+            aria-label="Selected date"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0 [color-scheme:light]"
+          />
+        </div>
       </div>
 
       <div
         id={timeFieldId}
         className={cn(
-          "mt-8 min-w-0 rounded-xl transition-shadow",
+          "mt-8 rounded-xl transition-shadow",
           highlightedField === timeFieldId &&
             "ring-2 ring-red-500 ring-offset-2 ring-offset-offwhite"
         )}
       >
-        <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <div className="flex items-center justify-between gap-3">
           <label className="text-sm font-medium text-ink">Available times</label>
           {hasAnyTechnician && !isClosed && (
-            <span className="text-xs text-ink-muted">
-              Shows slots with at least one tech free
-            </span>
+            <span className="text-xs text-ink-muted">Shows slots with at least one tech free</span>
           )}
         </div>
 
@@ -1005,12 +1007,12 @@ function DateTimeStep({
         )}
 
         {!isClosed && (
-          <div className="mt-4 grid w-full grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
             {slots.map((slot) => (
               <button
                 key={slot.time}
                 type="button"
-                className={`w-full min-w-0 rounded-lg border px-1.5 py-3 text-sm font-semibold transition-colors sm:px-3 ${
+                className={`rounded-lg border px-3 py-3 text-sm font-semibold transition-colors ${
                   selectedTime === slot.time
                     ? "border-ink bg-ink text-offwhite"
                     : "border-border bg-background text-ink hover:border-ink/40"
@@ -1020,7 +1022,7 @@ function DateTimeStep({
                   setSelectedTime(slot.time);
                 }}
               >
-                <span className="block truncate">{formatTimeLabel(slot.time)}</span>
+                {formatTimeLabel(slot.time)}
               </button>
             ))}
           </div>
@@ -1197,7 +1199,7 @@ function BookingSummary({
   }
 
   return (
-    <aside className="h-fit min-w-0 rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5 lg:sticky lg:top-28">
+    <aside className="h-fit rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5 lg:sticky lg:top-28">
       <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
         Appointment Summary
       </p>
@@ -1267,11 +1269,11 @@ function StepHeading({
   description: string;
 }) {
   return (
-    <div className="flex min-w-0 gap-4">
+    <div className="flex gap-4">
       <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ink text-offwhite">
         {icon}
       </div>
-      <div className="min-w-0">
+      <div>
         <h2 className="text-2xl font-semibold text-ink">{title}</h2>
         <p className="mt-1 text-ink-muted">{description}</p>
       </div>
@@ -1469,6 +1471,14 @@ function formatReadableDate(date: string) {
     weekday: "short",
     month: "short",
     day: "numeric",
+  });
+}
+
+function formatSelectedDateBubble(date: string) {
+  return formatInSalonTime(toLocalDateTime(date, "12:00"), {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
