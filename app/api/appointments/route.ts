@@ -26,6 +26,7 @@ import {
   getTechnicianByIdFromDb,
 } from "@/lib/booking/technicians";
 import { isSlotInPast, toLocalDateTime } from "@/lib/booking/time-utils";
+import { notifyNewBooking } from "@/lib/admin/push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface AppointmentRequest {
@@ -240,6 +241,16 @@ export async function POST(request: Request) {
         "Assigned technician";
     const maxDuration = Math.max(...assignments.map((item) => getMemberDurationMinutes(item.member)));
     const endsAt = new Date(startsAt.getTime() + maxDuration * 60_000);
+
+    // Fire-and-forget admin push (iOS home-screen PWA).
+    void notifyNewBooking({
+      customerName: bookerName,
+      startsAt,
+      appointmentId: createdIds[0]!,
+      source: "online",
+    }).catch((error) => {
+      console.error("New booking push failed", error);
+    });
 
     return NextResponse.json({
       appointmentId: createdIds[0],

@@ -61,6 +61,8 @@ interface AdminDashboardProps {
   appointments: AdminAppointment[];
   offTechnicianIds: string[];
   technicians: BookingTechnicianOption[];
+  /** Appointment id from a push notification deep link. */
+  highlightId?: string | null;
 }
 
 type QuickSource = "walk_in" | "phone";
@@ -78,6 +80,7 @@ export function AdminDashboard({
   appointments,
   offTechnicianIds,
   technicians,
+  highlightId = null,
 }: AdminDashboardProps) {
   const router = useRouter();
   const isToday = agendaDate === today;
@@ -135,11 +138,13 @@ export function AdminDashboard({
 
   useEffect(() => {
     const queued = readQueuedAppointmentHighlights();
-    if (queued.length === 0) return;
+    const fromPush = highlightId ? [highlightId] : [];
+    const ids = Array.from(new Set([...queued, ...fromPush]));
+    if (ids.length === 0) return;
 
     clearQueuedAppointmentHighlights();
-    addHighlights(queued);
-  }, [appointments]);
+    addHighlights(ids);
+  }, [appointments, highlightId]);
 
   useEffect(() => {
     const supabase = createClient();
