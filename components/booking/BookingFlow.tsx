@@ -645,7 +645,8 @@ function ServiceStep({
                                       <span className="mt-1 block text-sm text-ink-muted">
                                         {formatDuration(
                                           variantService?.durationMinutes ??
-                                            variant.durationMinutes
+                                            variant.durationMinutes,
+                                          variantService?.durationMinutesMin
                                         )}
                                       </span>
                                     </span>
@@ -683,7 +684,10 @@ function ServiceStep({
                                 </span>
                               </span>
                               <span className="mt-1 block text-sm text-ink-muted">
-                                {formatDuration(displayService.durationMinutes)}
+                                {formatDuration(
+                                  displayService.durationMinutes,
+                                  displayService.durationMinutesMin
+                                )}
                               </span>
                             </span>
                           </label>

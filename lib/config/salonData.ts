@@ -41,8 +41,13 @@ export interface Service {
   description: string;
   /** Price in whole US dollars. */
   price: number;
-  /** Duration in minutes. Used to compute booking time blocks. */
+  /**
+   * Duration in minutes used to compute booking time blocks.
+   * When `durationMinutesMin` is set, this is the upper end of the range.
+   */
   durationMinutes: number;
+  /** Optional lower bound for display ranges (e.g. 20–30 min). */
+  durationMinutesMin?: number;
   /** Optional flag to surface a service in the home "gallery" highlight. */
   featured?: boolean;
   /** When true, price is finalized at checkout — not included in online booking totals. */
@@ -271,7 +276,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Feel the eruption of total relaxation! This delightfully fun treatment features a bubbling volcanic explosion that relaxes your senses. It includes an exfoliating sugar scrub, a rejuvenating collagen cream mask, and a creamy collagen massage lotion. Finished with a soothing hot stone massage and a warm paraffin treatment to leave your skin silky smooth.",
         price: 65,
-        durationMinutes: 75,
+        durationMinutes: 60,
         featured: true,
       },
       {
@@ -280,7 +285,8 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Treat your feet to our signature spa pedicure, expertly designed to repair dry, tired skin. This revitalizing treatment features an organic lavender scrub exfoliation and a rehydrating green tea mask. Accompanied by a rich cream massage, hot stones, and a hydrating paraffin treatment.",
         price: 55,
-        durationMinutes: 70,
+        durationMinutes: 60,
+        durationMinutesMin: 45,
         featured: true,
       },
       {
@@ -297,7 +303,8 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "A deeply relaxing pedicure that is perfect for tired, sore feet. This service includes your choice of a sugar or sea salt exfoliating scrub, followed by a tension-melting hot stone and leg massage.",
         price: 35,
-        durationMinutes: 55,
+        durationMinutes: 40,
+        durationMinutesMin: 30,
       },
       {
         id: "pedi-princess",
@@ -313,7 +320,8 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Our fast, refreshing essential pedicure. Includes comprehensive nail shaping and cuticle care, finished with a moisturizing foot and leg massage and your choice of polish.",
         price: 25,
-        durationMinutes: 45,
+        durationMinutes: 30,
+        durationMinutesMin: 20,
         featured: true,
       },
     ],
@@ -347,7 +355,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "The perfect pairing of our Classic Manicure and Classic Pedicure.",
         price: 40,
-        durationMinutes: 75,
+        durationMinutes: 60,
       },
     ],
   },
@@ -541,24 +549,17 @@ export const serviceCategories: ServiceCategory[] = [
         durationMinutes: 10,
       },
       {
-        id: "wax-brows-lips",
-        name: "Eyebrows & Lips",
-        description: "Brow shaping and lip wax together.",
-        price: 15,
-        durationMinutes: 20,
-      },
-      {
         id: "wax-chin",
         name: "Chin",
         description: "Gentle chin waxing for a clean look.",
-        price: 5,
+        price: 10,
         durationMinutes: 10,
       },
       {
         id: "wax-underarms",
         name: "Under Arms",
         description: "Smooth underarm waxing.",
-        price: 25,
+        price: 30,
         durationMinutes: 20,
       },
       {
@@ -606,7 +607,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Beautiful, natural-looking eyelash extensions applied with care for added length and volume.",
         price: 40,
-        durationMinutes: 60,
+        durationMinutes: 15,
       },
       {
         id: "lash-tinting",
@@ -614,7 +615,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Tint your natural lashes for a soft, defined look without mascara.",
         price: 30,
-        durationMinutes: 30,
+        durationMinutes: 15,
       },
     ],
   },
