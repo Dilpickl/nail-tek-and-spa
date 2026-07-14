@@ -66,6 +66,13 @@ export function ServiceList() {
                         {service.priceNote}
                       </p>
                     )}
+                    {(service.priceFrom ||
+                      service.variants?.some((variant) => variant.priceFrom)) &&
+                    !service.priceNote ? (
+                      <p className="mt-2 text-sm italic text-ink-muted">
+                        Starting price — final amount is confirmed in person.
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-5 sm:flex-col sm:items-end sm:gap-2">
                     <span className="font-serif text-2xl font-semibold text-ink">

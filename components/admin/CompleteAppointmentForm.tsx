@@ -7,7 +7,7 @@ import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CompletionLineItemInput, PaymentMethod } from "@/lib/completion/types";
 import { calculateTotals } from "@/lib/completion/calculate-totals";
-import { isPricingTbdService, formatBookingTotalLabel } from "@/lib/booking/pricing";
+import { isPricingTbdService, isPriceFromService, formatBookingTotalLabel } from "@/lib/booking/pricing";
 import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import {
   allServices,
@@ -77,6 +77,10 @@ export function CompleteAppointmentForm({
   const [loading, setLoading] = useState(false);
   const [showAddService, setShowAddService] = useState(false);
   const [showAddRetail, setShowAddRetail] = useState(false);
+  /** Keys of "From" price lines the admin has explicitly confirmed. */
+  const [confirmedFromKeys, setConfirmedFromKeys] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const totals = useMemo(
     () => calculateTotals(lineItems, discountAmount, taxAmount, tipAmount),
@@ -86,15 +90,26 @@ export function CompleteAppointmentForm({
   const hasTbdBookedServices = bookedServices.some((svc) =>
     isPricingTbdService(svc.serviceId)
   );
+  const hasFromBookedServices = bookedServices.some((svc) =>
+    isPriceFromService(svc.serviceId)
+  );
   const hasUnsetTbdPricing = lineItems.some(
     (item) =>
       item.serviceId &&
       isPricingTbdService(item.serviceId) &&
       item.unitPrice <= 0
   );
+  const unconfirmedFromItems = lineItems.filter(
+    (item) =>
+      item.serviceId &&
+      isPriceFromService(item.serviceId) &&
+      !confirmedFromKeys.has(item.key)
+  );
+  const hasUnconfirmedFromPricing = unconfirmedFromItems.length > 0;
 
   const unchangedFromBooking =
     !hasUnsetTbdPricing &&
+    !hasUnconfirmedFromPricing &&
     lineItems.length === bookedServices.length &&
     bookedServices.every((svc) => {
       const item = lineItems.find((l) => l.serviceId === svc.serviceId);
@@ -104,14 +119,34 @@ export function CompleteAppointmentForm({
     taxAmount === 0 &&
     tipAmount === 0;
 
+  function markFromPriceConfirmed(key: string) {
+    setConfirmedFromKeys((current) => {
+      const next = new Set(current);
+      next.add(key);
+      return next;
+    });
+  }
+
   function updateLineItem(key: string, patch: Partial<EditableLineItem>) {
     setLineItems((current) =>
       current.map((item) => (item.key === key ? { ...item, ...patch } : item))
     );
+    if (patch.unitPrice !== undefined) {
+      const item = lineItems.find((entry) => entry.key === key);
+      if (item?.serviceId && isPriceFromService(item.serviceId)) {
+        markFromPriceConfirmed(key);
+      }
+    }
   }
 
   function removeLineItem(key: string) {
     setLineItems((current) => current.filter((item) => item.key !== key));
+    setConfirmedFromKeys((current) => {
+      if (!current.has(key)) return current;
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
   }
 
   function addService(serviceId: string) {
@@ -151,6 +186,15 @@ export function CompleteAppointmentForm({
   }
 
   async function submit() {
+    if (hasUnsetTbdPricing || hasUnconfirmedFromPricing) {
+      setError(
+        hasUnsetTbdPricing
+          ? "Enter a final price for every nail art / TBD line before completing."
+          : "Confirm or update the final price for every “From” service before completing."
+      );
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -216,7 +260,11 @@ export function CompleteAppointmentForm({
             <h2 className="text-2xl font-semibold text-ink">Completion Details</h2>
             <p className="text-sm text-ink-muted">
               Original estimate:{" "}
-              {formatBookingTotalLabel(estimatedTotal, hasTbdBookedServices)}
+              {formatBookingTotalLabel(
+                estimatedTotal,
+                hasTbdBookedServices,
+                hasFromBookedServices
+              )}
               {unchangedFromBooking && " — no changes detected, one-click ready."}
             </p>
           </div>
@@ -226,6 +274,14 @@ export function CompleteAppointmentForm({
           <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-950 ring-1 ring-amber-200">
             This appointment includes nail art priced at the visit. Enter the final
             charge for each nail art line before completing checkout.
+          </p>
+        )}
+
+        {hasFromBookedServices && (
+          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-950 ring-1 ring-amber-200">
+            This appointment includes &ldquo;From&rdquo; prices (full sets, fills,
+            dipping, etc.). Confirm or update each final amount before completing —
+            the listed price is only a starting estimate.
           </p>
         )}
 
@@ -240,18 +296,41 @@ export function CompleteAppointmentForm({
             const needsFinalPrice = Boolean(
               item.serviceId && isPricingTbdService(item.serviceId)
             );
+            const isFromPrice = Boolean(
+              item.serviceId && isPriceFromService(item.serviceId)
+            );
+            const needsFromConfirm = isFromPrice && !confirmedFromKeys.has(item.key);
 
             return (
             <div
               key={item.key}
-              className="grid gap-3 rounded-xl bg-background p-4 ring-1 ring-ink/5 md:grid-cols-[1fr_auto_auto_auto]"
+              className={`grid gap-3 rounded-xl bg-background p-4 ring-1 md:grid-cols-[1fr_auto_auto_auto] ${
+                needsFromConfirm || (needsFinalPrice && item.unitPrice <= 0)
+                  ? "ring-amber-400"
+                  : "ring-ink/5"
+              }`}
             >
               <div>
                 <p className="font-semibold text-ink">{item.name}</p>
                 <p className="text-xs uppercase tracking-wide text-ink-muted">
                   {item.lineType}
                   {needsFinalPrice && " · priced at visit"}
+                  {isFromPrice && " · from price"}
                 </p>
+                {needsFromConfirm ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <p className="text-xs text-amber-800">
+                      Starting estimate — update if needed, then confirm.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => markFromPriceConfirmed(item.key)}
+                      className="rounded-md bg-ink px-2.5 py-1 text-xs font-semibold text-offwhite"
+                    >
+                      Confirm price
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               <label className="block">
@@ -271,7 +350,11 @@ export function CompleteAppointmentForm({
 
               <label className="block">
                 <span className="text-xs font-medium text-ink-muted">
-                  {needsFinalPrice ? "Final price *" : "Price"}
+                  {needsFinalPrice
+                    ? "Final price *"
+                    : isFromPrice
+                      ? "Final price *"
+                      : "Price"}
                 </span>
                 <input
                   type="number"
@@ -284,7 +367,7 @@ export function CompleteAppointmentForm({
                     })
                   }
                   className={`mt-1 h-10 w-28 rounded-md border bg-offwhite px-2 text-ink ${
-                    needsFinalPrice && item.unitPrice <= 0
+                    (needsFinalPrice && item.unitPrice <= 0) || needsFromConfirm
                       ? "border-amber-500 ring-1 ring-amber-500"
                       : "border-input"
                   }`}
@@ -489,6 +572,7 @@ export function CompleteAppointmentForm({
           loading ||
           lineItems.length === 0 ||
           hasUnsetTbdPricing ||
+          hasUnconfirmedFromPricing ||
           needsTechnicianAssignment
         }
       >
