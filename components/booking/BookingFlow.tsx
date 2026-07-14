@@ -948,16 +948,22 @@ function DateTimeStep({
           ))}
         </div>
 
-        <input
-          type="date"
-          min={toIsoDate(new Date())}
-          value={selectedDate}
-          onChange={(event) => {
-            const value = event.target.value;
-            if (value && !isSalonClosed(value)) setSelectedDate(value);
-          }}
-          className="mt-4 h-12 w-full rounded-md border border-input bg-background px-4 text-ink outline-none focus:ring-2 focus:ring-ring sm:max-w-xs"
-        />
+        <div className="relative mt-4 h-12 w-full min-w-0 rounded-md border border-input bg-background sm:max-w-xs">
+          <span className="pointer-events-none absolute inset-0 flex items-center px-4 text-ink">
+            {formatSelectedDateBubble(selectedDate)}
+          </span>
+          <input
+            type="date"
+            min={toIsoDate(new Date())}
+            value={selectedDate}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value && !isSalonClosed(value)) setSelectedDate(value);
+            }}
+            aria-label="Selected date"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0 [color-scheme:light]"
+          />
+        </div>
       </div>
 
       <div
@@ -1465,6 +1471,14 @@ function formatReadableDate(date: string) {
     weekday: "short",
     month: "short",
     day: "numeric",
+  });
+}
+
+function formatSelectedDateBubble(date: string) {
+  return formatInSalonTime(toLocalDateTime(date, "12:00"), {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
