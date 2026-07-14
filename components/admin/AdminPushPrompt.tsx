@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Bell, BellOff, CheckCircle2, Smartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ async function registerServiceWorker() {
 }
 
 export function AdminPushPrompt() {
+  const pathname = usePathname();
   const [permission, setPermission] = useState<PermissionState>("loading");
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -31,6 +33,8 @@ export function AdminPushPrompt() {
   const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
   useEffect(() => {
+    if (pathname === "/admin/login") return;
+
     let cancelled = false;
 
     async function init() {
@@ -59,7 +63,11 @@ export function AdminPushPrompt() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname]);
+
+  if (pathname === "/admin/login") {
+    return null;
+  }
 
   async function enableNotifications() {
     if (!vapidPublicKey) {
