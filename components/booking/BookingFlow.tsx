@@ -223,6 +223,16 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
     scrollToBookingField(highlightedField);
   }, [highlightedField]);
 
+  // After Continue/Back, jump to the top so mobile doesn't stay at the old footer.
+  const skipInitialStepScroll = useRef(true);
+  useLayoutEffect(() => {
+    if (skipInitialStepScroll.current) {
+      skipInitialStepScroll.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
   if (confirmation) {
     return <BookingConfirmationView confirmation={confirmation} />;
   }

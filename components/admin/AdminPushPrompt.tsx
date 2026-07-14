@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { Bell, BellOff, CheckCircle2, Smartphone } from "lucide-react";
+import { CheckCircle2, Smartphone } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type PermissionState = NotificationPermission | "unsupported" | "loading";
 
@@ -24,8 +23,8 @@ async function registerServiceWorker() {
   return navigator.serviceWorker.register("/sw.js", { scope: "/" });
 }
 
+/** Push notification enable/disable — for Settings only (not a global banner). */
 export function AdminPushPrompt() {
-  const pathname = usePathname();
   const [permission, setPermission] = useState<PermissionState>("loading");
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -33,8 +32,6 @@ export function AdminPushPrompt() {
   const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
   useEffect(() => {
-    if (pathname === "/admin/login") return;
-
     let cancelled = false;
 
     async function init() {
@@ -63,11 +60,7 @@ export function AdminPushPrompt() {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
-
-  if (pathname === "/admin/login") {
-    return null;
-  }
+  }, []);
 
   async function enableNotifications() {
     if (!vapidPublicKey) {
@@ -153,57 +146,82 @@ export function AdminPushPrompt() {
     }
   }
 
-  if (permission === "loading" || permission === "unsupported") {
-    return null;
+  if (permission === "loading") {
+    return (
+      <div className="rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5">
+        <p className="text-sm text-ink-muted">Checking notification support…</p>
+      </div>
+    );
+  }
+
+  if (permission === "unsupported") {
+    return (
+      <div className="rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5">
+        <div className="flex gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-secondary">
+            <Smartphone className="size-5 text-ink" />
+          </span>
+          <div>
+            <p className="text-lg font-semibold text-ink">Notification alerts</p>
+            <p className="mt-1 text-sm text-ink-muted">
+              Push alerts need Safari on iPhone or iPad with this site added to the Home
+              Screen.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="border-b border-ink/10 bg-secondary/60">
-      <div className="container flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-offwhite text-ink ring-1 ring-ink/10">
-            <Smartphone className="size-4" />
+    <div className="rounded-2xl bg-offwhite p-6 ring-1 ring-ink/5">
+      <div className="flex items-start justify-between gap-6">
+        <div className="flex gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-secondary">
+            <Smartphone className="size-5 text-ink" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-ink">
-              {subscribed ? "iPhone / iPad alerts on" : "Enable booking alerts"}
-            </p>
-            <p className="mt-0.5 text-xs text-ink-muted">
+            <p className="text-lg font-semibold text-ink">Notification alerts</p>
+            <p className="mt-1 text-sm text-ink-muted">
               {subscribed
                 ? "You’ll get a notification for new bookings and 5 minutes before each appointment."
                 : "Add this admin site to your Home Screen, then enable alerts for new bookings and upcoming appointments."}
             </p>
             {message ? (
-              <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-ink-soft">
+              <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-ink-soft">
                 <CheckCircle2 className="size-3.5" />
                 {message}
+              </p>
+            ) : null}
+            {!vapidPublicKey ? (
+              <p className="mt-2 text-xs text-ink-muted">
+                Push keys are not configured on the server yet.
               </p>
             ) : null}
           </div>
         </div>
 
-        {subscribed ? (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={busy}
-            onClick={() => void disableNotifications()}
-            className="shrink-0"
-          >
-            <BellOff className="size-4" />
-            Turn off
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            disabled={busy || !vapidPublicKey}
-            onClick={() => void enableNotifications()}
-            className="shrink-0"
-          >
-            <Bell className="size-4" />
-            Enable alerts
-          </Button>
-        )}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={subscribed}
+          aria-label="Notification alerts"
+          disabled={busy || (!subscribed && !vapidPublicKey)}
+          onClick={() =>
+            void (subscribed ? disableNotifications() : enableNotifications())
+          }
+          className={cn(
+            "relative mt-1 h-8 w-14 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
+            subscribed ? "bg-ink" : "bg-ink/20"
+          )}
+        >
+          <span
+            className={cn(
+              "absolute top-1 left-1 size-6 rounded-full bg-offwhite shadow-sm transition-transform",
+              subscribed && "translate-x-6"
+            )}
+          />
+        </button>
       </div>
     </div>
   );
