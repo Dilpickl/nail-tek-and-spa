@@ -769,12 +769,18 @@ function QuickBookingPanel({
         ) : (
           <label className="block min-w-0">
             <span className="text-sm font-medium text-ink">Start Time</span>
-            <input
-              type="time"
-              value={time}
-              onChange={(event) => setTime(event.target.value)}
-              className="mt-2 h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-ink [color-scheme:light]"
-            />
+            <div className="relative mt-2 h-12 w-full max-w-[11rem] rounded-xl border border-input bg-background">
+              <span className="pointer-events-none absolute inset-0 flex items-center truncate px-3 text-base text-ink">
+                {formatPhoneBookingTime(time)}
+              </span>
+              <input
+                type="time"
+                value={time}
+                onChange={(event) => setTime(event.target.value)}
+                aria-label="Start Time"
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0 [color-scheme:light]"
+              />
+            </div>
           </label>
         )}
 
