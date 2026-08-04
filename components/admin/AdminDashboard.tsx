@@ -386,7 +386,7 @@ export function AdminDashboard({
             >
               <ChevronLeft className="size-4" />
             </Button>
-            <p className="min-w-0 flex-1 truncate text-center text-ink-muted">
+            <p className="min-w-0 flex-1 text-center text-ink-muted">
               {formatReadableDate(agendaDate)}
             </p>
             <Button
