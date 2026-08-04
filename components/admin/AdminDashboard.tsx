@@ -25,7 +25,9 @@ import {
   queueAppointmentHighlights,
   readQueuedAppointmentHighlights,
 } from "@/lib/admin/highlight-appointments";
-import { areNotificationAlertsEnabled } from "@/lib/admin/notification-preferences";import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
+import { areNotificationAlertsEnabled } from "@/lib/admin/notification-preferences";
+import { playBookingAlertSound } from "@/lib/admin/alert-sound";
+import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
 import {
   getNextTimeSlot,
   shiftIsoDate,
@@ -167,6 +169,7 @@ export function AdminDashboard({
 
           if (!areNotificationAlertsEnabled()) return;
 
+          void playBookingAlertSound();
           queueAppointmentHighlights([row.id]);
           addHighlights([row.id]);
         }

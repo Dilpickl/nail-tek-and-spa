@@ -8,7 +8,52 @@ export type PushPayload = {
   title: string;
   body: string;
   url?: string;
+  /** Notification tag — reusing with renotify makes sound play again. */
+  tag?: string;
 };
+
+/** Public site origin for Declarative Web Push `navigate` URLs. */
+function getAppOrigin() {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (explicit) return explicit;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/\/$/, "")}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL.replace(/\/$/, "")}`;
+  }
+  return "";
+}
+
+/**
+ * Declarative Web Push JSON (iOS 18.4+ / Safari 18.5+).
+ * `sound: "default"` asks the platform to play the system alert sound.
+ * Custom notification sounds are not available for web push on iOS.
+ */
+function toDeclarativePushMessage(payload: PushPayload) {
+  const path = payload.url || "/admin";
+  const origin = getAppOrigin();
+  const navigate = origin
+    ? `${origin}${path.startsWith("/") ? path : `/${path}`}`
+    : path.startsWith("http")
+      ? path
+      : path.startsWith("/")
+        ? path
+        : `/${path}`;
+
+  return {
+    web_push: 8030,
+    notification: {
+      title: payload.title,
+      body: payload.body,
+      navigate,
+      silent: false,
+      sound: "default",
+      tag: payload.tag ?? "nail-tek-admin",
+      renotify: true,
+    },
+  };
+}
 
 type StoredSubscription = {
   id: string;
@@ -103,7 +148,7 @@ async function sendToSubscription(
         auth: subscription.auth,
       },
     },
-    JSON.stringify(payload)
+    JSON.stringify(toDeclarativePushMessage(payload))
   );
 }
 
@@ -180,6 +225,7 @@ export async function notifyNewBooking(input: {
     title: "New booking",
     body: `${input.customerName} · ${when} (${sourceLabel})`,
     url: `/admin?date=${date}&highlight=${input.appointmentId}`,
+    tag: `booking-${input.appointmentId}`,
   });
 }
 
@@ -204,5 +250,6 @@ export async function notifyUpcomingAppointment(input: {
     title: "Starting in 5 minutes",
     body: `${input.customerName}${tech} at ${time}`,
     url: `/admin?date=${date}&highlight=${input.appointmentId}`,
+    tag: `reminder-${input.appointmentId}`,
   });
 }

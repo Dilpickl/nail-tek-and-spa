@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Smartphone } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import {
+  playBookingAlertSound,
+  unlockBookingAlertSound,
+} from "@/lib/admin/alert-sound";
 
 type PermissionState = NotificationPermission | "unsupported" | "loading";
 
@@ -110,6 +114,8 @@ export function AdminPushPrompt() {
 
       setSubscribed(true);
       setMessage("Notifications enabled on this device.");
+      await unlockBookingAlertSound();
+      void playBookingAlertSound();
     } catch (error) {
       console.error(error);
       setMessage(
