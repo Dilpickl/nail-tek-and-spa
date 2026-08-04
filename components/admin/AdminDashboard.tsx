@@ -376,25 +376,29 @@ export function AdminDashboard({
           )}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="default"
-            aria-label="Previous day"
-            onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, -1))}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <p className="min-w-[14rem] text-center text-ink-muted">
-            {formatReadableDate(agendaDate)}
-          </p>
-          <Button
-            variant="outline"
-            size="default"
-            aria-label="Next day"
-            onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, 1))}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              aria-label="Previous day"
+              onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, -1))}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <p className="min-w-0 flex-1 truncate text-center text-ink-muted">
+              {formatReadableDate(agendaDate)}
+            </p>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              aria-label="Next day"
+              onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, 1))}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
           {!isToday && (
             <Button
               onClick={() => goToAgendaDate(today)}
