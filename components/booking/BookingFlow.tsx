@@ -89,7 +89,6 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotError, setSlotError] = useState("");
   const [details, setDetails] = useState({ name: "", phone: "", email: "" });
-  const [smsConsent, setSmsConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
@@ -290,8 +289,6 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               details={details}
-              smsConsent={smsConsent}
-              setSmsConsent={setSmsConsent}
               technicians={technicians}
             />
           )}
@@ -315,7 +312,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
             ) : (
               <Button
                 type="button"
-                disabled={!smsConsent || submitting}
+                disabled={submitting}
                 onClick={() =>
                   submitBooking({
                     party,
@@ -1103,16 +1100,12 @@ function ConfirmStep({
   selectedDate,
   selectedTime,
   details,
-  smsConsent,
-  setSmsConsent,
   technicians,
 }: {
   party: PartyMember[];
   selectedDate: string;
   selectedTime: string;
   details: { name: string; phone: string; email: string };
-  smsConsent: boolean;
-  setSmsConsent: (value: boolean) => void;
   technicians: BookingTechnicianOption[];
 }) {
   function formatMemberTechnician(member: PartyMember) {
@@ -1168,19 +1161,6 @@ function ConfirmStep({
           </div>
         </div>
       </div>
-
-      <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-background p-4 text-sm text-ink-soft">
-        <input
-          type="checkbox"
-          checked={smsConsent}
-          onChange={(event) => setSmsConsent(event.target.checked)}
-          className="mt-1 size-4 accent-ink"
-        />
-        <span>
-          By creating this appointment, you agree to receive automated
-          transactional and booking reminder text messages from this merchant.
-        </span>
-      </label>
     </div>
   );
 }
