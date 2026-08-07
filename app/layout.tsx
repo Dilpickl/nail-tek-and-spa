@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 
 import { business } from "@/lib/config/salonData";
@@ -55,6 +56,7 @@ export default function RootLayout({
         <SiteChrome>
           <main className="flex-1">{children}</main>
         </SiteChrome>
+        <Analytics />
       </body>
     </html>
   );
