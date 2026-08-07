@@ -242,15 +242,18 @@ export async function POST(request: Request) {
     const maxDuration = Math.max(...assignments.map((item) => getMemberDurationMinutes(item.member)));
     const endsAt = new Date(startsAt.getTime() + maxDuration * 60_000);
 
-    // Fire-and-forget admin push (iOS home-screen PWA).
-    void notifyNewBooking({
-      customerName: bookerName,
-      startsAt,
-      appointmentId: createdIds[0]!,
-      source: "online",
-    }).catch((error) => {
+    // Await push before returning — Vercel freezes the function after the
+    // response, so fire-and-forget often never reaches Apple's push service.
+    try {
+      await notifyNewBooking({
+        customerName: bookerName,
+        startsAt,
+        appointmentId: createdIds[0]!,
+        source: "online",
+      });
+    } catch (error) {
       console.error("New booking push failed", error);
-    });
+    }
 
     return NextResponse.json({
       appointmentId: createdIds[0],

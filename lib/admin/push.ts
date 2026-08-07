@@ -27,31 +27,43 @@ function getAppOrigin() {
 
 /**
  * Declarative Web Push JSON (iOS 18.4+ / Safari 18.5+).
- * `sound: "default"` asks the platform to play the system alert sound.
- * Custom notification sounds are not available for web push on iOS.
+ * Older iOS still receives the same JSON; the service worker parses it and
+ * calls showNotification(). Absolute `navigate` is required for declarative.
  */
 function toDeclarativePushMessage(payload: PushPayload) {
   const path = payload.url || "/admin";
   const origin = getAppOrigin();
-  const navigate = origin
-    ? `${origin}${path.startsWith("/") ? path : `/${path}`}`
-    : path.startsWith("http")
-      ? path
-      : path.startsWith("/")
-        ? path
-        : `/${path}`;
+  const relative = path.startsWith("/") ? path : `/${path}`;
+  const navigate = path.startsWith("http")
+    ? path
+    : origin
+      ? `${origin}${relative}`
+      : relative;
+
+  if (!navigate.startsWith("http")) {
+    console.warn(
+      "Declarative push navigate URL is not absolute — set NEXT_PUBLIC_SITE_URL for reliable iOS delivery.",
+      navigate
+    );
+  }
 
   return {
     web_push: 8030,
     notification: {
       title: payload.title,
+      lang: "en-US",
+      dir: "ltr",
       body: payload.body,
       navigate,
       silent: false,
-      sound: "default",
       tag: payload.tag ?? "nail-tek-admin",
       renotify: true,
     },
+    // Classic fields kept for older service-worker parsers / non-declarative clients.
+    title: payload.title,
+    body: payload.body,
+    url: relative,
+    tag: payload.tag ?? "nail-tek-admin",
   };
 }
 
@@ -148,7 +160,13 @@ async function sendToSubscription(
         auth: subscription.auth,
       },
     },
-    JSON.stringify(toDeclarativePushMessage(payload))
+    JSON.stringify(toDeclarativePushMessage(payload)),
+    {
+      // High urgency improves timely delivery on iOS / APNs (especially Low Power Mode).
+      urgency: "high",
+      // Keep booking alerts long enough to survive brief offline windows.
+      TTL: 60 * 60,
+    }
   );
 }
 

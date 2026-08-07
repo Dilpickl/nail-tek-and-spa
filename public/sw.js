@@ -25,7 +25,6 @@ function parsePushPayload(event) {
     url: "/admin",
     tag: "nail-tek-admin",
     silent: false,
-    sound: "default",
   };
 
   if (!event.data) return defaults;
@@ -37,12 +36,11 @@ function parsePushPayload(event) {
     if (raw && typeof raw === "object" && raw.web_push === 8030 && raw.notification) {
       const n = raw.notification;
       return {
-        title: n.title || defaults.title,
-        body: n.body || defaults.body,
-        url: pathFromNavigate(n.navigate),
-        tag: n.tag || defaults.tag,
+        title: n.title || raw.title || defaults.title,
+        body: n.body || raw.body || defaults.body,
+        url: pathFromNavigate(n.navigate || raw.url),
+        tag: n.tag || raw.tag || defaults.tag,
         silent: n.silent === true,
-        sound: n.sound || "default",
         notificationOptions: n,
       };
     }
@@ -53,7 +51,6 @@ function parsePushPayload(event) {
       url: raw.url || defaults.url,
       tag: raw.tag || defaults.tag,
       silent: raw.silent === true,
-      sound: raw.sound || "default",
     };
   } catch {
     try {
@@ -79,45 +76,41 @@ async function notifyOpenClientsToPlaySound() {
 self.addEventListener("push", (event) => {
   const payload = parsePushPayload(event);
 
-  // If the browser already attached a declarative proposed notification,
-  // do not replace it — that keeps iOS system alert sound (`sound: "default"`).
+  // Declarative Web Push may attach a proposed notification the OS will show.
+  // Only skip showNotification when that fallback is present — otherwise iOS
+  // treats the push as silent and can revoke the subscription after a few misses.
   const hasProposed =
     event.notification != null || event.proposedNotification != null;
 
   event.waitUntil(
     (async () => {
       if (!hasProposed) {
-        const options = {
+        await self.registration.showNotification(payload.title, {
           body: payload.body,
           icon: "/icons/icon-192.png",
           badge: "/icons/icon-192.png",
           tag: payload.tag,
           renotify: true,
           silent: false,
-          // WebKit Declarative Web Push / NotificationOptions
-          sound: payload.sound || "default",
           data: { url: payload.url || "/admin" },
-        };
-
-        // Pass through declarative fields browsers understand (sound, etc.).
-        if (payload.notificationOptions) {
-          const n = payload.notificationOptions;
-          if (n.lang) options.lang = n.lang;
-          if (n.dir) options.dir = n.dir;
-          if (typeof n.renotify === "boolean") options.renotify = n.renotify;
-        }
-
-        await self.registration.showNotification(payload.title, options);
+        });
       }
 
-      await notifyOpenClientsToPlaySound();
+      try {
+        await notifyOpenClientsToPlaySound();
+      } catch {
+        /* Sound is best-effort; never let it block / fail the push event. */
+      }
     })()
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/admin";
+  const targetUrl =
+    event.notification.data?.url ||
+    pathFromNavigate(event.notification.navigate) ||
+    "/admin";
 
   event.waitUntil(
     (async () => {

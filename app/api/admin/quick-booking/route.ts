@@ -180,14 +180,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: servicesError.message }, { status: 500 });
   }
 
-  void notifyNewBooking({
-    customerName: payload.customerName!.trim(),
-    startsAt,
-    appointmentId: appointment.id,
-    source: payload.source!,
-  }).catch((error) => {
+  // Await push before returning — Vercel freezes the function after the
+  // response, so fire-and-forget often never reaches Apple's push service.
+  try {
+    await notifyNewBooking({
+      customerName: payload.customerName!.trim(),
+      startsAt,
+      appointmentId: appointment.id,
+      source: payload.source!,
+    });
+  } catch (error) {
     console.error("Quick booking push failed", error);
-  });
+  }
 
   return NextResponse.json({ ok: true, appointmentId: appointment.id });
 }

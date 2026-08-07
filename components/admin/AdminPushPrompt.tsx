@@ -53,8 +53,18 @@ export function AdminPushPrompt() {
 
       try {
         const registration = await registerServiceWorker();
+        await navigator.serviceWorker.ready;
         const existing = await registration?.pushManager.getSubscription();
         if (!cancelled) setSubscribed(Boolean(existing));
+
+        // Re-upsert so the server still has this device after iOS drops it.
+        if (existing && Notification.permission === "granted") {
+          await fetch("/api/admin/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(existing.toJSON()),
+          });
+        }
       } catch {
         /* ignore */
       }
