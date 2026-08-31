@@ -34,8 +34,8 @@ export function NailGallery() {
               Nail art gallery
             </h2>
             <p className="mt-2 text-ink-muted">
-              Custom designs from classic French tips to seasonal art — scroll
-              through a few favorites from Travis, Daisy, and the team.
+              French tips, seasonal sets, and the extra stuff Travis and Daisy
+              are known for. Here&apos;s a peek.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

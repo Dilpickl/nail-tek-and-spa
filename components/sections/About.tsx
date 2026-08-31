@@ -1,6 +1,6 @@
 import { Sparkles, ShieldCheck, Leaf } from "lucide-react";
 
-import { trustPillars, business } from "@/lib/config/salonData";
+import { trustPillars } from "@/lib/config/salonData";
 import { Reveal } from "@/components/ui/reveal";
 
 const icons = [Sparkles, ShieldCheck, Leaf];
@@ -14,13 +14,12 @@ export function About() {
             About Us
           </p>
           <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-            Quality you can feel — prices you&apos;ll love
+            Come in. Sit down. Take a minute.
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-muted">
-            At {business.name}, every visit is designed to feel welcoming and
-            unhurried. Our spacious Algonquin salon specializes in custom nail
-            art, restorative spa pedicures, and lasting color — all delivered
-            by a team known for kindness, skill, and treating guests like family.
+            We&apos;re a friendly Algonquin salon known for custom nail art,
+            spa pedicures, and color that lasts. The team is skilled, kind,
+            and treats you like family.
           </p>
         </Reveal>
       </div>

@@ -13,19 +13,18 @@ export function Careers() {
             Careers
           </p>
           <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-            Build your career with us
+            Want to work with us?
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-muted">
-            We&apos;re always looking for passionate, talented people to join
-            our friendly Algonquin team — kind care, skilled work, and guests
-            who feel like family.
+            We&apos;re a friendly Algonquin team that does good work and treats
+            guests like family. If that sounds like you, we&apos;d like to meet.
           </p>
         </Reveal>
 
         <div className="mx-auto mt-12 max-w-3xl space-y-4">
           {careers.length === 0 && (
             <p className="text-center text-ink-muted">
-              No open positions right now — check back soon!
+              Nothing open right now. Check back soon.
             </p>
           )}
           {careers.map((job, i) => (

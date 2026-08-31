@@ -11,7 +11,7 @@ export function Reviews() {
       <div className="container">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
-            Loved by our clients
+            What people say
           </p>
           <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
             Real reviews from Crystal Lake & beyond

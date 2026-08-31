@@ -68,6 +68,8 @@ export function Hero() {
         }
       : { initial: false as const, animate: { opacity: 1, y: 0 } as const };
 
+  const [descBefore, descAfter] = business.shortDescription.split("family-owned");
+
   return (
     <section className="relative overflow-hidden">
       {/* Soft decorative gradient wash */}
@@ -91,7 +93,15 @@ export function Hero() {
             {...fadeUp(0.08)}
             className="mt-5 max-w-xl text-lg leading-relaxed text-ink-muted"
           >
-            {business.shortDescription}
+            {descAfter === undefined ? (
+              business.shortDescription
+            ) : (
+              <>
+                {descBefore}
+                <strong className="font-semibold text-ink">family-owned</strong>
+                {descAfter}
+              </>
+            )}
           </motion.p>
 
           <motion.div

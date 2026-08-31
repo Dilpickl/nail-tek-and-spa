@@ -113,10 +113,10 @@ export const business = {
   /** Location line used in the header under the salon name. */
   locationLabel: "Algonquin, IL",
   shortDescription:
-    "Located in the heart of Algonquin and Randall Road, Nail Tek & Spa offers premium nail services at affordable prices. The beautiful interior creates a relaxing atmosphere, fully staffed by a team of welcoming technicians. Offering a wide variety of services—ranging from classic manicures and relaxing spa pedicures to custom nail enhancements—the salon provides professional care without the luxury price tag. Walk-ins are always welcome.",
+    "Located in the heart of Algonquin and Randall Road, Nail Tek & Spa is a family-owned business that offers premium nail services at affordable prices. The beautiful interior creates a relaxing atmosphere, fully staffed by a team of welcoming technicians. Offering a wide variety of services, ranging from classic manicures and relaxing spa pedicures to custom nail enhancements, the salon provides professional care without the luxury price tag. Walk-ins are always welcome.",
   /** Shorter blurb shown in the footer only. */
   footerDescription:
-    "Located in the heart of Algonquin on Randall Road, Nail Tek & Spa offers premium nail services at highly affordable prices. Specializing in amazing custom nail art designs, the salon provides high-quality, professional care and luxurious results.",
+    "Algonquin salon on Randall Road. Custom nail art, solid work, and prices that feel fair.",
   phone: "(847) 458-4560",
   /** Digits only — used for tel: links. */
   phoneRaw: "+18474584560",
@@ -274,7 +274,7 @@ export const serviceCategories: ServiceCategory[] = [
         id: "pedi-volcanic",
         name: "Volcanic Spa Pedicure",
         description:
-          "Feel the eruption of total relaxation! This delightfully fun treatment features a bubbling volcanic explosion that relaxes your senses. It includes an exfoliating sugar scrub, a rejuvenating collagen cream mask, and a creamy collagen massage lotion. Finished with a soothing hot stone massage and a warm paraffin treatment to leave your skin silky smooth.",
+          "A bubbling volcanic soak that's more fun than it sounds. Sugar scrub, collagen mask, hot stones, and paraffin. Your feet will feel brand new.",
         price: 65,
         durationMinutes: 60,
         featured: true,
@@ -283,7 +283,7 @@ export const serviceCategories: ServiceCategory[] = [
         id: "pedi-organic",
         name: "Organic Spa Pedicure",
         description:
-          "Treat your feet to our signature spa pedicure, expertly designed to repair dry, tired skin. This revitalizing treatment features an organic lavender scrub exfoliation and a rehydrating green tea mask. Accompanied by a rich cream massage, hot stones, and a hydrating paraffin treatment.",
+          "Our go-to for dry, tired feet. Organic lavender scrub, green tea mask, cream massage, hot stones, and paraffin.",
         price: 55,
         durationMinutes: 60,
         durationMinutesMin: 45,
@@ -302,7 +302,7 @@ export const serviceCategories: ServiceCategory[] = [
         id: "pedi-classic",
         name: "Classic Pedicure",
         description:
-          "Our fast, refreshing essential pedicure. Includes comprehensive nail shaping and cuticle care, finished with a moisturizing foot and leg massage and your choice of polish.",
+          "The quick, no-fuss pedicure. Shape, cuticles, a foot and leg massage, and polish of your choice.",
         price: 25,
         durationMinutes: 30,
         durationMinutesMin: 20,
@@ -319,7 +319,7 @@ export const serviceCategories: ServiceCategory[] = [
         id: "mani-classic",
         name: "Classic Manicure",
         description:
-          "Essential nail shaping, cuticle care, moisturizing massage, and standard polish.",
+          "Shape, cuticles, a little massage, and regular polish. The classic.",
         price: 15,
         durationMinutes: 30,
         featured: true,
@@ -328,7 +328,7 @@ export const serviceCategories: ServiceCategory[] = [
         id: "mani-no-chip",
         name: "No-Chip Manicure",
         description:
-          "Our classic manicure finished with long-lasting, smudge-free gel polish.",
+          "The classic manicure, finished with gel that won't smudge and actually lasts.",
         price: 35,
         durationMinutes: 45,
         featured: true,
@@ -346,17 +346,17 @@ export const serviceCategories: ServiceCategory[] = [
   {
     id: "enhancements",
     name: "Nail Enhancements",
-    blurb: "Durable, flawless, and beautifully crafted artificial nail services. Listed prices are starting rates — final pricing is confirmed in person based on length, shape, and design.",
+    blurb: "Acrylic, gel, dipping powder, and more. Listed prices are starting rates. We'll confirm the final amount in person based on length, shape, and design.",
     services: [
       {
         id: "enh-acrylic",
         name: "Acrylic",
         description:
-          "Custom-sculpted acrylic nails — choose a full set or a fill-in to refresh your existing set. Final price is confirmed at your visit.",
+          "Custom-sculpted acrylic. Full set or a fill-in to refresh what you've got. We'll confirm the final price when you're here.",
         price: 35,
         durationMinutes: 75,
         priceFrom: true,
-        priceNote: "Starting price — final amount depends on length, shape, and design.",
+        priceNote: "Starting price. Final amount depends on length, shape, and design.",
         variants: [
           {
             id: "enh-acrylic-full",
@@ -382,7 +382,7 @@ export const serviceCategories: ServiceCategory[] = [
         price: 45,
         durationMinutes: 75,
         priceFrom: true,
-        priceNote: "Starting price — final amount depends on length, shape, and design.",
+        priceNote: "Starting price. Final amount depends on length, shape, and design.",
         variants: [
           {
             id: "enh-gel-full",
@@ -408,7 +408,7 @@ export const serviceCategories: ServiceCategory[] = [
         price: 55,
         durationMinutes: 80,
         priceFrom: true,
-        priceNote: "Starting price — final amount depends on length, shape, and design. Pink Fill available from $45.",
+        priceNote: "Starting price. Final amount depends on length, shape, and design. Pink Fill available from $45.",
         variants: [
           {
             id: "enh-pink-white-full",
@@ -441,17 +441,17 @@ export const serviceCategories: ServiceCategory[] = [
         price: 45,
         durationMinutes: 70,
         priceFrom: true,
-        priceNote: "Starting price — final amount depends on length, shape, and design.",
+        priceNote: "Starting price. Final amount depends on length, shape, and design.",
       },
       {
         id: "enh-dipping",
         name: "Dipping Powder",
         description:
-          "Lightweight, durable dipping powder color — no UV lamp required. Full set only. Final price is confirmed at your visit.",
+          "Light, durable color with no UV lamp. Full set only. We'll confirm the final price when you're here.",
         price: 45,
         durationMinutes: 70,
         priceFrom: true,
-        priceNote: "Starting price — final amount depends on length, shape, and design.",
+        priceNote: "Starting price. Final amount depends on length, shape, and design.",
         featured: true,
       },
     ],
@@ -519,7 +519,7 @@ export const serviceCategories: ServiceCategory[] = [
         id: "addon-art",
         name: "Custom Nail Art",
         description:
-          "Show us your inspiration — our techs specialize in custom nail art designs. Pricing depends on complexity and is confirmed at your visit.",
+          "Show us a photo. Our techs specialize in custom designs. Pricing depends on complexity and is confirmed at your visit.",
         price: 0,
         durationMinutes: 20,
         pricingTbd: true,
@@ -529,7 +529,7 @@ export const serviceCategories: ServiceCategory[] = [
   {
     id: "waxing",
     name: "Waxing Services",
-    blurb: "Smooth, precise waxing for face and body — done with care.",
+    blurb: "Smooth, precise waxing for face and body, done with care.",
     services: [
       {
         id: "wax-eyebrows",
@@ -606,7 +606,7 @@ export const serviceCategories: ServiceCategory[] = [
         price: 40,
         durationMinutes: 15,
         priceFrom: true,
-        priceNote: "Starting price — final amount depends on style and volume.",
+        priceNote: "Starting price. Final amount depends on style and volume.",
       },
       {
         id: "lash-tinting",
@@ -801,7 +801,7 @@ export const careers: JobPosting[] = [
     title: "Nail Technician",
     type: "Full-Time",
     description:
-      "Join our friendly Algonquin team. We’re looking for a technician skilled in manicures, pedicures, and enhancements who shares our commitment to quality work and kind client care.",
+      "Looking for a tech who's good with manicures, pedicures, and enhancements, and just as kind as they are skilled.",
   },
 ];
 
@@ -813,17 +813,17 @@ export const trustPillars = [
   {
     title: "Custom Nail Art",
     description:
-      "Bring any inspiration photo — our techs specialize in recreating intricate designs with precision and creativity.",
+      "Bring a photo, a screenshot, whatever you've saved. Travis and the team can recreate it.",
   },
   {
     title: "Premium Care, Fair Prices",
     description:
-      "Luxurious spa pedicures, lasting color, and professional results — without the luxury price tag.",
+      "Spa pedicures, lasting color, and solid work. You shouldn't have to overpay for that.",
   },
   {
     title: "Walk-Ins Always Welcome",
     description:
-      "Book online or stop by anytime during salon hours. Gift cards are available for every occasion.",
+      "Book online if you like, or just stop by. Gift cards are here when you need them.",
   },
 ] as const;
 

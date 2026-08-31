@@ -22,9 +22,8 @@ export default function GalleryPage() {
             Nail art gallery
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-ink-muted">
-            A closer look at custom designs from our Algonquin studio — seasonal
-            sets, French tips, glitter, and hand-painted art by Travis, Daisy,
-            and the team.
+            Seasonal sets, French tips, glitter, and hand-painted art from
+            Travis, Daisy, and the team. Here&apos;s the full collection.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/book">

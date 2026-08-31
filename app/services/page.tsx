@@ -20,10 +20,9 @@ export default function ServicesPage() {
             Services & Pricing
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-ink-muted">
-            Premium pedicures, manicures, enhancements, waxing, and lash
-            services — all at highly affordable prices. Some services marked
-            &ldquo;from&rdquo; may vary with length, coverage, or design.
-            Walk-ins are always welcome.
+            Pedicures, manicures, enhancements, waxing, and lashes. All at
+            prices that feel fair. Services marked &ldquo;from&rdquo; can change
+            with length, coverage, or design. Walk-ins are always welcome.
           </p>
         </div>
       </section>

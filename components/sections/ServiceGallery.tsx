@@ -20,11 +20,11 @@ export function ServiceGallery() {
               Our Services
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-              Signature treatments for every visit
+              A few favorites from the menu
             </h2>
             <p className="mt-2 text-ink-muted">
-              Spa pedicures, lasting color, and custom nail art — priced to feel
-              as good as they look.
+              Spa pedicures, lasting color, and custom art. Nice results,
+              reasonable prices.
             </p>
           </div>
           <Link href="/services" className="hidden md:block">

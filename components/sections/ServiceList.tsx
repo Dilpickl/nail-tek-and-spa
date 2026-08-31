@@ -70,7 +70,7 @@ export function ServiceList() {
                       service.variants?.some((variant) => variant.priceFrom)) &&
                     !service.priceNote ? (
                       <p className="mt-2 text-sm italic text-ink-muted">
-                        Starting price — final amount is confirmed in person.
+                        Starting price. Final amount is confirmed in person.
                       </p>
                     ) : null}
                   </div>
