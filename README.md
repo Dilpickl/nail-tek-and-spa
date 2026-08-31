@@ -1,71 +1,113 @@
 # Nail Tek & Spa
 
-A premium website and booking management app for Nail Tek & Spa in Algonquin, IL.
+A production website and operations platform for a family-owned nail salon in Algonquin, Illinois. Customers can browse the menu, view work, and book online. Staff get an iPad-friendly admin app for walk-ins, schedules, checkout, and revenue.
 
-**Stack:** Next.js (App Router) · React · Tailwind CSS · Framer Motion · Supabase · shadcn-style UI · Lucide icons.
+This is a real business product, not a demo: availability, pricing, and analytics are modeled around how a salon actually runs.
 
----
+**Live site:** [nail-tek-and-spa.vercel.app](https://nail-tek-and-spa.vercel.app)
 
-## Quick start
+## What it includes
 
-```bash
-npm install
-cp .env.example .env.local   # then fill in your Supabase values
-npm run dev
+**Customer site**
+- Marketing home page, full service menu, and nail-art gallery
+- Multi-step online booking: services, technician, date/time, details, confirm
+- Multi-guest parties with per-person services and technician preferences
+- Starting prices shown as estimates when the final amount is confirmed in person
+
+**Admin operations (`/admin`)**
+- Daily agenda with technician columns, drag-and-drop, and walk-in / phone booking
+- Week/month calendar, employee schedules, and day-off exceptions
+- Appointment completion with confirmed prices, tax, tips, and payment method
+- Analytics from completed visits only (not unconfirmed online estimates)
+- Installable PWA with web-push alerts for new bookings and upcoming appointments
+
+## Tech stack
+
+| Layer | Choice |
+| --- | --- |
+| App | Next.js 14 (App Router), React 18, TypeScript |
+| UI | Tailwind CSS, Framer Motion, Lucide |
+| Data | Supabase (PostgreSQL, Auth, Row Level Security) |
+| Charts | Recharts |
+| Push | Web Push / VAPID, installable admin PWA |
+| Tests | Playwright |
+| Hosting | Vercel |
+
+## Architecture
+
+```
+┌──────────────┐     ┌─────────────────────┐     ┌────────────────┐
+│ Public site  │────▶│ Next.js API routes  │────▶│ Supabase       │
+│ /book        │     │ validation + auth   │     │ Postgres + RLS │
+└──────────────┘     └──────────┬──────────┘     └────────────────┘
+                                │
+┌──────────────┐                │                ┌────────────────┐
+│ Admin PWA    │────────────────┘                │ Web Push       │
+│ /admin       │     cron → /api/cron/...  ─────▶│ iPad / phone   │
+└──────────────┘                                 └────────────────┘
 ```
 
-Open http://localhost:3000.
+Online bookings never write straight from the browser to privileged tables. API routes validate services, duration, and availability, then persist with a server-side Supabase client. Admin routes require an authenticated user in `admin_users`.
 
-## Editing salon content (no code needed)
+## Design decisions worth discussing
 
-**All** business copy — services, prices, durations, technicians, hours,
-contact info, careers, social links — lives in one file:
+**Estimates vs. actual revenue.** Acrylics, gel, and similar services are listed as "from" prices. Booking totals are estimates. Revenue, average ticket, and tips come from `completed_transactions` created at checkout, so analytics match money collected rather than what was booked online.
 
-```
-lib/config/salonData.ts
-```
+**Availability is layered.** Open slots come from recurring technician schedules, date-specific overrides, same-day off/sick blocks, and existing appointments. Times are computed in `America/Chicago` so Vercel's UTC runtime does not shift salon hours.
 
-Change the text and numbers there and the whole site updates. Keep the
-structure (the keys) intact.
+**Duration uses the conservative end of a range.** A classic pedicure may display as 20-30 minutes, but slot blocking uses the upper bound so back-to-back bookings do not overlap.
 
-## Supabase setup
+**Content stays in one file.** Menu, prices, hours, and marketing copy live in `lib/config/salonData.ts`. The public site maps over that data; bookable IDs stay aligned with the `services` table.
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. In the SQL Editor, run `supabase/schema.sql`, then migrations `002`–`007`, then `supabase/seed.sql` for a fresh environment.
-3. Copy your Project URL + anon key into `.env.local` (see `.env.example`).
-
-The schema covers `services`, `technicians`, `appointments`,
-`appointment_services` (multi-service bookings), and `technician_time_off`
-(the admin "Off / Out Sick" toggle), with Row Level Security configured.
+**History is not rewritten.** `appointment_services` stores price and duration at booking time. Completing a visit records the confirmed amounts separately.
 
 ## Project structure
 
 ```
-app/                       Next.js routes
-  page.tsx                 Home (hero, about, services, reviews, careers)
-  services/                Full service menu
-  book/                    Booking entry point (full engine: next phase)
-  terms/ · privacy/        Auto-generated legal pages
+app/                      Routes (public site, /book, /admin, API)
 components/
-  layout/                  Header (sticky) + Footer (contact/hours/map)
-  sections/                Hero, About, ServiceGallery, Reviews, Careers, ...
-  ui/                      Reusable primitives (Button, Reveal)
+  booking/                Multi-step customer booking flow
+  admin/                  Agenda, calendar, employees, analytics, settings
+  sections/               Home, services, gallery, reviews
 lib/
-  config/salonData.ts      SINGLE SOURCE OF TRUTH for all content
-  supabase/                Browser + server clients
-  utils.ts                 Helpers (cn, price/duration formatting)
-supabase/                  schema.sql + seed.sql
+  config/salonData.ts     Menu, prices, hours, copy
+  booking/                Availability, party scheduling, timezone, pricing
+  admin/                  Auth, push, appointment updates
+  analytics/              Completed-visit reporting
+supabase/                 Schema, migrations, seed
+e2e/                      Playwright booking coverage
 ```
 
-## Roadmap (next phases)
+## Getting started
 
-- Multi-step booking engine (services → technician → date/time → details → confirm)
-- Availability logic (service duration × technician schedule, 15-min blocks, "Any" tech)
-- iPad-optimized admin dashboard (`/admin`): daily agenda, walk-in/phone bookings,
-  new-booking notifications, technician off/sick toggle.
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
 
-## Brand palette
+Open [http://localhost:3000](http://localhost:3000). Fill in `.env.local` with a Supabase project URL, anon key, and server-only service role key.
 
-- Background: warm beige `#F5F1E6`
-- Containers: off-white `#FAFAFA`
-- Typography & primary buttons: sharp black `#111111`
+### Database
+
+In the Supabase SQL editor:
+
+1. Run `supabase/schema.sql`
+2. Run migrations `002` through `010` in order
+3. For a fresh environment, run `supabase/seed.sql`
+4. Create an Auth user and insert that user into `admin_users`
+
+Admin push also needs VAPID keys (`npm run generate:vapid`) and `CRON_SECRET`.
+
+## Tests
+
+```bash
+npm run lint
+npm run test:e2e
+```
+
+Playwright covers availability for multi-service and party bookings, plus the customer flow through the confirm step. It expects a running app and a configured Supabase project.
+
+## License
+
+Private project built for Nail Tek & Spa.
