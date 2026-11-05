@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Concept B · The Lookbook (v6)</title>
+<title>Concept B · The Lookbook (v7)</title>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#FBF8F4;--ink:#151312;--muted:#71685F;--line:#E8E0D6;--rose:#C7826F;--rose-soft:#F4E4DD;--sand:#EFE7DC}
@@ -186,6 +186,12 @@
     /* "your way." waits for the rest of the line, then paints on left to right */
     .js h1 .w.paint>span{opacity:1;transform:none;filter:none;clip-path:inset(-20% 105% -30% -8%);
       animation:nb-paint .85s cubic-bezier(.65,0,.3,1) forwards;animation-delay:calc(var(--p)*260ms + 820ms)}
+    /* section titles: words rise, then the rose italic paints on, once the title is well in view */
+    .js h2.split .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .1em .14em;margin:0 -.1em -.14em}
+    .js h2.split .w>span{display:inline-block;opacity:0;transform:translateY(102%);filter:blur(8px)}
+    .js h2.split.in .w>span{animation:nb-rise 1s cubic-bezier(.2,.75,.1,1) forwards;animation-delay:calc(var(--i)*65ms)}
+    .js h2.split .w.paint>span{opacity:1;transform:none;filter:none;clip-path:inset(-20% 105% -30% -8%)}
+    .js h2.split.in .w.paint>span{animation:nb-paint .85s cubic-bezier(.65,0,.3,1) forwards;animation-delay:calc(var(--pb) + var(--p)*260ms)}
     .js .fi{opacity:0;transform:translateY(14px);animation:nb-up .9s cubic-bezier(.2,.75,.1,1) forwards;animation-delay:var(--d)}
     .js .hero .issue::before{transform-origin:left;transform:scaleX(0);animation:nb-line .9s .05s cubic-bezier(.2,.75,.1,1) forwards}
     .js .board .ph{clip-path:inset(100% 0 0 0);animation:nb-wipe 1.15s cubic-bezier(.7,0,.2,1) forwards;animation-delay:calc(var(--i)*95ms + 200ms)}
@@ -347,10 +353,34 @@
 <script>
 (function(){
   document.querySelectorAll('.board .ph').forEach(function(el,i){el.style.setProperty('--i',i)});
-  var groups=['.beyond .issue','.bhead h2','.bhead p','.btile','.upsell','.shot h2','.shot p','.step','.shot .btn','.way','.fphoto','.ftext','.rail-head','.q'];
+  var groups=['.beyond .issue','.bhead p','.btile','.upsell','.shot p','.step','.shot .btn','.way','.fphoto','.ftext .issue','.ftext p','.rail-head .btn','.q'];
   var els=[];
   groups.forEach(function(sel){document.querySelectorAll(sel).forEach(function(el,i){el.classList.add('rv');el.style.setProperty('--s',el.parentElement.querySelectorAll(':scope > '+el.tagName.toLowerCase()).length>1?i:0);els.push(el)})});
-  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
+  // Split section titles into words; italic (rose) words get the paint-on effect after the rest lands.
+  var titles=[];
+  document.querySelectorAll('section h2.d').forEach(function(h){
+    var n=0,p=0,out=document.createDocumentFragment();
+    function words(text,paint,into){
+      text.split(/(\s+)/).forEach(function(t){
+        if(!t)return;
+        if(/^\s+$/.test(t)){into.appendChild(document.createTextNode(t));return}
+        var w=document.createElement('span');w.className='w'+(paint?' paint':'');
+        if(paint)w.style.setProperty('--p',p++);else w.style.setProperty('--i',n++);
+        var inner=document.createElement('span');inner.textContent=t;w.appendChild(inner);into.appendChild(w);
+      });
+    }
+    Array.prototype.slice.call(h.childNodes).forEach(function(node){
+      if(node.nodeType===3)words(node.textContent,false,out);
+      else{var i=document.createElement(node.tagName);words(node.textContent,true,i);out.appendChild(i)}
+    });
+    h.textContent='';h.appendChild(out);h.classList.add('split');
+    h.style.setProperty('--pb',(n*65+650)+'ms');
+    titles.push(h);
+  });
+  if(!('IntersectionObserver' in window)){els.concat(titles).forEach(function(e){e.classList.add('in')});return}
+  // Titles only start once they are fully on screen and above the bottom fifth, so they never play early.
+  var tio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');tio.unobserve(e.target)}})},{threshold:1,rootMargin:'0px 0px -20% 0px'});
+  titles.forEach(function(h){tio.observe(h)});
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
   els.forEach(function(e){io.observe(e)});
 })();
