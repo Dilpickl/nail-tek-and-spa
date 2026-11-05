@@ -26,9 +26,9 @@ function photo(n: string, height: number, chip?: string): BoardPhoto {
 
 // Three staggered columns on desktop.
 const COLUMNS: { offset: number; photos: BoardPhoto[] }[] = [
-  { offset: 0, photos: [photo("14", 300, "Hearts"), photo("01", 220)] },
-  { offset: 56, photos: [photo("61", 360, "Hand-painted"), photo("47", 220)] },
-  { offset: 18, photos: [photo("03", 250), photo("54", 300, "Sunflower")] },
+  { offset: 0, photos: [photo("28", 300, "Floral"), photo("01", 220)] },
+  { offset: 56, photos: [photo("29", 360, "Holiday"), photo("34", 220)] },
+  { offset: 18, photos: [photo("03", 250), photo("31", 300, "Graphic lines")] },
 ];
 
 // Phone / tablet: one swipeable row, chips first.
