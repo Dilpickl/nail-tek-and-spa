@@ -7,10 +7,6 @@ export function formatTime(value: string) {
   });
 }
 
-export function formatTimeRange(startsAt: string, endsAt: string) {
-  return `${formatTime(startsAt)} – ${formatTime(endsAt)}`;
-}
-
 export function formatReadableDate(date: string) {
   return formatInSalonTime(toLocalDateTime(date, "12:00"), {
     weekday: "long",

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { CalendarDays, GripVertical, Phone } from "lucide-react";
 
-import { formatTimeRange } from "@/lib/admin/format";
+import { formatTime } from "@/lib/admin/format";
 import {
   getAppointmentPhase,
   isActivePhase,
@@ -140,7 +140,7 @@ export function AppointmentCard({
               )}
             >
               <CalendarDays className="size-4" />
-              {formatTimeRange(appointment.startsAt, appointment.endsAt)}
+              Arrives {formatTime(appointment.startsAt)}
             </p>
 
             {appointment.services.length > 0 && (
