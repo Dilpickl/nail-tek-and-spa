@@ -323,13 +323,26 @@ export function AdminCalendar() {
     setRangeEnd(nextRange.end);
   }
 
+  // Below xl the details panel is stacked under the calendar, so bring it
+  // into view after a tap; otherwise the tap looks like it did nothing.
+  function revealDetailsPanel() {
+    if (typeof window === "undefined" || window.matchMedia("(min-width: 1280px)").matches) return;
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("calendar-details-panel")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   function selectDay(date: string) {
     setSelectedAppointmentId(null);
     setSelectedDate(date);
+    revealDetailsPanel();
   }
 
   function openAppointment(id: string) {
     setSelectedAppointmentId(id);
+    revealDetailsPanel();
   }
 
   const weekDays = useMemo(() => {
@@ -361,6 +374,7 @@ export function AdminCalendar() {
             <Button
               key={mode}
               variant={view === mode ? "default" : "outline"}
+              className="min-h-11"
               onClick={() => setViewAndRange(mode)}
             >
               <CalendarDays className="size-4" />
@@ -378,7 +392,7 @@ export function AdminCalendar() {
               <select
                 value={employeeFilter}
                 onChange={(event) => setEmployeeFilter(event.target.value)}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-2 text-ink"
+                className="mt-1 h-11 w-full rounded-md border border-input bg-background px-2 text-base text-ink sm:text-sm"
               >
                 <option value="all">All employees</option>
                 {technicians.map((tech) => (
@@ -394,7 +408,7 @@ export function AdminCalendar() {
               <select
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-2 text-ink"
+                className="mt-1 h-11 w-full rounded-md border border-input bg-background px-2 text-base text-ink sm:text-sm"
               >
                 <option value="all">All statuses</option>
                 {statusOptions.map((status) => (
@@ -406,19 +420,34 @@ export function AdminCalendar() {
             </label>
           </div>
 
-          <div className="flex items-end gap-2">
-            <Button variant="outline" onClick={() => stepRange(-1)}>
+          <div className="grid grid-cols-4 gap-2 sm:flex sm:items-end">
+            <Button
+              variant="outline"
+              className="min-h-11"
+              aria-label={view === "week" ? "Previous week" : "Previous month"}
+              onClick={() => stepRange(-1)}
+            >
               <ChevronLeft className="size-4" />
             </Button>
-            <Button variant="outline" onClick={() => stepRange(1)}>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              aria-label={view === "week" ? "Next week" : "Next month"}
+              onClick={() => stepRange(1)}
+            >
               <ChevronRight className="size-4" />
             </Button>
-            <Button variant="secondary" onClick={jumpToToday}>
+            <Button variant="secondary" className="min-h-11" onClick={jumpToToday}>
               Today
             </Button>
-            <Button variant="outline" onClick={() => void loadCalendarData(rangeStart, rangeEnd)}>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              aria-label="Refresh"
+              onClick={() => void loadCalendarData(rangeStart, rangeEnd)}
+            >
               <RefreshCw className="size-4" />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
           </div>
         </div>
@@ -455,7 +484,10 @@ export function AdminCalendar() {
           )}
         </section>
 
-        <aside className="rounded-2xl bg-offwhite p-4 ring-1 ring-ink/5 xl:sticky xl:top-28 xl:h-fit">
+        <aside
+          id="calendar-details-panel"
+          className="scroll-mt-4 rounded-2xl bg-offwhite p-4 ring-1 ring-ink/5 xl:sticky xl:top-28 xl:h-fit"
+        >
           {selectedAppointment ? (
             <AppointmentPanel
               appointment={selectedAppointment}
@@ -488,7 +520,7 @@ function WeekView({
   selectedDate: string;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-7">
+    <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-7">
       {days.map((day) => {
         const appointments = appointmentsByDate.get(day) ?? [];
         const isSelected = day === selectedDate;
@@ -498,17 +530,21 @@ function WeekView({
             type="button"
             onClick={() => onSelectDay(day)}
             className={cn(
-              "min-h-[280px] rounded-xl border p-3 text-left align-top transition-colors",
+              "flex min-w-0 flex-col items-stretch justify-start rounded-xl border p-3 text-left transition-colors lg:min-h-[280px]",
               isSelected
                 ? "border-ink bg-background ring-1 ring-ink/20"
                 : "border-ink/10 bg-background hover:border-ink/30"
             )}
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
-              {formatWeekday(day)}
+            <p className="flex items-baseline gap-2 lg:block">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                {formatWeekday(day)}
+              </span>
+              <span className="text-sm font-semibold text-ink lg:mt-1 lg:block">
+                {formatMonthDay(day)}
+              </span>
             </p>
-            <p className="mt-1 text-sm font-semibold text-ink">{formatMonthDay(day)}</p>
-            <div className="mt-3 space-y-2">
+            <div className="mt-2 space-y-2 lg:mt-3">
               {appointments.length === 0 ? (
                 <p className="text-xs text-ink-muted">No appointments</p>
               ) : (
@@ -545,7 +581,16 @@ function MonthView({
 }) {
   const month = Number(anchorDate.slice(5, 7));
   return (
-    <div className="grid gap-2 md:grid-cols-7">
+    <div className="grid grid-cols-7 gap-1 sm:gap-2">
+      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((name) => (
+        <p
+          key={name}
+          className="pb-1 text-center text-[11px] font-semibold uppercase tracking-wide text-ink-muted lg:text-left"
+        >
+          <span className="sm:hidden">{name.charAt(0)}</span>
+          <span className="hidden sm:inline">{name}</span>
+        </p>
+      ))}
       {cells.map((day) => {
         const currentMonth = Number(day.slice(5, 7)) === month;
         const appointments = appointmentsByDate.get(day) ?? [];
@@ -556,7 +601,7 @@ function MonthView({
             type="button"
             onClick={() => onSelectDay(day)}
             className={cn(
-              "min-h-[110px] rounded-xl border p-2 text-left transition-colors",
+              "flex min-h-14 min-w-0 flex-col items-stretch justify-start rounded-lg border p-1.5 text-left transition-colors sm:min-h-20 lg:min-h-[110px] lg:rounded-xl lg:p-2",
               currentMonth ? "bg-background" : "bg-secondary/30",
               isSelected ? "border-ink ring-1 ring-ink/20" : "border-ink/10 hover:border-ink/30"
             )}
@@ -564,7 +609,22 @@ function MonthView({
             <p className={cn("text-xs font-semibold", currentMonth ? "text-ink" : "text-ink-muted")}>
               {Number(day.slice(8, 10))}
             </p>
-            <div className="mt-1 space-y-1">
+            {appointments.length > 0 && (
+              <div className="mt-auto flex flex-wrap items-center gap-0.5 pt-1 lg:hidden">
+                {appointments.slice(0, 4).map((appointment) => (
+                  <span
+                    key={appointment.id}
+                    className={cn("size-1.5 rounded-full", statusStyle(appointment.displayStatus).dot)}
+                  />
+                ))}
+                {appointments.length > 4 && (
+                  <span className="text-[10px] font-medium leading-none text-ink-muted">
+                    +{appointments.length - 4}
+                  </span>
+                )}
+              </div>
+            )}
+            <div className="mt-1 hidden space-y-1 lg:block">
               {appointments.slice(0, 3).map((appointment) => (
                 <AppointmentPill
                   key={appointment.id}
@@ -608,7 +668,7 @@ function AppointmentPill({
         }
       }}
       className={cn(
-        "inline-flex w-full cursor-pointer items-center gap-2 rounded-md border px-2 py-1 text-left text-xs transition-colors hover:brightness-95",
+        "inline-flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-left text-sm lg:px-2 lg:py-1 lg:text-xs transition-colors hover:brightness-95",
         style.border
       )}
     >
@@ -637,7 +697,7 @@ function AppointmentPanel({
           </p>
           <h3 className="mt-2 text-2xl font-semibold text-ink">{appointment.customerName}</h3>
         </div>
-        <Button variant="outline" size="sm" onClick={onClose}>
+        <Button variant="outline" size="sm" className="h-10 px-4 text-sm" onClick={onClose}>
           Back
         </Button>
       </div>

@@ -389,7 +389,7 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
           />
         </dl>
 
-        <div className="mt-5 border-t border-ink/8 pt-4">
+        <div className="mt-5 border-t border-ink/10 pt-4">
           <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink-muted">
             Services
           </p>
@@ -419,7 +419,7 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
           </ul>
         </div>
 
-        <div className="mt-5 flex items-center justify-between border-t border-ink/8 pt-4">
+        <div className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4">
           <span className="font-semibold text-ink">Estimated total</span>
           <span className="text-right text-xl font-semibold text-ink">
             {formatBookingTotalLabel(

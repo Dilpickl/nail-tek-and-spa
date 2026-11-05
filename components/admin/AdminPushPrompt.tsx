@@ -227,7 +227,7 @@ export function AdminPushPrompt() {
             void (subscribed ? disableNotifications() : enableNotifications())
           }
           className={cn(
-            "relative mt-1 h-8 w-14 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
+            "relative mt-1 h-8 w-14 shrink-0 rounded-full transition-colors before:absolute before:-inset-2 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50",
             subscribed ? "bg-ink" : "bg-ink/20"
           )}
         >

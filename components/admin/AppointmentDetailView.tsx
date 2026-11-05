@@ -143,7 +143,7 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
         </div>
 
         {isBooked && (
-          <div className="flex flex-col gap-3 sm:items-end">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
             <Link
               href={`/admin/appointments/${appointment.id}/edit`}
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-ink px-5 text-sm font-medium text-offwhite shadow-sm hover:bg-ink/90"
@@ -151,10 +151,10 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
               <Pencil className="size-4" />
               Edit / Move
             </Link>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                className="min-h-11 flex-1 sm:flex-none"
                 disabled={loading !== null}
                 onClick={() => setConfirmAction("no_show")}
               >
@@ -167,7 +167,7 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                className="min-h-11 flex-1 sm:flex-none"
                 disabled={loading !== null}
                 onClick={() => setConfirmAction("cancelled")}
               >
@@ -182,7 +182,7 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
             {!appointment.transaction && (
               <Link
                 href={`/admin/appointments/${appointment.id}/complete`}
-                className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+                className="inline-flex min-h-11 items-center justify-center text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline sm:justify-end"
               >
                 Record payment (optional)
               </Link>

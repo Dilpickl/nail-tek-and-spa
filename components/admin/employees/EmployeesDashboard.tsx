@@ -400,7 +400,7 @@ export function EmployeesDashboard() {
                   </button>
 
                   {expanded && (
-                    <div className="overflow-hidden border-t border-ink/8 px-4 pb-5 pt-4 sm:px-5">
+                    <div className="overflow-hidden border-t border-ink/10 px-4 pb-5 pt-4 sm:px-5">
                       <MobileEmployeeActions
                         index={index}
                         total={employees.length}
@@ -495,19 +495,33 @@ function MobileEmployeeActions({
 }) {
   return (
     <div className="mb-4 flex flex-wrap gap-2">
-      <Button type="button" variant="secondary" size="sm" disabled={index === 0} onClick={onMoveUp}>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="h-10 px-4 text-sm"
+        disabled={index === 0}
+        onClick={onMoveUp}
+      >
         Move up
       </Button>
       <Button
         type="button"
         variant="secondary"
         size="sm"
+        className="h-10 px-4 text-sm"
         disabled={index === total - 1}
         onClick={onMoveDown}
       >
         Move down
       </Button>
-      <Button type="button" variant="secondary" size="sm" onClick={onSelect}>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="h-10 px-4 text-sm"
+        onClick={onSelect}
+      >
         Edit details
       </Button>
     </div>
@@ -577,7 +591,7 @@ function EmployeeEditorPanel({
           type="checkbox"
           checked={draftActive}
           onChange={(event) => onActiveChange(event.target.checked)}
-          className="size-4 rounded border-ink/20"
+          className="size-5 rounded border-ink/20"
         />
         Active employee (visible in booking and agenda)
       </label>

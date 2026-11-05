@@ -118,7 +118,7 @@ export function TimeWheelPicker({
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-background to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-background to-transparent" />
 
-          <div className="grid grid-cols-3 divide-x divide-ink/8">
+          <div className="grid grid-cols-3 divide-x divide-ink/10">
             <WheelColumn
               items={hours.map(String)}
               selected={String(selectedHour)}

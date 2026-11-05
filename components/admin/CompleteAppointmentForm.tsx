@@ -304,13 +304,13 @@ export function CompleteAppointmentForm({
             return (
             <div
               key={item.key}
-              className={`grid gap-3 rounded-xl bg-background p-4 ring-1 md:grid-cols-[1fr_auto_auto_auto] ${
+              className={`grid grid-cols-2 gap-3 rounded-xl bg-background p-4 ring-1 md:grid-cols-[1fr_auto_auto_auto] ${
                 needsFromConfirm || (needsFinalPrice && item.unitPrice <= 0)
                   ? "ring-amber-400"
                   : "ring-ink/5"
               }`}
             >
-              <div>
+              <div className="col-span-2 min-w-0 md:col-span-1">
                 <p className="font-semibold text-ink">{item.name}</p>
                 <p className="text-xs uppercase tracking-wide text-ink-muted">
                   {item.lineType}
@@ -325,7 +325,7 @@ export function CompleteAppointmentForm({
                     <button
                       type="button"
                       onClick={() => markFromPriceConfirmed(item.key)}
-                      className="rounded-md bg-ink px-2.5 py-1 text-xs font-semibold text-offwhite"
+                      className="min-h-9 rounded-md bg-ink px-3 text-xs font-semibold text-offwhite"
                     >
                       Confirm price
                     </button>
@@ -333,8 +333,8 @@ export function CompleteAppointmentForm({
                 ) : null}
               </div>
 
-              <label className="block">
-                <span className="text-xs font-medium text-ink-muted">Qty</span>
+              <label className="block min-w-0">
+                <span className="block text-xs font-medium text-ink-muted">Qty</span>
                 <input
                   type="number"
                   min={1}
@@ -344,12 +344,12 @@ export function CompleteAppointmentForm({
                       quantity: Math.max(1, Number(e.target.value) || 1),
                     })
                   }
-                  className="mt-1 h-10 w-20 rounded-md border border-input bg-offwhite px-2 text-ink"
+                  className="mt-1 h-11 w-full min-w-0 rounded-md border border-input bg-offwhite px-2 text-ink md:w-20"
                 />
               </label>
 
-              <label className="block">
-                <span className="text-xs font-medium text-ink-muted">
+              <label className="block min-w-0">
+                <span className="block text-xs font-medium text-ink-muted">
                   {needsFinalPrice
                     ? "Final price *"
                     : isFromPrice
@@ -366,7 +366,7 @@ export function CompleteAppointmentForm({
                       unitPrice: Math.max(0, Number(e.target.value) || 0),
                     })
                   }
-                  className={`mt-1 h-10 w-28 rounded-md border bg-offwhite px-2 text-ink ${
+                  className={`mt-1 h-11 w-full min-w-0 rounded-md border bg-offwhite px-2 text-ink md:w-28 ${
                     (needsFinalPrice && item.unitPrice <= 0) || needsFromConfirm
                       ? "border-amber-500 ring-1 ring-amber-500"
                       : "border-input"
@@ -374,7 +374,7 @@ export function CompleteAppointmentForm({
                 />
               </label>
 
-              <div className="flex items-end justify-between gap-3 md:flex-col md:items-end">
+              <div className="col-span-2 flex items-center justify-between gap-3 md:col-span-1 md:flex-col md:items-end md:justify-end">
                 <p className="text-sm font-semibold text-ink">
                   {needsFinalPrice && item.unitPrice <= 0
                     ? "TBD"
@@ -383,7 +383,7 @@ export function CompleteAppointmentForm({
                 <button
                   type="button"
                   onClick={() => removeLineItem(item.key)}
-                  className="rounded-md p-2 text-red-600 hover:bg-red-50"
+                  className="flex size-11 items-center justify-center rounded-md text-red-600 hover:bg-red-50"
                   aria-label={`Remove ${item.name}`}
                 >
                   <Trash2 className="size-4" />
@@ -416,7 +416,7 @@ export function CompleteAppointmentForm({
                       key={service.id}
                       type="button"
                       onClick={() => addService(service.id)}
-                      className="rounded-full bg-secondary px-3 py-1.5 text-sm text-ink hover:bg-accent"
+                      className="min-h-10 rounded-full bg-secondary px-3 py-2 text-left text-sm text-ink hover:bg-accent"
                     >
                       {service.name} ({formatMoney(service.price)})
                     </button>
@@ -434,7 +434,7 @@ export function CompleteAppointmentForm({
                 key={product.id}
                 type="button"
                 onClick={() => addRetail(product.id)}
-                className="rounded-full bg-secondary px-3 py-1.5 text-sm text-ink hover:bg-accent"
+                className="min-h-10 rounded-full bg-secondary px-3 py-2 text-left text-sm text-ink hover:bg-accent"
               >
                 {product.name} ({formatMoney(product.price)})
               </button>
@@ -443,7 +443,7 @@ export function CompleteAppointmentForm({
         )}
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 lg:grid-cols-3">
         <MoneyField label="Discount" value={discountAmount} onChange={setDiscountAmount} />
         <MoneyField label="Tax" value={taxAmount} onChange={setTaxAmount} />
         <MoneyField label="Tip" value={tipAmount} onChange={setTipAmount} />
@@ -451,7 +451,7 @@ export function CompleteAppointmentForm({
 
       <section className="rounded-2xl bg-offwhite p-5 ring-1 ring-ink/5">
         <label className="block">
-          <span className="text-sm font-medium text-ink">Payment Method</span>
+          <span className="block text-sm font-medium text-ink">Payment Method</span>
           <select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
@@ -466,7 +466,7 @@ export function CompleteAppointmentForm({
         </label>
 
         <label className="mt-4 block">
-          <span className="text-sm font-medium text-ink">Notes (optional)</span>
+          <span className="block text-sm font-medium text-ink">Notes (optional)</span>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -477,7 +477,7 @@ export function CompleteAppointmentForm({
       </section>
 
       <section className="rounded-2xl bg-ink p-6 text-offwhite">
-        <div className="grid gap-2 text-sm sm:grid-cols-2">
+        <div className="grid gap-2 text-sm">
           <TotalRow label="Services" value={totals.subtotalServices} />
           <TotalRow label="Retail" value={totals.subtotalRetail} />
           <TotalRow label="Discount" value={-totals.discountAmount} />
@@ -557,7 +557,7 @@ export function CompleteAppointmentForm({
                 .getElementById("completion-technician-assignment")
                 ?.scrollIntoView({ behavior: "smooth", block: "center" })
             }
-            className="font-medium underline underline-offset-2"
+            className="min-h-11 text-left font-medium underline underline-offset-2"
           >
             * Assign a technician before completing this appointment. Move it out of
             the Any column first.
@@ -598,13 +598,14 @@ function MoneyField({
   onChange: (value: number) => void;
 }) {
   return (
-    <label className="block rounded-xl bg-offwhite p-4 ring-1 ring-ink/5">
-      <span className="text-sm font-medium text-ink">{label}</span>
+    <label className="block min-w-0 rounded-xl bg-offwhite p-4 ring-1 ring-ink/5">
+      <span className="block text-sm font-medium text-ink">{label}</span>
       <div className="mt-2 flex items-center gap-2">
         <button
           type="button"
+          aria-label={`Decrease ${label.toLowerCase()}`}
           onClick={() => onChange(Math.max(0, value - 1))}
-          className="rounded-md bg-secondary p-2"
+          className="flex size-11 shrink-0 items-center justify-center rounded-md bg-secondary"
         >
           <Minus className="size-4" />
         </button>
@@ -614,12 +615,13 @@ function MoneyField({
           step={0.01}
           value={value}
           onChange={(e) => onChange(Math.max(0, Number(e.target.value) || 0))}
-          className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-ink"
+          className="h-11 w-full min-w-0 flex-1 rounded-md border border-input bg-background px-3 text-ink"
         />
         <button
           type="button"
+          aria-label={`Increase ${label.toLowerCase()}`}
           onClick={() => onChange(value + 1)}
-          className="rounded-md bg-secondary p-2"
+          className="flex size-11 shrink-0 items-center justify-center rounded-md bg-secondary"
         >
           <Plus className="size-4" />
         </button>
