@@ -27,7 +27,7 @@ function photo(n: string, height: number, chip?: string): BoardPhoto {
 // Three staggered columns on desktop.
 const COLUMNS: { offset: number; photos: BoardPhoto[] }[] = [
   { offset: 0, photos: [photo("14", 300, "Hearts"), photo("01", 220)] },
-  { offset: 56, photos: [photo("63", 360, "Hand-painted"), photo("47", 220)] },
+  { offset: 56, photos: [photo("61", 360, "Hand-painted"), photo("47", 220)] },
   { offset: 18, photos: [photo("03", 250), photo("54", 300, "Sunflower")] },
 ];
 
