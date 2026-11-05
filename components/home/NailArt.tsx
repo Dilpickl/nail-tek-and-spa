@@ -13,8 +13,8 @@ const WAYS = [
 ];
 
 const EXAMPLES = [
-  { n: "38", kicker: "From a photo", quote: "“this, but almond”" },
-  { n: "12", kicker: "From an idea", quote: "“lemons, summery, a little sparkle”" },
+  { n: "76", kicker: "From a photo", quote: "“stars and stripes, for the Fourth”" },
+  { n: "49", kicker: "From an idea", quote: "“Minnie Mouse, but make it chic”" },
   { n: "45", kicker: "Freestyle", quote: "“something wintry, surprise me”" },
 ];
 
