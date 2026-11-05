@@ -7,7 +7,7 @@ export function Footer() {
   const { address } = business;
 
   return (
-    <footer id="contact" className="bg-ink text-beige-100">
+    <footer id="contact" className="scroll-mt-20 bg-ink pb-28 text-beige-100 lg:pb-0">
       <div className="container py-16 md:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr_1fr]">
           {/* Brand + contact */}

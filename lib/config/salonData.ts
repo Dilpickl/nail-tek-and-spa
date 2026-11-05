@@ -805,28 +805,6 @@ export const careers: JobPosting[] = [
   },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Why choose us (trust pillars)                                      */
-/* ------------------------------------------------------------------ */
-
-export const trustPillars = [
-  {
-    title: "Custom Nail Art",
-    description:
-      "Bring a photo, a screenshot, whatever you've saved. Travis and the team can recreate it.",
-  },
-  {
-    title: "Premium Care, Fair Prices",
-    description:
-      "Spa pedicures, lasting color, and solid work. You shouldn't have to overpay for that.",
-  },
-  {
-    title: "Walk-Ins Always Welcome",
-    description:
-      "Book online if you like, or just stop by. Gift cards are here when you need them.",
-  },
-] as const;
-
 /** Legal page metadata (TOS / Privacy are auto-generated from business info). */
 export const legal = {
   businessLegalName: "Nail Tek & Spa INC",

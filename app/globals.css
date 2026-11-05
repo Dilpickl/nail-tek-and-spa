@@ -80,3 +80,141 @@
     font-size: max(16px, 1em);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Public site (Lookbook design)                                      */
+/* ------------------------------------------------------------------ */
+
+/* Public pages use Bodoni Moda + Manrope; the admin keeps Inter / Cormorant. */
+.site-public {
+  --font-serif: var(--font-display);
+  --font-sans: var(--font-body);
+  --background: 34 45% 97%;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  background: hsl(var(--background));
+}
+
+/* Animated titles: each word sits in a mask (.w) so it can rise into view. */
+.nt-title .w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding: 0 0.1em 0.14em;
+  margin: 0 -0.1em -0.14em;
+}
+.nt-title .w > span {
+  display: inline-block;
+}
+
+@keyframes nt-rise {
+  from { opacity: 0; transform: translateY(102%); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes nt-paint {
+  from { clip-path: inset(-20% 105% -30% -8%); }
+  to { clip-path: inset(-20% -8% -30% -8%); }
+}
+@keyframes nt-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes nt-wipe {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes nt-settle {
+  from { transform: scale(1.14); }
+  to { transform: scale(1); }
+}
+@keyframes nt-bar {
+  from { transform: translateY(110%); }
+  to { transform: none; }
+}
+@keyframes nt-line {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Hero: plays on load. "both" keeps each word hidden until its delay. */
+  .nt-title[data-play="load"] .w > span {
+    animation: nt-rise 1s cubic-bezier(0.2, 0.75, 0.1, 1) both;
+    animation-delay: var(--d);
+  }
+  .nt-title[data-play="load"] .w.paint > span {
+    animation: nt-paint 0.85s cubic-bezier(0.65, 0, 0.3, 1) both;
+    animation-delay: var(--d);
+  }
+
+  /* Section titles: hidden until the observer marks them shown. */
+  [data-js] .nt-title[data-play="scroll"]:not([data-shown]) .w > span {
+    opacity: 0;
+    transform: translateY(102%);
+    filter: blur(8px);
+  }
+  [data-js] .nt-title[data-play="scroll"]:not([data-shown]) .w.paint > span {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    clip-path: inset(-20% 105% -30% -8%);
+  }
+  .nt-title[data-play="scroll"][data-shown] .w > span {
+    animation: nt-rise 1s cubic-bezier(0.2, 0.75, 0.1, 1) both;
+    animation-delay: var(--d);
+  }
+  .nt-title[data-play="scroll"][data-shown] .w.paint > span {
+    animation: nt-paint 0.85s cubic-bezier(0.65, 0, 0.3, 1) both;
+    animation-delay: var(--d);
+  }
+
+  /* Hero copy, buttons and stats fade up just behind the headline. */
+  .nt-fi {
+    animation: nt-up 0.9s cubic-bezier(0.2, 0.75, 0.1, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+  .nt-line::before {
+    transform-origin: left;
+    animation: nt-line 0.9s 0.05s cubic-bezier(0.2, 0.75, 0.1, 1) both;
+  }
+
+  /* Hero photos wipe up and settle from a slight zoom. */
+  .nt-wipe {
+    animation: nt-wipe 1.15s cubic-bezier(0.7, 0, 0.2, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+  .nt-wipe img {
+    animation: nt-settle 1.8s cubic-bezier(0.2, 0.75, 0.1, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+  .nt-after {
+    animation: nt-up 0.7s cubic-bezier(0.2, 0.75, 0.1, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  /* Mobile Call / Book bar slides up once the hero has landed. */
+  .nt-bar {
+    animation: nt-bar 0.7s 1s cubic-bezier(0.2, 0.75, 0.1, 1) both;
+  }
+
+  /* Everything else fades up once scrolled into view. */
+  [data-reveal] {
+    transition:
+      opacity 1s cubic-bezier(0.2, 0.75, 0.1, 1),
+      transform 1s cubic-bezier(0.2, 0.75, 0.1, 1);
+    transition-delay: var(--rd, 0ms);
+  }
+  [data-js] [data-reveal]:not([data-shown]) {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  [data-reveal="wipe"] img {
+    transition: clip-path 1.3s cubic-bezier(0.7, 0, 0.2, 1) 0.1s;
+  }
+  [data-js] [data-reveal="wipe"]:not([data-shown]) {
+    opacity: 1;
+    transform: none;
+  }
+  [data-js] [data-reveal="wipe"]:not([data-shown]) img {
+    clip-path: inset(0 0 100% 0);
+  }
+}
