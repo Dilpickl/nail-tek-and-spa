@@ -27,7 +27,13 @@ import {
 } from "@/lib/admin/highlight-appointments";
 import { areNotificationAlertsEnabled } from "@/lib/admin/notification-preferences";
 import { playBookingAlertSound } from "@/lib/admin/alert-sound";
-import { formatMonthDay, formatReadableDate } from "@/lib/admin/format";
+import { formatMonthDay, formatReadableDate, formatTime } from "@/lib/admin/format";
+import {
+  getAppointmentPhase,
+  isActivePhase,
+  type AppointmentPhase,
+} from "@/lib/admin/appointment-phase";
+import { useNow } from "@/lib/admin/use-now";
 import {
   getNextTimeSlot,
   shiftIsoDate,
@@ -214,26 +220,41 @@ export function AdminDashboard({
     return map;
   }, [appointments, columns]);
 
-  const bookedAppointments = useMemo(
+  const now = useNow();
+  const phaseById = useMemo(() => {
+    const map = new Map<string, AppointmentPhase>();
+    appointments.forEach((appointment) => {
+      map.set(appointment.id, getAppointmentPhase(appointment, now));
+    });
+    return map;
+  }, [appointments, now]);
+
+  // Only visits still to come (or in the chair now) drive the "Up next" pill.
+  const activeAppointments = useMemo(
     () =>
       appointments
-        .filter((appointment) => appointment.status === "booked")
+        .filter((appointment) => {
+          const phase = phaseById.get(appointment.id);
+          return phase ? isActivePhase(phase) : false;
+        })
         .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
-    [appointments]
+    [appointments, phaseById]
   );
-  const bookedCount = bookedAppointments.length;
-  const bookedScrollIndexRef = useRef(0);
+  const activeCount = activeAppointments.length;
+  const nextAppointment = activeAppointments[0] ?? null;
+  const nextIsNow = nextAppointment ? phaseById.get(nextAppointment.id) === "now" : false;
+  const activeScrollIndexRef = useRef(0);
 
   useEffect(() => {
-    bookedScrollIndexRef.current = 0;
-  }, [agendaDate, bookedCount]);
+    activeScrollIndexRef.current = 0;
+  }, [agendaDate, activeCount, nextAppointment?.id]);
 
-  function scrollToNextBookedAppointment() {
-    if (bookedAppointments.length === 0) return;
+  function scrollToNextActiveAppointment() {
+    if (activeAppointments.length === 0) return;
 
-    const index = bookedScrollIndexRef.current % bookedAppointments.length;
-    const target = bookedAppointments[index];
-    bookedScrollIndexRef.current = index + 1;
+    const index = activeScrollIndexRef.current % activeAppointments.length;
+    const target = activeAppointments[index];
+    activeScrollIndexRef.current = index + 1;
 
     const element = document.getElementById(`appointment-${target.id}`);
     element?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -271,6 +292,8 @@ export function AdminDashboard({
   async function assignAppointment(appointmentId: string, targetColumnId: string) {
     const appointment = appointments.find((item) => item.id === appointmentId);
     if (!appointment || appointment.status !== "booked") return;
+    const phase = phaseById.get(appointment.id);
+    if (!phase || !isActivePhase(phase)) return;
 
     const currentColumnId =
       appointment.anyTechnician || !appointment.technicianId
@@ -323,23 +346,28 @@ export function AdminDashboard({
 
   return (
     <div className="container py-8 md:py-10">
-      {bookedCount > 0 ? (
+      {nextAppointment ? (
         <button
           type="button"
           aria-live="polite"
-          onClick={scrollToNextBookedAppointment}
+          onClick={scrollToNextActiveAppointment}
           className="fixed bottom-6 right-6 z-30 flex max-w-[min(18rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-left text-offwhite shadow-lg ring-1 ring-ink/20 transition hover:bg-ink/90"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-offwhite/10">
             <CalendarClock className="size-5" />
           </span>
-          <span>
-            <span className="block text-lg font-semibold leading-tight">
-              {bookedCount} still booked
+          <span className="min-w-0">
+            <span className="block text-xs font-medium uppercase tracking-[0.15em] text-offwhite/70">
+              {nextIsNow ? "In the chair" : "Up next"}
             </span>
-            <span className="mt-0.5 block text-xs text-offwhite/70">
-              Tap to jump to next · {formatReadableDate(agendaDate)}
+            <span className="block truncate text-lg font-semibold leading-tight">
+              {nextAppointment.customerName} · {formatTime(nextAppointment.startsAt)}
             </span>
+            {activeCount > 1 && (
+              <span className="mt-0.5 block text-xs text-offwhite/70">
+                {activeCount - 1} more {isToday ? "today" : "this day"}
+              </span>
+            )}
           </span>
         </button>
       ) : (
@@ -352,10 +380,10 @@ export function AdminDashboard({
           </span>
           <span>
             <span className="block text-lg font-semibold leading-tight">
-              0 still booked
+              All done for {formatMonthDay(agendaDate)}
             </span>
             <span className="mt-0.5 block text-xs text-ink-muted">
-              All done for {formatReadableDate(agendaDate)}
+              {formatReadableDate(agendaDate)}
             </span>
           </span>
         </aside>
@@ -495,7 +523,7 @@ export function AdminDashboard({
       )}
 
       <p className="mt-8 text-sm text-ink-muted">
-        Drag booked appointments between columns to reassign technicians.
+        Drag upcoming appointments between columns to reassign technicians.
       </p>
 
       <div className="mt-4 grid gap-5 xl:grid-cols-2">
@@ -589,6 +617,7 @@ export function AdminDashboard({
                     )}
                     <AppointmentCard
                       appointment={appointment}
+                      phase={phaseById.get(appointment.id)}
                       draggable
                       isDragging={draggingId === appointment.id}
                       isNew={highlightedIds.has(appointment.id)}

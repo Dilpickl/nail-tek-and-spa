@@ -6,7 +6,6 @@ import { useState } from "react";
 import {
   ArrowLeft,
   CalendarDays,
-  CheckCircle2,
   Loader2,
   Mail,
   Pencil,
@@ -18,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatBookingTotalLabel, isPricingTbdService, isPriceFromService } from "@/lib/booking/pricing";
 import { formatDateTime, formatMoney } from "@/lib/admin/format";
+import { getAppointmentPhase, phaseLabel } from "@/lib/admin/appointment-phase";
+import { useNow } from "@/lib/admin/use-now";
 
 interface BookedService {
   id: string;
@@ -101,6 +102,10 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
     }
   }
 
+  const now = useNow();
+  const phase = getAppointmentPhase(appointment, now);
+  // Cancel / No-Show stay available after the appointment time: a past
+  // booked visit is shown as done, but can still be corrected.
   const isBooked = appointment.status === "booked";
 
   const confirmCopy =
@@ -134,51 +139,54 @@ export function AppointmentDetailView({ appointment }: { appointment: Appointmen
             Appointment
           </p>
           <h1 className="mt-2 text-4xl font-semibold text-ink">{appointment.customerName}</h1>
-          <p className="mt-1 capitalize text-ink-muted">Status: {statusLabel(appointment.status)}</p>
+          <p className="mt-1 text-ink-muted">Status: {phaseLabel(phase)}</p>
         </div>
 
         {isBooked && (
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Link
-              href={`/admin/appointments/${appointment.id}/complete`}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-medium text-white shadow-sm hover:bg-emerald-800"
-            >
-              <CheckCircle2 className="size-4" />
-              Complete Appointment
-            </Link>
+          <div className="flex flex-col gap-3 sm:items-end">
             <Link
               href={`/admin/appointments/${appointment.id}/edit`}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-ink/20 bg-transparent px-5 text-sm font-medium text-ink hover:bg-ink hover:text-offwhite"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-ink px-5 text-sm font-medium text-offwhite shadow-sm hover:bg-ink/90"
             >
               <Pencil className="size-4" />
               Edit / Move
             </Link>
-            <Button
-              variant="outline"
-              className="min-h-12"
-              disabled={loading !== null}
-              onClick={() => setConfirmAction("no_show")}
-            >
-              {loading === "no_show" ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <XCircle className="size-4" />
-              )}
-              No-Show
-            </Button>
-            <Button
-              variant="outline"
-              className="min-h-12"
-              disabled={loading !== null}
-              onClick={() => setConfirmAction("cancelled")}
-            >
-              {loading === "cancelled" ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <XCircle className="size-4" />
-              )}
-              Cancel
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading !== null}
+                onClick={() => setConfirmAction("no_show")}
+              >
+                {loading === "no_show" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <XCircle className="size-3.5" />
+                )}
+                No-Show
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading !== null}
+                onClick={() => setConfirmAction("cancelled")}
+              >
+                {loading === "cancelled" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <XCircle className="size-3.5" />
+                )}
+                Cancel
+              </Button>
+            </div>
+            {!appointment.transaction && (
+              <Link
+                href={`/admin/appointments/${appointment.id}/complete`}
+                className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+              >
+                Record payment (optional)
+              </Link>
+            )}
           </div>
         )}
       </div>
@@ -368,11 +376,6 @@ function InfoRow({
       </div>
     </div>
   );
-}
-
-function statusLabel(status: AppointmentDetailData["status"]) {
-  if (status === "no_show") return "No-Show";
-  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 function paymentLabel(method: string) {

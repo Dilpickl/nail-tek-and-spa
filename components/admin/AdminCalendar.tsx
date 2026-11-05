@@ -13,6 +13,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/admin/format";
+import {
+  getAppointmentPhase,
+  phaseLabel,
+  type AppointmentPhase,
+} from "@/lib/admin/appointment-phase";
+import { useNow } from "@/lib/admin/use-now";
 import { formatInSalonTime, getDayOfWeek, shiftIsoDate, toIsoDate, toLocalDateTime } from "@/lib/booking/time-utils";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +40,11 @@ interface CalendarAppointment {
   partyGroupId: string | null;
   isGuest: boolean;
   services: string[];
+  /** Derived at read time: past booked visits read as "done". */
+  displayStatus: string;
 }
+
+type RawCalendarAppointment = Omit<CalendarAppointment, "displayStatus">;
 
 interface CalendarTechnician {
   id: string;
@@ -45,7 +55,7 @@ interface CalendarTechnician {
 
 interface CalendarApiResponse {
   technicians: CalendarTechnician[];
-  appointments: CalendarAppointment[];
+  appointments: RawCalendarAppointment[];
 }
 
 interface StatusStyle {
@@ -61,10 +71,20 @@ const DEFAULT_STATUS_STYLE: StatusStyle = {
 };
 
 const STATUS_STYLES: Record<string, StatusStyle> = {
-  booked: {
+  upcoming: {
     badge: "bg-blue-100 text-blue-800",
     border: "border-blue-300 bg-blue-50/60",
     dot: "bg-blue-600",
+  },
+  now: {
+    badge: "bg-ink text-offwhite",
+    border: "border-ink bg-blue-50",
+    dot: "bg-ink",
+  },
+  done: {
+    badge: "bg-slate-100 text-slate-600",
+    border: "border-slate-200 bg-slate-50/60 opacity-75",
+    dot: "bg-slate-400",
   },
   completed: {
     badge: "bg-emerald-100 text-emerald-800",
@@ -93,7 +113,18 @@ const STATUS_STYLES: Record<string, StatusStyle> = {
   },
 };
 
+const KNOWN_STATUSES = new Set(["booked", "completed", "cancelled", "canceled", "no_show"]);
+
+/** Booked visits become upcoming / now / done; other statuses pass through. */
+function deriveDisplayStatus(appointment: RawCalendarAppointment, now: number): string {
+  if (!KNOWN_STATUSES.has(appointment.status.toLowerCase())) return appointment.status;
+  return getAppointmentPhase(appointment, now);
+}
+
+const PHASE_ORDER: AppointmentPhase[] = ["now", "upcoming", "done", "completed", "no_show", "cancelled"];
+
 function statusLabel(status: string): string {
+  if ((PHASE_ORDER as string[]).includes(status)) return phaseLabel(status as AppointmentPhase);
   if (status === "no_show") return "No-Show";
   if (status === "cancelled" || status === "canceled") return "Canceled";
   return status.charAt(0).toUpperCase() + status.slice(1);
@@ -168,7 +199,16 @@ export function AdminCalendar() {
   const [employeeFilter, setEmployeeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [appointments, setAppointments] = useState<CalendarAppointment[]>([]);
+  const [rawAppointments, setAppointments] = useState<RawCalendarAppointment[]>([]);
+  const now = useNow();
+  const appointments = useMemo<CalendarAppointment[]>(
+    () =>
+      rawAppointments.map((appointment) => ({
+        ...appointment,
+        displayStatus: deriveDisplayStatus(appointment, now),
+      })),
+    [rawAppointments, now]
+  );
   const [technicians, setTechnicians] = useState<CalendarTechnician[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -204,8 +244,12 @@ export function AdminCalendar() {
 
   const statusOptions = useMemo(() => {
     const unique = new Set<string>();
-    for (const appointment of appointments) unique.add(appointment.status);
-    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+    for (const appointment of appointments) unique.add(appointment.displayStatus);
+    const rank = (status: string) => {
+      const index = (PHASE_ORDER as string[]).indexOf(status);
+      return index === -1 ? PHASE_ORDER.length : index;
+    };
+    return Array.from(unique).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   }, [appointments]);
 
   const filteredAppointments = useMemo(() => {
@@ -214,7 +258,7 @@ export function AdminCalendar() {
         if (employeeFilter !== "all" && appointment.technicianId !== employeeFilter) {
           return false;
         }
-        if (statusFilter !== "all" && appointment.status !== statusFilter) {
+        if (statusFilter !== "all" && appointment.displayStatus !== statusFilter) {
           return false;
         }
         return true;
@@ -548,7 +592,7 @@ function AppointmentPill({
   appointment: CalendarAppointment;
   onClick: () => void;
 }) {
-  const style = statusStyle(appointment.status);
+  const style = statusStyle(appointment.displayStatus);
   return (
     <span
       role="button"
@@ -583,7 +627,7 @@ function AppointmentPanel({
   appointment: CalendarAppointment;
   onClose: () => void;
 }) {
-  const style = statusStyle(appointment.status);
+  const style = statusStyle(appointment.displayStatus);
   return (
     <div>
       <div className="flex items-start justify-between gap-3">
@@ -599,7 +643,7 @@ function AppointmentPanel({
       </div>
       <div className="mt-2">
         <span className={cn("rounded-full px-2 py-1 text-xs font-semibold", style.badge)}>
-          {statusLabel(appointment.status)}
+          {statusLabel(appointment.displayStatus)}
         </span>
       </div>
       <dl className="mt-4 space-y-3 text-sm">
@@ -655,7 +699,7 @@ function DaySummary({
                 {formatShortTime(appointment.startsAt)} – {appointment.customerName}
               </p>
               <p className="mt-1 text-xs text-ink-muted">
-                {appointment.technicianName} · {statusLabel(appointment.status)}
+                {appointment.technicianName} · {statusLabel(appointment.displayStatus)}
               </p>
             </button>
           ))

@@ -1,14 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CalendarDays, CheckCircle2, GripVertical, Phone } from "lucide-react";
+import { CalendarDays, GripVertical, Phone } from "lucide-react";
 
 import { formatTimeRange } from "@/lib/admin/format";
+import {
+  getAppointmentPhase,
+  isActivePhase,
+  phaseLabel,
+  type AppointmentPhase,
+} from "@/lib/admin/appointment-phase";
 import type { AdminAppointment } from "@/components/admin/AdminDashboard";
 import { cn } from "@/lib/utils";
 
 interface AppointmentCardProps {
   appointment: AdminAppointment;
+  /** Derived display phase; computed from the clock when omitted. */
+  phase?: AppointmentPhase;
   compact?: boolean;
   draggable?: boolean;
   isDragging?: boolean;
@@ -18,8 +26,18 @@ interface AppointmentCardProps {
   onDragEnd?: () => void;
 }
 
+const PHASE_TAG_STYLES: Record<AppointmentPhase, string> = {
+  upcoming: "bg-secondary text-ink",
+  now: "bg-ink text-offwhite",
+  done: "bg-transparent text-ink-muted ring-1 ring-ink/10",
+  completed: "bg-emerald-50 text-emerald-800",
+  cancelled: "bg-red-50 text-red-700",
+  no_show: "bg-amber-50 text-amber-800",
+};
+
 export function AppointmentCard({
   appointment,
+  phase: phaseProp,
   compact = false,
   draggable = false,
   isDragging = false,
@@ -29,14 +47,13 @@ export function AppointmentCard({
   onDragEnd,
 }: AppointmentCardProps) {
   const router = useRouter();
-  const statusStyles: Record<AdminAppointment["status"], string> = {
-    booked: "bg-secondary text-ink",
-    completed: "bg-emerald-50 text-emerald-800",
-    cancelled: "bg-red-50 text-red-700",
-    no_show: "bg-amber-50 text-amber-800",
-  };
+  const phase = phaseProp ?? getAppointmentPhase(appointment);
+  const isNow = phase === "now";
+  // Past visits (done, completed, cancelled, no-show) recede and tighten up.
+  const isPast = !isActivePhase(phase);
+  const dense = compact || isPast;
 
-  const canDrag = draggable && appointment.status === "booked";
+  const canDrag = draggable && appointment.status === "booked" && isActivePhase(phase);
 
   function handleClick() {
     onOpen?.();
@@ -56,6 +73,8 @@ export function AppointmentCard({
       className={cn(
         "relative rounded-xl bg-background ring-1 ring-ink/5 transition-all duration-500",
         canDrag && "cursor-grab active:cursor-grabbing",
+        isPast && !isNew && "opacity-60 hover:opacity-100",
+        isNow && !isNew && "ring-2 ring-ink shadow-md",
         isDragging && "opacity-50 ring-2 ring-ink/30",
         isNew && "bg-emerald-50 ring-2 ring-emerald-400 shadow-md",
         !isDragging && !isNew && "hover:shadow-md"
@@ -69,7 +88,7 @@ export function AppointmentCard({
       <button
         type="button"
         onClick={handleClick}
-        className="block w-full p-4 text-left"
+        className={cn("block w-full text-left", dense ? "px-4 py-3" : "p-4")}
       >
         <div className="flex items-start gap-3">
           {canDrag && (
@@ -80,8 +99,8 @@ export function AppointmentCard({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className={cn("font-semibold text-ink", compact ? "text-base" : "text-lg")}>
+              <div className="min-w-0">
+                <p className={cn("font-semibold text-ink", dense ? "text-base" : "text-lg")}>
                   {appointment.customerName}
                 </p>
                 {appointment.partySize > 1 && (
@@ -90,41 +109,49 @@ export function AppointmentCard({
                     Party of {appointment.partySize}
                   </p>
                 )}
-                {!compact && (
+                {!dense && (
                   <p className="flex items-center gap-1 text-sm text-ink-muted">
                     <Phone className="size-3.5" />
                     {appointment.customerPhone}
                   </p>
                 )}
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-ink-soft">
-                  {sourceLabel(appointment.source)}
-                </span>
+              <div className={cn("flex items-end gap-1", dense ? "flex-row" : "flex-col")}>
+                {!isPast && (
+                  <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-ink-soft">
+                    {sourceLabel(appointment.source)}
+                  </span>
+                )}
                 <span
                   className={cn(
-                    "rounded-full px-3 py-1 text-xs font-semibold capitalize",
-                    statusStyles[appointment.status]
+                    "rounded-full px-3 py-1 text-xs font-semibold",
+                    PHASE_TAG_STYLES[phase]
                   )}
                 >
-                  {statusLabel(appointment.status)}
+                  {phase === "now" ? "Now" : phaseLabel(phase)}
                 </span>
               </div>
             </div>
 
-            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink">
+            <p
+              className={cn(
+                "flex items-center gap-2 text-sm font-semibold text-ink",
+                dense ? "mt-1.5" : "mt-3"
+              )}
+            >
               <CalendarDays className="size-4" />
               {formatTimeRange(appointment.startsAt, appointment.endsAt)}
             </p>
 
             {appointment.services.length > 0 && (
-              <p className="mt-2 text-sm text-ink-muted">{appointment.services.join(", ")}</p>
+              <p className={cn("text-sm text-ink-muted", dense ? "mt-1 truncate" : "mt-2")}>
+                {appointment.services.join(", ")}
+              </p>
             )}
 
-            {appointment.status === "booked" && (
-              <p className="mt-3 flex items-center gap-1 text-xs font-medium text-ink-muted">
-                <CheckCircle2 className="size-3.5" />
-                {canDrag ? "Drag to reassign, or tap to open" : "Tap to view or complete"}
+            {canDrag && !compact && (
+              <p className="mt-3 text-xs font-medium text-ink-muted">
+                Drag to reassign, or tap to open
               </p>
             )}
           </div>
@@ -138,9 +165,4 @@ function sourceLabel(source: AdminAppointment["source"]) {
   if (source === "walk_in") return "Walk-In";
   if (source === "phone") return "Phone";
   return "Online";
-}
-
-function statusLabel(status: AdminAppointment["status"]) {
-  if (status === "no_show") return "No-Show";
-  return status;
 }

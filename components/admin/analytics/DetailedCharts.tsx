@@ -34,7 +34,10 @@ export function DetailedCharts({ data }: DetailedChartsProps) {
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <ChartCard title="Where the Money Came From">
+      <ChartCard
+        title="Where the Money Came From"
+        subtitle={data.revenueEstimate.included ? "Estimated from booked prices" : undefined}
+      >
         {revenueBreakdown.length > 0 ? (
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
@@ -108,6 +111,7 @@ export function DetailedCharts({ data }: DetailedChartsProps) {
         </ResponsiveContainer>
       </ChartCard>
 
+      {data.hasTransactions && (
       <ChartCard title="How Clients Paid">
         {paymentWithAmount.length > 0 ? (
           <ResponsiveContainer width="100%" height={260}>
@@ -134,14 +138,24 @@ export function DetailedCharts({ data }: DetailedChartsProps) {
           <EmptyChart message="No payment data for this period." />
         )}
       </ChartCard>
+      )}
     </div>
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="rounded-2xl bg-background p-5 ring-1 ring-ink/5">
       <h4 className="font-semibold text-ink">{title}</h4>
+      {subtitle && <p className="mt-0.5 text-xs text-ink-muted">{subtitle}</p>}
       <div className="mt-3">{children}</div>
     </section>
   );
