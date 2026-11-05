@@ -49,10 +49,7 @@ export function NailArt() {
               </li>
             ))}
           </ol>
-          <p data-reveal className="mt-6 text-[13px] text-[#9C9186]">
-            Custom art is priced in the chair, before we start.
-          </p>
-          <div data-reveal className="mt-6">
+          <div data-reveal className="mt-9">
             <Link
               href={`/book?service=${NAIL_ART_SERVICE_ID}`}
               className="inline-flex h-[52px] items-center justify-center rounded-sm bg-[#F5EFE8] px-7 text-sm font-bold tracking-[0.02em] text-ink transition-colors hover:bg-white"

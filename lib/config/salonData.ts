@@ -239,7 +239,7 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-58.png", alt: "White and glitter statement nails with bling" },
   { src: "/gallery/nail-59.png", alt: "Orange manicure with silver glitter floral accents" },
   { src: "/gallery/nail-60.png", alt: "Christmas lights and glitter holiday nail art" },
-  { src: "/gallery/nail-61.png", alt: "Tropical sunset ombre nails with palm silhouettes" },
+  { src: "/gallery/nail-61.png", alt: "Hot pink nails with hand-painted flamingo and palm-leaf accents on sky blue" },
   { src: "/gallery/nail-62.png", alt: "Red glitter Christmas nails with candy cane art" },
   { src: "/gallery/nail-63.png", alt: "American flag inspired red white and blue nails" },
   { src: "/gallery/nail-64.png", alt: "Pastel geometric color-block coffin nail art" },
