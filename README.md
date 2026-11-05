@@ -68,13 +68,16 @@ app/                      Routes (public site, /book, /admin, API)
 components/
   booking/                Multi-step customer booking flow
   admin/                  Agenda, calendar, employees, analytics, settings
-  sections/               Home, services, gallery, reviews
+  home/                   Homepage sections ("Lookbook" design) and motion
+  layout/                 Header, footer, mobile Call / Book bar
+  sections/               Services list, careers
 lib/
   config/salonData.ts     Menu, prices, hours, copy
   booking/                Availability, party scheduling, timezone, pricing
   admin/                  Auth, push, appointment updates
   analytics/              Completed-visit reporting
 supabase/                 Schema, migrations, seed
+design/                   Mockups, videos and boards for design reference
 e2e/                      Playwright booking coverage
 ```
 

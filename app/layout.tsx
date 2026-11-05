@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { Inter, Cormorant_Garamond } from "next/font/google";
+import { Bodoni_Moda, Cormorant_Garamond, Inter, Manrope } from "next/font/google";
 
 import { business } from "@/lib/config/salonData";
 import { SiteChrome } from "@/components/layout/SiteChrome";
@@ -16,6 +16,21 @@ const serif = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
+  display: "swap",
+});
+
+/** Public-site fonts (the admin keeps Inter / Cormorant). */
+const display = Bodoni_Moda({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const body = Manrope({
+  subsets: ["latin"],
+  variable: "--font-body",
   display: "swap",
 });
 
@@ -51,7 +66,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
+    <html
+      lang="en"
+      className={`${sans.variable} ${serif.variable} ${display.variable} ${body.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Lets scroll-reveal styles hide content only when JS can reveal it again. */}
+        <script
+          dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.js='1'" }}
+        />
+      </head>
       <body className="min-h-screen flex flex-col">
         <SiteChrome>
           <main className="flex-1">{children}</main>

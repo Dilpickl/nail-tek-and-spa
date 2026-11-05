@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept B · The Lookbook (v7)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#FBF8F4;--ink:#151312;--muted:#71685F;--line:#E8E0D6;--rose:#C7826F;--rose-soft:#F4E4DD;--sand:#EFE7DC}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.55 Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .d{font-family:"Bodoni Moda",Georgia,serif}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 40px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 26px;font-weight:700;font-size:14px;letter-spacing:.02em;white-space:nowrap}
+  .btn-dark{background:var(--ink);color:#fff;border-radius:2px}
+  .btn-line{border-bottom:1.5px solid var(--ink);height:auto;padding:4px 0;border-radius:0}
+
+  nav .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:80px;border-bottom:1px solid var(--line)}
+  nav .l{display:flex;gap:28px;font-size:14px;font-weight:600}
+  nav .logo{font-size:26px;letter-spacing:.02em;text-align:center}
+  nav .logo small{display:block;font-family:Manrope;font-size:10px;letter-spacing:.38em;color:var(--muted);margin-top:-2px}
+  nav .r{display:flex;justify-content:flex-end;align-items:center;gap:22px;font-size:14px;font-weight:600}
+  .mnav{display:none}
+
+  .hero .wrap{display:grid;grid-template-columns:400px 1fr;gap:56px;padding-top:56px;padding-bottom:80px}
+  .issue{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);display:flex;gap:14px;align-items:center}
+  .issue::before{content:"";width:38px;height:1px;background:var(--ink)}
+  h1{font-size:84px;line-height:.94;font-weight:400;letter-spacing:-.02em;margin-top:28px}
+  h1 i{color:var(--rose)}
+  .lede{color:var(--muted);font-size:17px;margin-top:24px;max-width:34ch}
+  .ctas{display:flex;align-items:center;gap:26px;margin-top:36px}
+  .meta{margin-top:48px;border-top:1px solid var(--line);padding-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13px;color:var(--muted)}
+  .meta b{display:block;color:var(--ink);font-size:22px;font-family:"Bodoni Moda";font-weight:500}
+
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+  .col{display:grid;gap:14px}
+  .col:nth-child(2){margin-top:56px}
+  .col:nth-child(3){margin-top:18px}
+  .ph{position:relative;overflow:hidden;background:var(--sand)}
+  .ph img{display:block;width:100%;height:100%;object-fit:cover}
+  .ph .chip{position:absolute;left:10px;bottom:10px;background:rgba(251,248,244,.94);padding:7px 12px;font-size:12px;font-weight:700;border-radius:999px;display:flex;gap:8px;align-items:center}
+  .ph .chip span{color:var(--muted);font-weight:500}
+  .ph .num{position:absolute;top:10px;right:12px;color:#fff;font-family:"Bodoni Moda";font-style:italic;font-size:20px;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+  .h1{height:300px}.h2{height:220px}.h3{height:360px}.h4{height:250px}
+
+  .shot{background:var(--ink);color:#F5EFE8}
+  .shot .wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:80px;align-items:center;padding-top:96px;padding-bottom:96px}
+  .shot h2{font-size:60px;line-height:1;font-weight:400}
+  .shot h2 i{color:#E8B3A3}
+  .shot p{color:#BEB3A7;margin-top:20px;max-width:40ch}
+  .steps{margin-top:34px;display:grid;gap:16px}
+  .step{display:flex;gap:16px;align-items:baseline}
+  .step .d{font-style:italic;color:#E8B3A3;font-size:22px;width:26px}
+  .pair{display:grid;grid-template-columns:200px 60px 1fr;align-items:center}
+  .phone{width:200px;height:400px;border-radius:30px;background:#2a2725;padding:10px;box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}
+  .phone .scr{width:100%;height:100%;border-radius:22px;overflow:hidden;background:#fff;position:relative}
+  .phone .scr img{width:100%;height:68%;object-fit:cover;filter:saturate(1.1)}
+  .phone .bar{padding:10px 12px;color:#151312;font-size:11px}
+  .phone .bar b{display:block;font-size:12px}
+  .arrow{text-align:center;font-family:"Bodoni Moda";font-style:italic;font-size:44px;color:#E8B3A3}
+  .result{height:440px;overflow:hidden;position:relative}
+  .result img{width:100%;height:100%;object-fit:cover}
+  .result .lbl{position:absolute;left:14px;bottom:14px;background:#F5EFE8;color:#151312;padding:8px 14px;font-size:12px;font-weight:700;border-radius:999px}
+
+  .rail .wrap{padding-top:84px;padding-bottom:90px}
+  .rail-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:34px}
+  .rail-head h2{font-size:46px;font-weight:400}
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink)}
+  .q{padding:26px 28px 0 0}
+  .q + .q{padding-left:28px;border-left:1px solid var(--line)}
+  .q .qt{font-family:"Bodoni Moda";font-size:21px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .q.open .qt{display:block;-webkit-line-clamp:unset;font-size:18px;line-height:1.45}
+  .more{margin-top:10px;background:none;border:0;padding:6px 0;font:700 13px Manrope;color:var(--ink);border-bottom:1.5px solid var(--rose);cursor:pointer}
+  .more .m2,.q.open .more .m1{display:none}
+  .q.open .more .m2{display:inline}
+  .q small{display:block;margin-top:16px;color:var(--muted);font-size:13px}
+
+  .svc{margin-top:22px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+  .svc span{color:var(--rose);margin:0 4px}
+  .beyond{border-top:1px solid var(--line)}
+  .beyond .wrap{padding-top:72px;padding-bottom:80px}
+  .bhead{display:flex;justify-content:space-between;align-items:end;gap:40px;margin-bottom:30px}
+  .bhead h2{font-size:52px;font-weight:400;line-height:1;margin-top:14px}
+  .bhead h2 i{color:var(--rose)}
+  .bhead p{color:var(--muted);max-width:36ch}
+  .bgrid{display:grid;grid-template-columns:repeat(3,1fr) 1.25fr;gap:14px}
+  .btile{background:var(--sand);padding:24px;display:flex;flex-direction:column;gap:6px;min-height:230px}
+  .btile .k,.upsell .k{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+  .btile .pr{font-size:40px;margin-top:6px}
+  .btile .ls{color:var(--muted);font-size:14px}
+  .btile .add{margin-top:auto;font-weight:700;font-size:14px;border-bottom:1.5px solid var(--ink);align-self:flex-start;padding-bottom:2px}
+  .upsell{padding:4px 0 0 10px;display:flex;flex-direction:column;gap:12px}
+  .ucard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 20px 40px -28px rgba(21,19,18,.4);font-size:14px}
+  .urow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0}
+  .urow small{color:var(--muted)}
+  .uq{font-family:"Bodoni Moda";font-size:19px;margin:8px 0 4px;padding-top:10px;border-top:1px solid var(--line)}
+  .opt{border:1.5px solid var(--ink);border-radius:10px;padding:10px 12px;margin-top:6px}
+  .opt.dim{border-color:var(--line)}
+  .cb{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:5px;border:1.5px solid var(--ink);font-size:11px;margin-right:8px;vertical-align:-3px}
+  .opt:not(.dim) .cb{background:var(--ink);color:#fff}
+  .fine{font-size:13px;margin-top:22px!important;color:#9C9186!important}
+  .ways{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+  .way{margin:0}
+  .way.w2{margin-top:48px}
+  .way img{display:block;width:100%;height:330px;object-fit:cover}
+  .way figcaption{font-family:"Bodoni Moda";font-style:italic;font-size:17px;color:#E9DED3;margin-top:12px;line-height:1.3}
+  .way figcaption span{display:block;font:700 11px Manrope;letter-spacing:.18em;text-transform:uppercase;font-style:normal;color:#E8B3A3;margin-bottom:6px}
+  .navcall{font-weight:700}
+  .callline{margin-top:18px;font-size:14px;color:var(--muted)}
+  .callline a{color:var(--ink);font-weight:700;border-bottom:1.5px solid var(--rose)}
+  .family{border-top:1px solid var(--line)}
+  .family .wrap{display:grid;grid-template-columns:.85fr 1.15fr;gap:72px;align-items:center;padding-top:84px;padding-bottom:36px}
+  .fphoto{margin:0;width:100%;max-width:420px;justify-self:center}
+  .fphoto img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 35%;filter:saturate(.92) contrast(1.02)}
+  .fphoto figcaption{margin-top:12px;font-family:"Bodoni Moda";font-style:italic;font-size:15px;color:var(--muted)}
+  .family h2{font-size:50px;font-weight:400;line-height:1.02;margin-top:16px}
+  .family h2 i{color:var(--rose)}
+  .ftext p{color:var(--muted);margin-top:18px;max-width:46ch}
+  .ftext .sig{color:var(--ink);font-style:italic;font-size:20px}
+  .sticky-m{display:none}
+
+  @media (max-width:600px){
+    .wrap{padding:0 18px}
+    nav .wrap{grid-template-columns:auto 1fr auto;height:62px}
+    nav .l,nav .r{display:none}
+    nav .logo{text-align:left;font-size:22px}
+    .mnav{display:flex;gap:10px;justify-content:flex-end;align-items:center;font-size:13px;font-weight:700}
+    .mnav .call{height:40px;padding:0 14px;border:1.5px solid var(--line);border-radius:999px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+    .hero .wrap{grid-template-columns:1fr;gap:26px;padding-top:24px;padding-bottom:48px}
+    h1{font-size:50px;margin-top:16px}
+    .lede{font-size:15.5px;margin-top:14px}
+    .ctas{flex-direction:column;align-items:stretch;gap:14px;margin-top:22px}
+    .ctas .btn-line{align-self:center}
+    .meta{margin-top:22px}
+    .board{display:flex;overflow:hidden;gap:10px;margin:0 -18px;padding:0 18px}
+    .col{display:contents}
+    .ph{flex:0 0 62%;height:330px!important;margin:0!important}
+    .ph:nth-child(n+4){display:none}
+    .shot .wrap{grid-template-columns:1fr;gap:34px;padding-top:56px;padding-bottom:56px}
+    .shot h2{font-size:40px}
+    .pair{grid-template-columns:120px 34px 1fr}
+    .phone{width:120px;height:240px;border-radius:20px;padding:6px}
+    .phone .scr{border-radius:15px}
+    .phone .bar{font-size:9px;padding:6px 8px}.phone .bar b{font-size:10px}
+    .arrow{font-size:28px}
+    .result{height:250px}
+    .rail .wrap{padding-top:52px;padding-bottom:110px}
+    .rail-head{flex-direction:column;align-items:flex-start;gap:12px}
+    .rail-head h2{font-size:34px}
+    .quotes{grid-template-columns:1fr}
+    .q,.q + .q{padding:20px 0;border-left:none;border-bottom:1px solid var(--line)}
+    .svc{font-size:11px;letter-spacing:.1em;margin-top:16px}
+    .beyond .wrap{padding-top:44px;padding-bottom:44px}
+    .bhead{flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:20px}
+    .bhead h2{font-size:36px}
+    .bgrid{grid-template-columns:1fr;gap:8px}
+    .btile{padding:14px 16px;min-height:0;display:grid;grid-template-columns:1fr auto;grid-template-areas:"k pr" "ls ls" "add add";column-gap:12px;row-gap:4px;align-items:baseline}
+    .btile .k{grid-area:k}
+    .btile .pr{grid-area:pr;font-size:24px;margin:0}
+    .btile .ls{grid-area:ls;font-size:13px}
+    .btile .add{grid-area:add;font-size:13px;margin-top:6px}
+    .upsell{grid-column:1/-1;padding:8px 0 0}
+    .ways{gap:8px}
+    .way.w2{margin-top:24px}
+    .way img{height:170px}
+    .way figcaption{font-size:13px}
+    .way figcaption span{font-size:9px;letter-spacing:.12em}
+    .sticky-m{display:flex;flex-direction:column;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);color:#fff;padding:10px 14px 20px;gap:8px}
+    .sticky-m .t{font-size:12px;color:#D9CFC4;text-align:center}
+    .sticky-m .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5BC27A;margin-right:7px;vertical-align:1px}
+    .sbtns{display:grid;grid-template-columns:1fr 1.6fr;gap:8px}
+    .sticky-m .btn{background:#F5EFE8;color:var(--ink);height:48px;border-radius:2px;padding:0 14px}
+    .sticky-m .sb-call{background:transparent;color:#F5EFE8;border:1.5px solid #5a524b}
+    .callline{display:none}
+    .family .wrap{grid-template-columns:1fr!important;gap:22px!important;padding-top:48px!important;padding-bottom:20px!important}
+    .fphoto{max-width:none}
+    .fphoto img{aspect-ratio:1/1;object-position:50% 30%}
+    .family h2{font-size:34px!important}
+  }
+  /* ---------- motion ---------- */
+  @media (prefers-reduced-motion: no-preference){
+    .js h1 .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .1em .14em;margin:0 -.1em -.14em}
+    .js h1 .w>span{display:inline-block;opacity:0;transform:translateY(102%);filter:blur(8px);
+      animation:nb-rise 1s cubic-bezier(.2,.75,.1,1) forwards;animation-delay:calc(var(--i)*65ms + 80ms)}
+    /* "your way." waits for the rest of the line, then paints on left to right */
+    .js h1 .w.paint>span{opacity:1;transform:none;filter:none;clip-path:inset(-20% 105% -30% -8%);
+      animation:nb-paint .85s cubic-bezier(.65,0,.3,1) forwards;animation-delay:calc(var(--p)*260ms + 820ms)}
+    /* section titles: words rise, then the rose italic paints on, once the title is well in view */
+    .js h2.split .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .1em .14em;margin:0 -.1em -.14em}
+    .js h2.split .w>span{display:inline-block;opacity:0;transform:translateY(102%);filter:blur(8px)}
+    .js h2.split.in .w>span{animation:nb-rise 1s cubic-bezier(.2,.75,.1,1) forwards;animation-delay:calc(var(--i)*65ms)}
+    .js h2.split .w.paint>span{opacity:1;transform:none;filter:none;clip-path:inset(-20% 105% -30% -8%)}
+    .js h2.split.in .w.paint>span{animation:nb-paint .85s cubic-bezier(.65,0,.3,1) forwards;animation-delay:calc(var(--pb) + var(--p)*260ms)}
+    .js .fi{opacity:0;transform:translateY(14px);animation:nb-up .9s cubic-bezier(.2,.75,.1,1) forwards;animation-delay:var(--d)}
+    .js .hero .issue::before{transform-origin:left;transform:scaleX(0);animation:nb-line .9s .05s cubic-bezier(.2,.75,.1,1) forwards}
+    .js .board .ph{clip-path:inset(100% 0 0 0);animation:nb-wipe 1.15s cubic-bezier(.7,0,.2,1) forwards;animation-delay:calc(var(--i)*95ms + 200ms)}
+    .js .board .ph img{transform:scale(1.14);animation:nb-settle 1.8s cubic-bezier(.2,.75,.1,1) forwards;animation-delay:calc(var(--i)*95ms + 200ms)}
+    .js .board .ph .chip,.js .board .ph .num{opacity:0;animation:nb-up .7s cubic-bezier(.2,.75,.1,1) forwards;animation-delay:calc(var(--i)*95ms + 1100ms)}
+    .js .sticky-m{transform:translateY(110%);animation:nb-bar .7s 1s cubic-bezier(.2,.75,.1,1) forwards}
+    .js .rv{opacity:0;transform:translateY(26px);transition:opacity 1s cubic-bezier(.2,.75,.1,1),transform 1s cubic-bezier(.2,.75,.1,1);transition-delay:calc(var(--s,0)*110ms)}
+    .js .rv.in{opacity:1;transform:none}
+    .js .fphoto.rv img{clip-path:inset(0 0 100% 0);transition:clip-path 1.3s cubic-bezier(.7,0,.2,1) .1s}
+    .js .fphoto.rv.in img{clip-path:inset(0 0 0 0)}
+    .js .way.rv img,.js .btile.rv{transition-duration:1.1s}
+  }
+  @keyframes nb-rise{to{opacity:1;transform:none;filter:blur(0)}}
+  @keyframes nb-paint{0%{clip-path:inset(-20% 105% -30% -8%)}100%{clip-path:inset(-20% -8% -30% -8%)}}
+  @keyframes nb-up{to{opacity:1;transform:none}}
+  @keyframes nb-line{to{transform:scaleX(1)}}
+  @keyframes nb-wipe{to{clip-path:inset(0 0 0 0)}}
+  @keyframes nb-settle{to{transform:scale(1)}}
+  @keyframes nb-bar{to{transform:none}}
+</style>
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+  <nav><div class="wrap">
+    <div class="l"><a>Lookbook</a><a>Services &amp; prices</a><a>Visit</a></div>
+    <a class="logo d">Nail Tek &amp; Spa<small>ALGONQUIN · IL</small></a>
+    <div class="r"><a class="navcall">✆ (847) 458-4560</a><a class="btn btn-dark" style="height:44px">Book a visit</a></div>
+    <div class="mnav"><a class="call">✆ (847) 458-4560</a></div>
+  </div></nav>
+
+  <section class="hero"><div class="wrap">
+    <div>
+      <div class="issue fi" style="--d:0ms">The Lookbook · Fall 2026</div>
+      <h1 class="d"><span class="w" style="--i:0"><span>Your</span></span> <span class="w" style="--i:1"><span>nails,</span></span> <i><span class="w paint" style="--p:0"><span>your</span></span> <span class="w paint" style="--p:1"><span>way.</span></span></i> <span class="w" style="--i:2"><span>We'll</span></span> <span class="w" style="--i:3"><span>do</span></span> <span class="w" style="--i:4"><span>the</span></span> <span class="w" style="--i:5"><span>rest.</span></span></h1>
+      <p class="svc fi" style="--d:620ms">Nails <span>·</span> Pedicures <span>·</span> Waxing <span>·</span> Brows &amp; Lashes</p>
+      <p class="lede fi" style="--d:700ms">Every set here was done in our chairs on Randall Road. Point at a look, describe an idea, or let us design something just for you.</p>
+      <div class="ctas fi" style="--d:780ms">
+        <a class="btn btn-dark">Book a visit</a>
+        <a class="btn btn-line">Browse 77 looks</a>
+      </div>
+      <p class="callline fi" style="--d:860ms">Prefer to call? <a>(847) 458-4560</a> · walk-ins welcome</p>
+      <div class="meta fi" style="--d:940ms">
+        <div><b>4.4 ★</b>181 Google reviews</div>
+        <div><b>From $10</b>Brows · pedis from $25</div>
+      </div>
+    </div>
+    <div class="board">
+      <div class="col">
+        <div class="ph h1"><img src="../../public/gallery/nail-14.png"><span class="num">01</span><a class="chip">Book this look <span>Gel · hearts</span></a></div>
+        <div class="ph h2"><img src="../../public/gallery/nail-01.png"><span class="num">02</span></div>
+      </div>
+      <div class="col">
+        <div class="ph h3"><img src="../../public/gallery/nail-63.png"><span class="num">03</span><a class="chip">Book this look <span>Hand-painted</span></a></div>
+        <div class="ph h2"><img src="../../public/gallery/nail-47.png"><span class="num">04</span></div>
+      </div>
+      <div class="col">
+        <div class="ph h4"><img src="../../public/gallery/nail-03.png"><span class="num">05</span></div>
+        <div class="ph h1"><img src="../../public/gallery/nail-54.png"><span class="num">06</span><a class="chip">Book this look <span>Sunflower</span></a></div>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="beyond"><div class="wrap">
+    <div class="bhead">
+      <div>
+        <div class="issue">Beyond nails</div>
+        <h2 class="d">Same chair, <i>same visit.</i></h2>
+      </div>
+      <p>Add any of these to your appointment, or come in just for them. Walk-ins welcome.</p>
+    </div>
+    <div class="bgrid">
+      <a class="btile">
+        <span class="k">Brows &amp; face</span>
+        <span class="pr d">from $10</span>
+        <span class="ls">Eyebrows $10 · Lip $10 · Chin $10</span>
+        <span class="add">+ Add to booking</span>
+      </a>
+      <a class="btile">
+        <span class="k">Lashes</span>
+        <span class="pr d">from $30</span>
+        <span class="ls">Extensions $40 · Tinting $30</span>
+        <span class="add">+ Add to booking</span>
+      </a>
+      <a class="btile">
+        <span class="k">Body waxing</span>
+        <span class="pr d">from $30</span>
+        <span class="ls">Underarms $30 · Bikini $40 · Half legs $45</span>
+        <span class="add">+ Add to booking</span>
+      </a>
+      <div class="upsell">
+        <span class="k" style="color:var(--muted)">In the booking flow</span>
+        <div class="ucard">
+          <div class="urow"><span><b>No-Chip Manicure</b><br><small>45 min</small></span><span>$35</span></div>
+          <div class="uq">Want brows while you're here?</div>
+          <div class="urow opt"><span><span class="cb">✓</span> Eyebrow wax <small>+10 min</small></span><span>+$10</span></div>
+          <div class="urow opt dim"><span><span class="cb"></span> Lash tinting <small>+20 min</small></span><span>+$30</span></div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="shot"><div class="wrap">
+    <div>
+      <h2 class="d">However you dream it up, <i>we can paint it.</i></h2>
+      <p>Bring a photo, give us a few words, or hand over the brush. Travis and Daisy do custom designs every day, and it's the thing regulars mention most in their reviews.</p>
+      <div class="steps">
+        <div class="step"><span class="d">i.</span><div><b>Show us a picture</b> · Pinterest, Instagram, a friend's hands</div></div>
+        <div class="step"><span class="d">ii.</span><div><b>Describe an idea</b> · colors, a theme, the occasion</div></div>
+        <div class="step"><span class="d">iii.</span><div><b>Let us freestyle</b> · tell us the mood, we'll design it</div></div>
+      </div>
+      <p class="fine">Custom art is priced in the chair, before we start.</p>
+      <a class="btn" style="background:#F5EFE8;color:#151312;margin-top:26px;border-radius:2px">Book a nail art visit</a>
+    </div>
+    <div class="ways">
+      <figure class="way"><img src="../../public/gallery/nail-38.png"><figcaption><span>From a photo</span>“this, but almond”</figcaption></figure>
+      <figure class="way w2"><img src="../../public/gallery/nail-12.png"><figcaption><span>From an idea</span>“lemons, summery, a little sparkle”</figcaption></figure>
+      <figure class="way"><img src="../../public/gallery/nail-45.png"><figcaption><span>Freestyle</span>“something wintry, surprise me”</figcaption></figure>
+    </div>
+  </div></section>
+
+  <section class="family"><div class="wrap">
+    <figure class="fphoto"><img src="img/team.jpg" alt="The family behind Nail Tek &amp; Spa"><figcaption>The family behind Nail Tek &amp; Spa</figcaption></figure>
+    <div class="ftext">
+      <div class="issue">Family-owned on Randall Road</div>
+      <h2 class="d">A family business, <i>not a chain.</i></h2>
+      <p>Nail Tek &amp; Spa is owned and run by a local family. When you book with us, you're supporting the people doing your nails, not a franchise.</p>
+      <p class="sig d">— Travis, Daisy &amp; the Nail Tek team</p>
+    </div>
+  </div></section>
+
+  <section class="rail"><div class="wrap">
+    <div class="rail-head">
+      <h2 class="d">In their words</h2>
+      <a class="btn btn-line">Read all 181 on Google</a>
+    </div>
+    <div class="quotes">
+      <div class="q">
+        <p class="qt">“Travis and Daisy always leave me happy with my nails and always treat me like family! Travis goes above and beyond with his nail designs and we always have a great time at my appointments. You can show Travis any inspiration pictures and he can recreate them perfectly! They are also very efficient with their time and get you done within an hour. This will forever be my nail salon!”</p>
+        <button class="more" onclick="this.parentElement.classList.toggle('open')"><span class="m1">Read full review</span><span class="m2">Show less</span></button>
+        <small>Samantha F. · Google ★★★★★</small>
+      </div>
+      <div class="q">
+        <p class="qt">“I am always super nervous to try anything but a solid color at new salons. I was looking in the area for well rated nail salons when I came across this one and decided to give it a try. Glad I did. The staff was extremely friendly and respectful. I can’t say enough good things about them. It was all smiles. They did a wonderful job. I live an hour away but would definitely make the trip to return back to this salon. Thank you Travis &amp; Daisy!!!”</p>
+        <button class="more" onclick="this.parentElement.classList.toggle('open')"><span class="m1">Read full review</span><span class="m2">Show less</span></button>
+        <small>Jozie T. · Google ★★★★★</small>
+      </div>
+      <div class="q">
+        <p class="qt">“I’ve lived in the Algonquin area for some time and it’s been so hard to find a nail salon I can actually go back to!! I stumbled upon Nail Tek &amp; Spa being that it is super close to my house and YAY amazing work. My shape is beautiful and I actually found a place I’ll be more than happy to go back to. 10/10 recommended (:”</p>
+        <button class="more" onclick="this.parentElement.classList.toggle('open')"><span class="m1">Read full review</span><span class="m2">Show less</span></button>
+        <small>Julie T. · Google ★★★★★</small>
+      </div>
+    </div>
+  </div></section>
+
+  <div class="sticky-m">
+    <div class="t"><i class="dot"></i>Open today until 8 PM · walk-ins welcome</div>
+    <div class="sbtns"><a class="btn sb-call">✆ Call</a><a class="btn">Book a visit</a></div>
+  </div>
+<script>
+(function(){
+  document.querySelectorAll('.board .ph').forEach(function(el,i){el.style.setProperty('--i',i)});
+  var groups=['.beyond .issue','.bhead p','.btile','.upsell','.shot p','.step','.shot .btn','.way','.fphoto','.ftext .issue','.ftext p','.rail-head .btn','.q'];
+  var els=[];
+  groups.forEach(function(sel){document.querySelectorAll(sel).forEach(function(el,i){el.classList.add('rv');el.style.setProperty('--s',el.parentElement.querySelectorAll(':scope > '+el.tagName.toLowerCase()).length>1?i:0);els.push(el)})});
+  // Split section titles into words; italic (rose) words get the paint-on effect after the rest lands.
+  var titles=[];
+  document.querySelectorAll('section h2.d').forEach(function(h){
+    var n=0,p=0,out=document.createDocumentFragment();
+    function words(text,paint,into){
+      text.split(/(\s+)/).forEach(function(t){
+        if(!t)return;
+        if(/^\s+$/.test(t)){into.appendChild(document.createTextNode(t));return}
+        var w=document.createElement('span');w.className='w'+(paint?' paint':'');
+        if(paint)w.style.setProperty('--p',p++);else w.style.setProperty('--i',n++);
+        var inner=document.createElement('span');inner.textContent=t;w.appendChild(inner);into.appendChild(w);
+      });
+    }
+    Array.prototype.slice.call(h.childNodes).forEach(function(node){
+      if(node.nodeType===3)words(node.textContent,false,out);
+      else{var i=document.createElement(node.tagName);words(node.textContent,true,i);out.appendChild(i)}
+    });
+    h.textContent='';h.appendChild(out);h.classList.add('split');
+    h.style.setProperty('--pb',(n*65+650)+'ms');
+    titles.push(h);
+  });
+  if(!('IntersectionObserver' in window)){els.concat(titles).forEach(function(e){e.classList.add('in')});return}
+  // Titles only start once they are fully on screen and above the bottom fifth, so they never play early.
+  var tio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');tio.unobserve(e.target)}})},{threshold:1,rootMargin:'0px 0px -20% 0px'});
+  titles.forEach(function(h){tio.observe(h)});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { MobileActionBar } from "@/components/layout/MobileActionBar";
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,10 +15,11 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <div className="site-public flex min-h-screen flex-col">
       <Header />
       {children}
       <Footer />
-    </>
+      <MobileActionBar />
+    </div>
   );
 }

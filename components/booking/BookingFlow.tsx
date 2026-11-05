@@ -24,6 +24,7 @@ import {
 import {
   getSelectedServiceVariantIds,
   getServiceById,
+  getServiceCategoryId,
   serviceCategories,
 } from "@/lib/config/salonData";
 import type { BookingTechnicianOption } from "@/lib/technicians/types";
@@ -561,6 +562,25 @@ function ServiceStep({
               </p>
             )}
 
+            <AddOnSuggestion
+              serviceIds={member.serviceIds}
+              onToggle={(serviceId) => {
+                onFieldEdit(servicesFieldId);
+                setParty((current) =>
+                  current.map((item) =>
+                    item.id !== member.id
+                      ? item
+                      : {
+                          ...item,
+                          serviceIds: item.serviceIds.includes(serviceId)
+                            ? item.serviceIds.filter((id) => id !== serviceId)
+                            : [...item.serviceIds, serviceId],
+                        }
+                  )
+                );
+              }}
+            />
+
             <div className="mt-4 space-y-5">
               {serviceCategories.map((category) => (
                 <div key={`${member.id}-${category.id}`}>
@@ -725,6 +745,72 @@ function ServiceStep({
         <Plus className="size-4" />
         Add Guest
       </Button>
+    </div>
+  );
+}
+
+/** Nail services that prompt the quick brow / lash add-on suggestion. */
+const ADD_ON_TRIGGER_CATEGORIES = new Set(["pedicures", "manicures", "enhancements"]);
+const SUGGESTED_ADD_ON_IDS = ["wax-eyebrows", "lash-tinting"];
+const ADD_ON_LABELS: Record<string, string> = {
+  "wax-eyebrows": "Eyebrow wax",
+  "lash-tinting": "Lash tinting",
+};
+
+function AddOnSuggestion({
+  serviceIds,
+  onToggle,
+}: {
+  serviceIds: string[];
+  onToggle: (serviceId: string) => void;
+}) {
+  const hasNailService = serviceIds.some((id) =>
+    ADD_ON_TRIGGER_CATEGORIES.has(getServiceCategoryId(id) ?? "")
+  );
+  if (!hasNailService) return null;
+
+  const addOns = SUGGESTED_ADD_ON_IDS.map((id) => getServiceById(id)).filter(
+    (service): service is NonNullable<typeof service> => Boolean(service)
+  );
+
+  return (
+    <div className="mt-4 rounded-xl border border-ink/10 bg-offwhite p-4">
+      <p className="font-serif text-lg text-ink">Want brows while you&apos;re here?</p>
+      <p className="mt-0.5 text-sm text-ink-muted">Add one to the same visit.</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {addOns.map((service) => {
+          const selected = serviceIds.includes(service.id);
+          return (
+            <button
+              key={service.id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onToggle(service.id)}
+              className={cn(
+                "flex min-h-12 items-center justify-between gap-3 rounded-lg border-[1.5px] px-3 py-2.5 text-left text-sm transition-colors",
+                selected ? "border-ink bg-background" : "border-border bg-background hover:border-ink/40"
+              )}
+            >
+              <span className="flex items-center gap-2.5">
+                <span
+                  aria-hidden
+                  className={cn(
+                    "inline-flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border-[1.5px] border-ink text-[11px]",
+                    selected && "bg-ink text-offwhite"
+                  )}
+                >
+                  {selected ? "✓" : ""}
+                </span>
+                <span>
+                  <span className="font-medium text-ink">{ADD_ON_LABELS[service.id] ?? service.name}</span>
+                  <span className="ml-1.5 text-ink-muted">+{formatDuration(service.durationMinutes)}</span>
+                </span>
+              </span>
+              <span className="font-semibold text-ink">+{formatServicePriceLabel(service.id)}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

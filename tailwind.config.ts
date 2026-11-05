@@ -26,6 +26,15 @@ const config: Config = {
           300: "#E0D5BB",
         },
         offwhite: "#FAFAFA",
+        // Public-site accents (Lookbook design).
+        cream: "#FBF8F4",
+        sand: "#EFE7DC",
+        line: "#E8E0D6",
+        rose: {
+          DEFAULT: "#C7826F",
+          soft: "#F4E4DD",
+          light: "#E8B3A3",
+        },
         ink: {
           DEFAULT: "#111111",
           soft: "#2A2A2A",
