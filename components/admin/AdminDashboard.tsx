@@ -345,13 +345,13 @@ export function AdminDashboard({
   }
 
   return (
-    <div className="container py-8 md:py-10">
+    <div className="container pb-32 pt-8 md:pb-32 md:pt-10">
       {nextAppointment ? (
         <button
           type="button"
           aria-live="polite"
           onClick={scrollToNextActiveAppointment}
-          className="fixed bottom-6 right-6 z-30 flex max-w-[min(18rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-left text-offwhite shadow-lg ring-1 ring-ink/20 transition hover:bg-ink/90"
+          className="fixed bottom-4 right-4 z-30 flex max-w-[min(20rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-left text-offwhite shadow-lg ring-1 ring-ink/20 transition hover:bg-ink/90 sm:bottom-6 sm:right-6 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-offwhite/10">
             <CalendarClock className="size-5" />
@@ -373,7 +373,7 @@ export function AdminDashboard({
       ) : (
         <aside
           aria-live="polite"
-          className="fixed bottom-6 right-6 z-30 flex max-w-[min(18rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl bg-offwhite px-4 py-3 text-ink shadow-lg ring-1 ring-ink/10"
+          className="fixed bottom-4 right-4 z-30 flex max-w-[min(20rem,calc(100vw-2rem))] items-center gap-3 rounded-2xl bg-offwhite px-4 py-3 text-ink shadow-lg ring-1 ring-ink/10 sm:bottom-6 sm:right-6"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
             <CalendarClock className="size-5" />
@@ -404,29 +404,33 @@ export function AdminDashboard({
           )}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="default"
-            aria-label="Previous day"
-            onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, -1))}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <p className="min-w-[14rem] text-center text-ink-muted">
-            {formatReadableDate(agendaDate)}
-          </p>
-          <Button
-            variant="outline"
-            size="default"
-            aria-label="Next day"
-            onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, 1))}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <Button
+              variant="outline"
+              size="default"
+              aria-label="Previous day"
+              className="size-11 shrink-0 p-0"
+              onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, -1))}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <p className="min-w-0 flex-1 text-center text-sm text-ink-muted sm:min-w-[14rem] sm:flex-none sm:text-base">
+              {formatReadableDate(agendaDate)}
+            </p>
+            <Button
+              variant="outline"
+              size="default"
+              aria-label="Next day"
+              className="size-11 shrink-0 p-0"
+              onClick={() => goToAgendaDate(shiftIsoDate(agendaDate, 1))}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
           {!isToday && (
             <Button
               onClick={() => goToAgendaDate(today)}
-              className="shadow-md ring-2 ring-ink/30 ring-offset-2 ring-offset-background"
+              className="min-h-11 w-full shadow-md ring-2 ring-ink/30 ring-offset-2 ring-offset-background sm:w-auto"
             >
               Back to today
             </Button>
@@ -547,7 +551,7 @@ export function AdminDashboard({
               }}
               onDrop={(event) => handleDrop(event, column.id)}
               className={cn(
-                "rounded-2xl bg-offwhite p-5 ring-1 transition-all",
+                "min-w-0 rounded-2xl bg-offwhite p-4 ring-1 transition-all sm:p-5",
                 isDropTarget ? "ring-2 ring-ink bg-secondary/40" : "ring-ink/5"
               )}
             >

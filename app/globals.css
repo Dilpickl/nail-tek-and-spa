@@ -68,3 +68,15 @@
     @apply w-[72vw] max-w-[18rem] shrink-0 snap-start;
   }
 }
+
+/*
+ * iOS Safari zooms the whole page when a focused field's text is under 16px.
+ * Keep form text at least 16px on iOS only, so desktop sizing is unchanged.
+ */
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}

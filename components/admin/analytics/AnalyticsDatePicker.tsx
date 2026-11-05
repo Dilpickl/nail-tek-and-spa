@@ -39,7 +39,7 @@ export function AnalyticsDatePicker({
 }: AnalyticsDatePickerProps) {
   return (
     <div className="space-y-3">
-      <div className="inline-flex max-w-full flex-wrap rounded-full bg-offwhite p-1 ring-1 ring-ink/8">
+      <div className="grid w-full grid-cols-4 gap-1 rounded-full bg-offwhite p-1 ring-1 ring-ink/10 sm:inline-flex sm:w-auto">
         {PRIMARY_PRESETS.map((option) => (
           <PresetButton
             key={option.value}
@@ -62,7 +62,7 @@ export function AnalyticsDatePicker({
                 type="button"
                 onClick={() => onPresetChange(option.value)}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                  "min-h-11 rounded-full px-4 text-sm font-medium transition-colors",
                   preset === option.value
                     ? "bg-secondary text-ink ring-1 ring-ink/15"
                     : "text-ink-muted hover:bg-offwhite hover:text-ink"
@@ -74,23 +74,23 @@ export function AnalyticsDatePicker({
           </div>
 
           {preset === "custom" && (
-            <div className="mt-3 flex flex-wrap items-end gap-3">
-              <label className="block">
+            <div className="mt-3 grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+              <label className="block min-w-0">
                 <span className="text-xs font-medium text-ink-muted">From</span>
                 <input
                   type="date"
                   value={customFrom}
                   onChange={(e) => onCustomFromChange(e.target.value)}
-                  className="mt-1 h-11 rounded-xl border border-input bg-offwhite px-3 text-ink"
+                  className="mt-1 h-11 w-full rounded-xl border border-input bg-offwhite px-3 text-ink"
                 />
               </label>
-              <label className="block">
+              <label className="block min-w-0">
                 <span className="text-xs font-medium text-ink-muted">To</span>
                 <input
                   type="date"
                   value={customTo}
                   onChange={(e) => onCustomToChange(e.target.value)}
-                  className="mt-1 h-11 rounded-xl border border-input bg-offwhite px-3 text-ink"
+                  className="mt-1 h-11 w-full rounded-xl border border-input bg-offwhite px-3 text-ink"
                 />
               </label>
             </div>
@@ -121,7 +121,7 @@ function PresetButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "min-h-11 rounded-full px-3 text-sm font-semibold transition-all sm:px-5",
+        "min-h-11 whitespace-nowrap rounded-full px-1 text-[13px] font-semibold transition-all sm:px-5 sm:text-sm",
         active ? "bg-ink text-offwhite shadow-sm" : "text-ink-muted hover:text-ink"
       )}
     >

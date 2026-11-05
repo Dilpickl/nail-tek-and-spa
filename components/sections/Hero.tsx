@@ -200,7 +200,7 @@ export function Hero() {
                 {business.googleReviewCount}+ reviews
               </p>
             </div>
-            <div className="mt-3 space-y-1 border-t border-ink/8 pt-3">
+            <div className="mt-3 space-y-1 border-t border-ink/10 pt-3">
               <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-muted">
                 Facebook
               </p>

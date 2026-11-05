@@ -179,7 +179,7 @@ export function EditAppointmentForm({
                       key={service.id}
                       type="button"
                       onClick={() => toggleService(service.id)}
-                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                      className={`min-h-10 rounded-full px-3 py-2 text-left text-sm font-medium transition-colors ${
                         selected
                           ? "bg-ink text-offwhite"
                           : "bg-background text-ink ring-1 ring-ink/10 hover:bg-secondary"

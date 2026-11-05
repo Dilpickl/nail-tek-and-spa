@@ -62,6 +62,7 @@ export function EmployeeScheduleEditor({
             type="button"
             variant="secondary"
             size="sm"
+            className="h-10 px-4 text-sm"
             disabled={disabled}
             onClick={() =>
               applyQuickSetup(
@@ -76,6 +77,7 @@ export function EmployeeScheduleEditor({
             type="button"
             variant="secondary"
             size="sm"
+            className="h-10 px-4 text-sm"
             disabled={disabled}
             onClick={() =>
               applyQuickSetup(
@@ -116,7 +118,7 @@ export function EmployeeScheduleEditor({
                   checked={day.isWorking}
                   disabled={disabled || salonClosed}
                   onChange={(event) => toggleWorking(day.dayOfWeek, event.target.checked)}
-                  className="size-4 rounded border-ink/20"
+                  className="size-5 rounded border-ink/20"
                 />
                 {day.isWorking ? "Working" : "Off"}
               </label>

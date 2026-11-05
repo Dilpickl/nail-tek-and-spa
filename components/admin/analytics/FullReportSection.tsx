@@ -31,7 +31,7 @@ export function FullReportSection({ data, onOpenChange }: FullReportSectionProps
         type="button"
         onClick={toggleOpen}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-secondary/30 md:px-8 rounded-3xl"
+        className="flex w-full items-center justify-between gap-4 rounded-3xl px-4 py-5 text-left transition-colors hover:bg-secondary/30 sm:px-6 md:px-8"
       >
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-secondary text-ink">
@@ -53,7 +53,7 @@ export function FullReportSection({ data, onOpenChange }: FullReportSectionProps
       </button>
 
       {open && (
-        <div className="space-y-6 border-t border-ink/8 px-6 pb-8 pt-6 md:px-8">
+        <div className="space-y-6 border-t border-ink/10 px-3 pb-6 pt-5 sm:px-6 sm:pb-8 sm:pt-6 md:px-8">
           <DetailedCharts data={data} />
 
           <div className="grid gap-5 lg:grid-cols-2">
@@ -106,10 +106,10 @@ function StaffPanel({
           {staff.map((row, index) => (
             <li
               key={row.technicianId}
-              className="flex items-center justify-between gap-4 rounded-xl bg-offwhite px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-xl bg-offwhite px-3 py-3 sm:px-4"
             >
-              <div className="flex items-center gap-3">
-                <span className="flex size-8 items-center justify-center rounded-full bg-ink text-xs font-bold text-offwhite">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-bold text-offwhite">
                   {index + 1}
                 </span>
                 <div>
@@ -119,7 +119,7 @@ function StaffPanel({
                   </p>
                 </div>
               </div>
-              <p className="font-semibold text-ink">{formatMoney(row.revenue)}</p>
+              <p className="shrink-0 font-semibold text-ink">{formatMoney(row.revenue)}</p>
             </li>
           ))}
         </ul>

@@ -118,13 +118,13 @@ export function AppointmentCard({
               </div>
               <div className={cn("flex items-end gap-1", dense ? "flex-row" : "flex-col")}>
                 {!isPast && (
-                  <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-ink-soft">
+                  <span className="whitespace-nowrap rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-ink-soft">
                     {sourceLabel(appointment.source)}
                   </span>
                 )}
                 <span
                   className={cn(
-                    "rounded-full px-3 py-1 text-xs font-semibold",
+                    "whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold",
                     PHASE_TAG_STYLES[phase]
                   )}
                 >
