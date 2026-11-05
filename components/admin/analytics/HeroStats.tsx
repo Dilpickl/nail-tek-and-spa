@@ -9,9 +9,17 @@ import { cn } from "@/lib/utils";
 interface HeroStatsProps {
   kpis: AnalyticsKpis;
   periodLabel: string;
+  /** Revenue includes past visits valued at booked prices (no checkout). */
+  revenueEstimated?: boolean;
+  hasTransactions?: boolean;
 }
 
-export function HeroStats({ kpis, periodLabel }: HeroStatsProps) {
+export function HeroStats({
+  kpis,
+  periodLabel,
+  revenueEstimated = false,
+  hasTransactions = false,
+}: HeroStatsProps) {
   const problems = kpis.cancellations + kpis.noShows;
   const hasProblems = problems > 0;
 
@@ -35,12 +43,19 @@ export function HeroStats({ kpis, periodLabel }: HeroStatsProps) {
               {kpis.completedAppointments === 1 ? "client served" : "clients served"} ·{" "}
               {periodLabel}
             </p>
+            {revenueEstimated && (
+              <p className="mt-1 text-xs text-offwhite/60">
+                {hasTransactions
+                  ? "Partly estimated from booked prices"
+                  : "Estimated from booked prices"}
+              </p>
+            )}
           </div>
 
           <div className="flex gap-3">
             <MiniStat
               icon={Users}
-              label="Completed"
+              label="Visits"
               value={String(kpis.completedAppointments)}
               inverted
             />

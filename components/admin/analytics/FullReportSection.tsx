@@ -57,7 +57,7 @@ export function FullReportSection({ data, onOpenChange }: FullReportSectionProps
           <DetailedCharts data={data} />
 
           <div className="grid gap-5 lg:grid-cols-2">
-            <StaffPanel staff={topStaff} />
+            <StaffPanel staff={topStaff} estimated={data.revenueEstimate.included} />
             <ServicePanel services={data.mostBookedServices} />
           </div>
 
@@ -88,14 +88,19 @@ export function FullReportSection({ data, onOpenChange }: FullReportSectionProps
 
 function StaffPanel({
   staff,
+  estimated,
 }: {
   staff: AnalyticsResponse["staffPerformance"];
+  estimated: boolean;
 }) {
   return (
     <section className="rounded-2xl bg-background p-5 ring-1 ring-ink/5">
       <h4 className="font-semibold text-ink">Team Performance</h4>
+      {estimated && (
+        <p className="mt-0.5 text-xs text-ink-muted">Estimated from booked prices</p>
+      )}
       {staff.length === 0 ? (
-        <p className="mt-3 text-sm text-ink-muted">No completed appointments yet.</p>
+        <p className="mt-3 text-sm text-ink-muted">No visits yet.</p>
       ) : (
         <ul className="mt-4 space-y-3">
           {staff.map((row, index) => (
@@ -110,7 +115,7 @@ function StaffPanel({
                 <div>
                   <p className="font-medium text-ink">{row.technicianName}</p>
                   <p className="text-xs text-ink-muted">
-                    {row.completedCount} completed
+                    {row.completedCount} {row.completedCount === 1 ? "visit" : "visits"}
                   </p>
                 </div>
               </div>
@@ -175,6 +180,18 @@ function InsightCard({
 
 function FinancialBreakdown({ data }: { data: AnalyticsResponse }) {
   const f = data.financialSummary;
+
+  if (!data.hasTransactions) {
+    return (
+      <section className="rounded-2xl bg-background p-5 ring-1 ring-ink/5">
+        <h4 className="font-semibold text-ink">Financial Breakdown</h4>
+        <p className="mt-2 text-sm text-ink-muted">
+          Tips, tax, discounts, and payment methods appear here when a payment is
+          recorded. None were recorded for this period.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-2xl bg-background p-5 ring-1 ring-ink/5">

@@ -33,7 +33,7 @@ export default async function BookPage({
           {preselected && (
             <p className="mt-4 text-lg text-ink-muted">
               You selected <strong className="text-ink">{preselected.name}</strong>.
-              We'll carry this into your booking.
+              We&apos;ll carry this into your booking.
             </p>
           )}
         </div>

@@ -17,12 +17,15 @@ interface RevenueTrendChartProps {
   data: TrendPoint[];
   title?: string;
   compact?: boolean;
+  /** Revenue includes visits valued at booked prices. */
+  estimated?: boolean;
 }
 
 export function RevenueTrendChart({
   data,
   title = "How You're Doing",
   compact = false,
+  estimated = false,
 }: RevenueTrendChartProps) {
   const hasRevenue = data.some((point) => point.value > 0);
   const height = compact ? 220 : 300;
@@ -30,7 +33,11 @@ export function RevenueTrendChart({
   return (
     <section className="rounded-3xl bg-offwhite p-5 ring-1 ring-ink/5 md:p-6">
       <h3 className="text-lg font-semibold text-ink">{title}</h3>
-      <p className="mt-0.5 text-sm text-ink-muted">Completed sales over time</p>
+      <p className="mt-0.5 text-sm text-ink-muted">
+        {estimated
+          ? "Revenue over time · Estimated from booked prices"
+          : "Revenue over time"}
+      </p>
 
       {hasRevenue ? (
         <div className="mt-5" style={{ height }}>
@@ -83,7 +90,7 @@ export function RevenueTrendChart({
           className="mt-5 flex items-center justify-center rounded-2xl bg-background text-sm text-ink-muted"
           style={{ height }}
         >
-          No completed sales yet for this period.
+          No visits yet for this period.
         </div>
       )}
     </section>

@@ -96,11 +96,25 @@ export interface AnalyticsAlert {
   severity: "info" | "warning";
 }
 
+export interface RevenueEstimate {
+  included: boolean;
+  estimatedCount: number;
+  estimatedAmount: number;
+}
+
 export interface AnalyticsResponse {
   range: { from: string; to: string; label: string };
   kpis: AnalyticsKpis;
   revenueBreakdown: CategoryAmount[];
   revenueTrend: TrendPoint[];
+  /**
+   * Past booked appointments without a recorded checkout are valued at their
+   * booked service prices. `included` is true when any such estimate is part
+   * of revenue figures (gross, average ticket, trend, staff, breakdown).
+   */
+  revenueEstimate: RevenueEstimate;
+  /** True when at least one checkout was recorded in the period. */
+  hasTransactions: boolean;
   appointmentsByHour: HourCount[];
   busyDays: DayCount[];
   monthlyTrends: TrendPoint[];

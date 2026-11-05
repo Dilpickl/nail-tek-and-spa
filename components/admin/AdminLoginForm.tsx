@@ -48,7 +48,7 @@ export function AdminLoginForm() {
         Hello, Travis.
       </h1>
       <p className="mt-2 text-center text-sm text-ink-muted">
-        Sign in to manage today's appointments.
+        Sign in to manage today&apos;s appointments.
       </p>
 
       <div className="mt-8 space-y-4">

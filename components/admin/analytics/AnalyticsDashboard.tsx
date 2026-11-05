@@ -58,7 +58,7 @@ export function AnalyticsDashboard() {
           Your Business
         </p>
         <h1 className="mt-2 font-serif text-4xl font-semibold text-ink md:text-5xl">
-          How's it going?
+          How&apos;s it going?
         </h1>
         {data && (
           <p className="mt-2 text-ink-muted">
@@ -90,9 +90,17 @@ export function AnalyticsDashboard() {
 
       {data && !loading && (
         <div className="mt-8 space-y-6">
-          <HeroStats kpis={data.kpis} periodLabel={data.range.label} />
+          <HeroStats
+            kpis={data.kpis}
+            periodLabel={data.range.label}
+            revenueEstimated={data.revenueEstimate.included}
+            hasTransactions={data.hasTransactions}
+          />
 
-          <RevenueTrendChart data={data.revenueTrend} />
+          <RevenueTrendChart
+            data={data.revenueTrend}
+            estimated={data.revenueEstimate.included}
+          />
 
           <NeedsAttention alerts={data.alerts} />
 

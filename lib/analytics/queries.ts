@@ -14,6 +14,7 @@ import type {
   TrendPoint,
   UpcomingAppointment,
 } from "@/lib/analytics/types";
+import { getAppointmentPhase, isDonePhase } from "@/lib/admin/appointment-phase";
 import { getSalonDateParts } from "@/lib/booking/time-utils";
 import {
   allServices,
@@ -33,7 +34,41 @@ interface AppointmentRow {
   ends_at: string;
   status: "booked" | "completed" | "cancelled" | "no_show";
   created_at: string;
-  appointment_services?: { service_id: string }[];
+  appointment_services?: { service_id: string; price_at_booking?: number | string | null }[];
+  completed_transactions?: { id: string } | { id: string }[] | null;
+}
+
+function hasCheckout(appt: AppointmentRow): boolean {
+  const tx = appt.completed_transactions;
+  if (!tx) return false;
+  return Array.isArray(tx) ? tx.length > 0 : Boolean(tx.id);
+}
+
+interface VisitRow {
+  id: string;
+  customer_phone: string;
+  starts_at: string;
+  ends_at: string;
+  status: AppointmentRow["status"];
+}
+
+/**
+ * One served visit that contributes revenue: either a recorded checkout
+ * (actual amount) or a past booked appointment with no checkout (estimated
+ * from booked service prices).
+ */
+interface RevenueEntry {
+  appointmentId: string;
+  technicianId: string | null;
+  customerPhone: string;
+  clientId: string | null;
+  /** When the revenue is attributed (checkout time, or appointment start). */
+  revenueAt: string;
+  /** Appointment start, used for rebooking comparisons. */
+  visitAt: string;
+  amount: number;
+  estimated: boolean;
+  services: { service_id: string; price: number }[];
 }
 
 interface TransactionRow {
@@ -75,6 +110,8 @@ interface TechnicianRow {
   display_order: number;
 }
 
+const REBOOKING_LOOKBACK_MS = 31 * 24 * 60 * 60 * 1000;
+
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -94,7 +131,7 @@ export async function fetchAnalytics(
   const [
     { data: appointmentsInRange },
     { data: transactionsInRange },
-    { data: allCompletedTransactions },
+    { data: allVisitRows },
     { data: clients },
     { data: upcomingRows },
     { data: technicianRows },
@@ -102,7 +139,7 @@ export async function fetchAnalytics(
     supabase
       .from("appointments")
       .select(
-        "id, technician_id, customer_name, customer_phone, client_id, starts_at, ends_at, status, created_at, appointment_services(service_id)"
+        "id, technician_id, customer_name, customer_phone, client_id, starts_at, ends_at, status, created_at, appointment_services(service_id, price_at_booking), completed_transactions(id)"
       )
       .gte("starts_at", fromIso)
       .lte("starts_at", toIso),
@@ -119,8 +156,12 @@ export async function fetchAnalytics(
       .gte("completed_at", fromIso)
       .lte("completed_at", toIso),
     supabase
-      .from("completed_transactions")
-      .select("id, completed_at, appointments ( customer_phone, client_id )"),
+      .from("appointments")
+      .select("id, customer_phone, starts_at, ends_at, status")
+      .in("status", ["booked", "completed"])
+      // Only visits after the period start matter for "came back"; pad a bit
+      // for checkouts whose appointment began just before the range.
+      .gte("starts_at", new Date(range.from.getTime() - REBOOKING_LOOKBACK_MS).toISOString()),
     supabase.from("clients").select("id, phone, first_visit_at"),
     supabase
       .from("appointments")
@@ -142,39 +183,47 @@ export async function fetchAnalytics(
 
   const appointments = (appointmentsInRange ?? []) as AppointmentRow[];
   const transactions = (transactionsInRange ?? []) as unknown as TransactionRow[];
-  const allCompleted = (allCompletedTransactions ?? []) as unknown as {
-    id: string;
-    completed_at: string;
-    appointments: { customer_phone: string; client_id: string | null } | null;
-  }[];
+  const appointmentIdsWithCheckout = new Set(
+    appointments.filter((a) => hasCheckout(a)).map((a) => a.id)
+  );
+  const visits = (allVisitRows ?? []) as VisitRow[];
   const clientRows = (clients ?? []) as ClientRow[];
+  const now = Date.now();
 
-  const statusCounts = countStatuses(appointments);
-  const completedCount = transactions.length;
-  const grossRevenue = sum(transactions.map((t) => Number(t.final_total)));
+  const statusCounts = countStatuses(appointments, now);
+  const revenueEntries = buildRevenueEntries(
+    appointments,
+    transactions,
+    appointmentIdsWithCheckout,
+    now
+  );
+  const laterVisits = buildLaterVisitIndex(visits, now);
+  const completedCount = revenueEntries.length;
+  const grossRevenue = sum(revenueEntries.map((e) => e.amount));
   const averageTicket = completedCount > 0 ? roundMoney(grossRevenue / completedCount) : 0;
+  const estimatedEntries = revenueEntries.filter((e) => e.estimated);
 
-  const clientInsights = computeClientInsights(transactions, clientRows, range);
-  const revenueBreakdown = computeRevenueBreakdown(transactions);
-  const revenueTrend = computeRevenueTrend(transactions, range);
+  const clientInsights = computeClientInsights(revenueEntries, clientRows, range);
+  const revenueBreakdown = computeRevenueBreakdown(transactions, estimatedEntries);
+  const revenueTrend = computeRevenueTrend(revenueEntries, range);
   const appointmentsByHour = computeAppointmentsByHour(appointments);
   const busyDays = computeBusyDays(appointments);
   const monthlyTrends = computeMonthlyTrends(appointments, range);
   const averageLeadTimeDays = computeAverageLeadTime(appointments);
   const staffPerformance = computeStaffPerformance(
-    transactions,
-    allCompleted,
+    revenueEntries,
+    laterVisits,
     appointments,
     technicians
   );
   const { most, least } = computeServicePopularity(appointments);
   const financialSummary = computeFinancialSummary(transactions);
   const paymentMethods = computePaymentMethods(transactions);
-  const rebookingRate = computeRebookingRate(transactions, allCompleted);
-  const rebookingTrend = computeRebookingTrend(transactions, allCompleted, range);
+  const rebookingRate = computeRebookingRate(revenueEntries, laterVisits);
+  const rebookingTrend = computeRebookingTrend(revenueEntries, laterVisits, range);
   const scheduleUtilization = computeScheduleUtilization(appointments, range, technicians);
   const upcoming = mapUpcoming((upcomingRows ?? []) as AppointmentRow[], technicianNameById);
-  const alerts = buildAlerts(appointments, transactions);
+  const alerts = buildAlerts(transactions);
 
   const totalAppointments = appointments.length;
 
@@ -196,6 +245,12 @@ export async function fetchAnalytics(
     },
     revenueBreakdown,
     revenueTrend,
+    revenueEstimate: {
+      included: estimatedEntries.length > 0,
+      estimatedCount: estimatedEntries.length,
+      estimatedAmount: sum(estimatedEntries.map((e) => e.amount)),
+    },
+    hasTransactions: transactions.length > 0,
     appointmentsByHour,
     busyDays,
     monthlyTrends,
@@ -223,12 +278,100 @@ export async function fetchAnalytics(
   };
 }
 
-function countStatuses(appointments: AppointmentRow[]) {
+function phaseOf(appt: { status: string; starts_at: string; ends_at: string }, now: number) {
+  return getAppointmentPhase(
+    { status: appt.status, startsAt: appt.starts_at, endsAt: appt.ends_at },
+    now
+  );
+}
+
+/**
+ * Status counts using the derived phase: a past `booked` appointment counts as
+ * completed, and `booked` only covers visits that are upcoming or in progress.
+ */
+function countStatuses(appointments: AppointmentRow[], now: number) {
   const counts = { booked: 0, completed: 0, cancelled: 0, no_show: 0 };
   for (const appt of appointments) {
-    counts[appt.status] += 1;
+    const phase = phaseOf(appt, now);
+    if (isDonePhase(phase)) counts.completed += 1;
+    else if (phase === "cancelled") counts.cancelled += 1;
+    else if (phase === "no_show") counts.no_show += 1;
+    else counts.booked += 1;
   }
   return counts;
+}
+
+/**
+ * Revenue entries for the period: every checkout recorded in the range, plus
+ * every done appointment in the range that never got a checkout, valued at
+ * the sum of its booked service prices.
+ */
+function buildRevenueEntries(
+  appointments: AppointmentRow[],
+  transactions: TransactionRow[],
+  appointmentIdsWithCheckout: Set<string>,
+  now: number
+): RevenueEntry[] {
+  const entries: RevenueEntry[] = transactions.map((tx) => ({
+    appointmentId: tx.appointment_id,
+    technicianId: tx.appointments?.technician_id ?? null,
+    customerPhone: tx.appointments?.customer_phone ?? "",
+    clientId: tx.appointments?.client_id ?? null,
+    revenueAt: tx.completed_at,
+    visitAt: tx.appointments?.starts_at ?? tx.completed_at,
+    amount: Number(tx.final_total),
+    estimated: false,
+    services: [],
+  }));
+
+  for (const appt of appointments) {
+    if (appointmentIdsWithCheckout.has(appt.id)) continue;
+    if (!isDonePhase(phaseOf(appt, now))) continue;
+
+    const services = (appt.appointment_services ?? []).map((svc) => ({
+      service_id: svc.service_id,
+      price: Number(svc.price_at_booking ?? 0) || 0,
+    }));
+
+    entries.push({
+      appointmentId: appt.id,
+      technicianId: appt.technician_id,
+      customerPhone: appt.customer_phone,
+      clientId: appt.client_id,
+      revenueAt: appt.starts_at,
+      visitAt: appt.starts_at,
+      amount: roundMoney(services.reduce((acc, svc) => acc + svc.price, 0)),
+      estimated: true,
+      services,
+    });
+  }
+
+  return entries;
+}
+
+/** Normalized phone -> sorted start times of visits that were kept or are still coming. */
+function buildLaterVisitIndex(visits: VisitRow[], now: number) {
+  const byPhone = new Map<string, number[]>();
+  for (const visit of visits) {
+    const phase = phaseOf(visit, now);
+    if (phase === "cancelled" || phase === "no_show") continue;
+    const phone = normalizePhone(visit.customer_phone ?? "");
+    if (!phone) continue;
+    const list = byPhone.get(phone) ?? [];
+    list.push(new Date(visit.starts_at).getTime());
+    byPhone.set(phone, list);
+  }
+  return byPhone;
+}
+
+type LaterVisitIndex = ReturnType<typeof buildLaterVisitIndex>;
+
+/** True when the same client has another visit (done or booked) after this one. */
+function hasLaterVisit(entry: RevenueEntry, index: LaterVisitIndex): boolean {
+  const phone = normalizePhone(entry.customerPhone);
+  if (!phone) return false;
+  const visitAt = new Date(entry.visitAt).getTime();
+  return (index.get(phone) ?? []).some((t) => t > visitAt);
 }
 
 function rate(part: number, total: number): number {
@@ -241,31 +384,24 @@ function sum(values: number[]): number {
 }
 
 function computeClientInsights(
-  transactions: TransactionRow[],
+  entries: RevenueEntry[],
   clients: ClientRow[],
   range: DateRange
 ) {
   const clientFirstVisit = new Map(clients.map((c) => [c.id, c.first_visit_at]));
-  const phonesSeenBefore = new Set<string>();
-
-  for (const tx of transactions) {
-    const phone = normalizePhone(tx.appointments?.customer_phone ?? "");
-    if (phone) phonesSeenBefore.add(phone);
-  }
 
   let newClients = 0;
   let returningClients = 0;
   const seenInPeriod = new Set<string>();
 
-  for (const tx of transactions) {
-    const clientId = tx.appointments?.client_id;
-    const phone = normalizePhone(tx.appointments?.customer_phone ?? "");
+  for (const entry of entries) {
+    const clientId = entry.clientId;
+    const phone = normalizePhone(entry.customerPhone);
     const key = clientId ?? phone;
     if (!key || seenInPeriod.has(key)) continue;
     seenInPeriod.add(key);
 
     const firstVisit = clientId ? clientFirstVisit.get(clientId) : null;
-    const completedAt = new Date(tx.completed_at);
 
     if (firstVisit && new Date(firstVisit) >= range.from && new Date(firstVisit) <= range.to) {
       newClients += 1;
@@ -284,7 +420,10 @@ function computeClientInsights(
   return { newClients, returningClients, repeatClientRate };
 }
 
-function computeRevenueBreakdown(transactions: TransactionRow[]): CategoryAmount[] {
+function computeRevenueBreakdown(
+  transactions: TransactionRow[],
+  estimatedEntries: RevenueEntry[]
+): CategoryAmount[] {
   let nailServices = 0;
   let addons = 0;
   let retail = 0;
@@ -305,6 +444,13 @@ function computeRevenueBreakdown(transactions: TransactionRow[]): CategoryAmount
     }
   }
 
+  for (const entry of estimatedEntries) {
+    for (const svc of entry.services) {
+      if (isAddonServiceId(svc.service_id)) addons += svc.price;
+      else nailServices += svc.price;
+    }
+  }
+
   return [
     { category: "Nail Services", amount: roundMoney(nailServices) },
     { category: "Add-on Services", amount: roundMoney(addons) },
@@ -320,14 +466,14 @@ function isAddonServiceId(serviceId: string | null): boolean {
   return serviceId.startsWith("addon-");
 }
 
-function computeRevenueTrend(transactions: TransactionRow[], range: DateRange): TrendPoint[] {
+function computeRevenueTrend(entries: RevenueEntry[], range: DateRange): TrendPoint[] {
   const days = eachDayInRange(range.from, range.to);
   const byDay = new Map(days.map((d) => [d, 0]));
 
-  for (const tx of transactions) {
-    const day = toIsoDateString(new Date(tx.completed_at));
+  for (const entry of entries) {
+    const day = toIsoDateString(new Date(entry.revenueAt));
     if (byDay.has(day)) {
-      byDay.set(day, (byDay.get(day) ?? 0) + Number(tx.final_total));
+      byDay.set(day, (byDay.get(day) ?? 0) + entry.amount);
     }
   }
 
@@ -400,61 +546,42 @@ function computeAverageLeadTime(appointments: AppointmentRow[]): number {
 }
 
 function computeStaffPerformance(
-  transactions: TransactionRow[],
-  allCompleted: { id: string; completed_at: string; appointments: { customer_phone: string; client_id: string | null } | null }[],
+  entries: RevenueEntry[],
+  laterVisits: LaterVisitIndex,
   appointmentsInRange: AppointmentRow[],
   technicians: TechnicianRow[]
 ): StaffPerformanceRow[] {
-  const byTech = new Map<string, { revenue: number; count: number; appointmentIds: string[] }>();
+  const byTech = new Map<string, { revenue: number; entries: RevenueEntry[] }>();
 
-  for (const tx of transactions) {
-    const techId = tx.appointments?.technician_id ?? "unassigned";
-    const entry = byTech.get(techId) ?? { revenue: 0, count: 0, appointmentIds: [] };
-    entry.revenue += Number(tx.final_total);
-    entry.count += 1;
-    entry.appointmentIds.push(tx.appointment_id);
-    byTech.set(techId, entry);
+  for (const entry of entries) {
+    const techId = entry.technicianId ?? "unassigned";
+    const bucket = byTech.get(techId) ?? { revenue: 0, entries: [] };
+    bucket.revenue += entry.amount;
+    bucket.entries.push(entry);
+    byTech.set(techId, bucket);
   }
 
   return technicians
     .map((tech) => {
-      const entry = byTech.get(tech.id) ?? { revenue: 0, count: 0, appointmentIds: [] };
-      const rebookingRate = computeTechRebookingRate(entry.appointmentIds, transactions, allCompleted);
+      const bucket = byTech.get(tech.id) ?? { revenue: 0, entries: [] };
+      const count = bucket.entries.length;
       return {
         technicianId: tech.id,
         technicianName: tech.name,
-        completedCount: entry.count,
-        revenue: roundMoney(entry.revenue),
-        averageTicket: entry.count > 0 ? roundMoney(entry.revenue / entry.count) : 0,
-        rebookingRate,
+        completedCount: count,
+        revenue: roundMoney(bucket.revenue),
+        averageTicket: count > 0 ? roundMoney(bucket.revenue / count) : 0,
+        rebookingRate: rebookedPercent(bucket.entries, laterVisits),
       };
     })
     .filter((row) => row.completedCount > 0 || appointmentsInRange.some((a) => a.technician_id === row.technicianId))
     .sort((a, b) => b.revenue - a.revenue);
 }
 
-function computeTechRebookingRate(
-  appointmentIds: string[],
-  transactions: TransactionRow[],
-  allCompleted: { id: string; completed_at: string; appointments: { customer_phone: string; client_id: string | null } | null }[]
-): number {
-  if (appointmentIds.length === 0) return 0;
-
-  let rebooked = 0;
-  for (const apptId of appointmentIds) {
-    const tx = transactions.find((t) => t.appointment_id === apptId);
-    if (!tx) continue;
-    const phone = normalizePhone(tx.appointments?.customer_phone ?? "");
-    const completedAt = new Date(tx.completed_at).getTime();
-    const hasFuture = allCompleted.some((other) => {
-      if (other.id === tx.id) return false;
-      const otherPhone = normalizePhone(other.appointments?.customer_phone ?? "");
-      return otherPhone === phone && new Date(other.completed_at).getTime() > completedAt;
-    });
-    if (hasFuture) rebooked += 1;
-  }
-
-  return roundMoney((rebooked / appointmentIds.length) * 100);
+function rebookedPercent(entries: RevenueEntry[], laterVisits: LaterVisitIndex): number {
+  if (entries.length === 0) return 0;
+  const rebooked = entries.filter((entry) => hasLaterVisit(entry, laterVisits)).length;
+  return roundMoney((rebooked / entries.length) * 100);
 }
 
 function computeServicePopularity(appointments: AppointmentRow[]) {
@@ -523,57 +650,22 @@ function computePaymentMethods(transactions: TransactionRow[]): PaymentMethodAmo
   }));
 }
 
-function computeRebookingRate(
-  transactions: TransactionRow[],
-  allCompleted: { id: string; completed_at: string; appointments: { customer_phone: string; client_id: string | null } | null }[]
-): number {
-  if (transactions.length === 0) return 0;
-
-  let rebooked = 0;
-  for (const tx of transactions) {
-    const phone = normalizePhone(tx.appointments?.customer_phone ?? "");
-    const completedAt = new Date(tx.completed_at).getTime();
-    const hasFuture = allCompleted.some((other) => {
-      if (other.id === tx.id) return false;
-      const otherPhone = normalizePhone(other.appointments?.customer_phone ?? "");
-      return otherPhone === phone && new Date(other.completed_at).getTime() > completedAt;
-    });
-    if (hasFuture) rebooked += 1;
-  }
-
-  return roundMoney((rebooked / transactions.length) * 100);
+function computeRebookingRate(entries: RevenueEntry[], laterVisits: LaterVisitIndex): number {
+  return rebookedPercent(entries, laterVisits);
 }
 
 function computeRebookingTrend(
-  transactions: TransactionRow[],
-  allCompleted: { id: string; completed_at: string; appointments: { customer_phone: string; client_id: string | null } | null }[],
+  entries: RevenueEntry[],
+  laterVisits: LaterVisitIndex,
   range: DateRange
 ): TrendPoint[] {
   const days = eachDayInRange(range.from, range.to);
 
   return days.map((date) => {
-    const dayStart = new Date(`${date}T00:00:00`).getTime();
-    const dayEnd = new Date(`${date}T23:59:59`).getTime();
-    const dayTx = transactions.filter((tx) => {
-      const t = new Date(tx.completed_at).getTime();
-      return t >= dayStart && t <= dayEnd;
-    });
-
-    if (dayTx.length === 0) return { date, value: 0 };
-
-    let rebooked = 0;
-    for (const tx of dayTx) {
-      const phone = normalizePhone(tx.appointments?.customer_phone ?? "");
-      const completedAt = new Date(tx.completed_at).getTime();
-      const hasFuture = allCompleted.some((other) => {
-        if (other.id === tx.id) return false;
-        const otherPhone = normalizePhone(other.appointments?.customer_phone ?? "");
-        return otherPhone === phone && new Date(other.completed_at).getTime() > completedAt;
-      });
-      if (hasFuture) rebooked += 1;
-    }
-
-    return { date, value: roundMoney((rebooked / dayTx.length) * 100) };
+    const dayEntries = entries.filter(
+      (entry) => toIsoDateString(new Date(entry.visitAt)) === date
+    );
+    return { date, value: rebookedPercent(dayEntries, laterVisits) };
   });
 }
 
@@ -630,34 +722,8 @@ function mapUpcoming(
   }));
 }
 
-function buildAlerts(
-  appointments: AppointmentRow[],
-  transactions: TransactionRow[]
-): AnalyticsAlert[] {
+function buildAlerts(transactions: TransactionRow[]): AnalyticsAlert[] {
   const alerts: AnalyticsAlert[] = [];
-  const now = Date.now();
-
-  const pastBooked = appointments.filter(
-    (a) => a.status === "booked" && new Date(a.starts_at).getTime() < now
-  );
-  if (pastBooked.length > 0) {
-    alerts.push({
-      id: "pending-completion",
-      type: "completion",
-      message: `${pastBooked.length} past appointment(s) still marked as booked — complete or update status.`,
-      severity: "warning",
-    });
-  }
-
-  const onlineBooked = appointments.filter((a) => a.status === "booked");
-  if (onlineBooked.length > 0) {
-    alerts.push({
-      id: "confirmations",
-      type: "confirmation",
-      message: `${onlineBooked.length} upcoming booking(s) — review confirmation status.`,
-      severity: "info",
-    });
-  }
 
   if (transactions.some((t) => Number(t.refund_amount) > 0)) {
     alerts.push({
@@ -671,7 +737,7 @@ function buildAlerts(
   alerts.push({
     id: "rebooking",
     type: "rebooking",
-    message: "Review clients due for rebooking from completed appointments.",
+    message: "Review clients due for rebooking from recent visits.",
     severity: "info",
   });
 
