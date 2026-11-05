@@ -286,7 +286,6 @@ export const serviceCategories: ServiceCategory[] = [
           "Our go-to for dry, tired feet. Organic lavender scrub, green tea mask, cream massage, hot stones, and paraffin.",
         price: 55,
         durationMinutes: 60,
-        durationMinutesMin: 45,
         featured: true,
       },
       {
@@ -295,8 +294,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "A deeply relaxing pedicure that is perfect for tired, sore feet. This service includes your choice of a sugar or sea salt exfoliating scrub, followed by a tension-melting hot stone and leg massage.",
         price: 35,
-        durationMinutes: 40,
-        durationMinutesMin: 30,
+        durationMinutes: 30,
       },
       {
         id: "pedi-classic",
@@ -305,7 +303,6 @@ export const serviceCategories: ServiceCategory[] = [
           "The quick, no-fuss pedicure. Shape, cuticles, a foot and leg massage, and polish of your choice.",
         price: 25,
         durationMinutes: 30,
-        durationMinutesMin: 20,
         featured: true,
       },
     ],
@@ -330,7 +327,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "The classic manicure, finished with gel that won't smudge and actually lasts.",
         price: 35,
-        durationMinutes: 45,
+        durationMinutes: 30,
         featured: true,
       },
       {
@@ -354,7 +351,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Custom-sculpted acrylic. Full set or a fill-in to refresh what you've got. We'll confirm the final price when you're here.",
         price: 35,
-        durationMinutes: 75,
+        durationMinutes: 60,
         priceFrom: true,
         priceNote: "Starting price. Final amount depends on length, shape, and design.",
         variants: [
@@ -362,7 +359,7 @@ export const serviceCategories: ServiceCategory[] = [
             id: "enh-acrylic-full",
             name: "Full Set",
             price: 35,
-            durationMinutes: 75,
+            durationMinutes: 60,
             priceFrom: true,
           },
           {
@@ -380,7 +377,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Strong, natural-looking gel enhancements for a polished, lasting finish. Final price is confirmed at your visit.",
         price: 45,
-        durationMinutes: 75,
+        durationMinutes: 60,
         priceFrom: true,
         priceNote: "Starting price. Final amount depends on length, shape, and design.",
         variants: [
@@ -388,7 +385,7 @@ export const serviceCategories: ServiceCategory[] = [
             id: "enh-gel-full",
             name: "Full Set",
             price: 45,
-            durationMinutes: 75,
+            durationMinutes: 60,
             priceFrom: true,
           },
           {
@@ -406,7 +403,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Classic pink-and-white acrylic enhancements. Pricing starts at the listed rates and may vary with length and design. Pink Fill also available from $45.",
         price: 55,
-        durationMinutes: 80,
+        durationMinutes: 60,
         priceFrom: true,
         priceNote: "Starting price. Final amount depends on length, shape, and design. Pink Fill available from $45.",
         variants: [
@@ -414,21 +411,21 @@ export const serviceCategories: ServiceCategory[] = [
             id: "enh-pink-white-full",
             name: "Full Set",
             price: 55,
-            durationMinutes: 80,
+            durationMinutes: 60,
             priceFrom: true,
           },
           {
             id: "enh-pink-white-fill",
             name: "Fill-In",
             price: 45,
-            durationMinutes: 65,
+            durationMinutes: 60,
             priceFrom: true,
           },
           {
             id: "enh-pink-fill",
             name: "Pink Fill",
             price: 45,
-            durationMinutes: 65,
+            durationMinutes: 60,
             priceFrom: true,
           },
         ],
@@ -439,7 +436,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Vibrant gel powder color applied for a smooth, lasting finish. Full set only. Final price is confirmed at your visit.",
         price: 45,
-        durationMinutes: 70,
+        durationMinutes: 60,
         priceFrom: true,
         priceNote: "Starting price. Final amount depends on length, shape, and design.",
       },
@@ -449,7 +446,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Light, durable color with no UV lamp. Full set only. We'll confirm the final price when you're here.",
         price: 45,
-        durationMinutes: 70,
+        durationMinutes: 60,
         priceFrom: true,
         priceNote: "Starting price. Final amount depends on length, shape, and design.",
         featured: true,
@@ -473,14 +470,14 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Fingernail Polish Change",
         description: "A quick color refresh for your fingernails.",
         price: 10,
-        durationMinutes: 20,
+        durationMinutes: 30,
       },
       {
         id: "addon-toe-polish",
         name: "Toenail Polish Change",
         description: "A quick color refresh for your toenails.",
         price: 15,
-        durationMinutes: 25,
+        durationMinutes: 30,
       },
       {
         id: "addon-french",
@@ -512,7 +509,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Safe removal of artificial nails or gel polish. Final price depends on the removal needed.",
         price: 5,
-        durationMinutes: 20,
+        durationMinutes: 30,
         priceFrom: true,
       },
       {
@@ -521,7 +518,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Show us a photo. Our techs specialize in custom designs. Pricing depends on complexity and is confirmed at your visit.",
         price: 0,
-        durationMinutes: 20,
+        durationMinutes: 30,
         pricingTbd: true,
       },
     ],
@@ -543,21 +540,21 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Lips",
         description: "Quick upper-lip wax for a smooth finish.",
         price: 10,
-        durationMinutes: 10,
+        durationMinutes: 15,
       },
       {
         id: "wax-chin",
         name: "Chin",
         description: "Gentle chin waxing for a clean look.",
         price: 10,
-        durationMinutes: 10,
+        durationMinutes: 15,
       },
       {
         id: "wax-underarms",
         name: "Under Arms",
         description: "Smooth underarm waxing.",
         price: 30,
-        durationMinutes: 20,
+        durationMinutes: 30,
       },
       {
         id: "wax-half-arms",
@@ -571,7 +568,7 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Half Legs",
         description: "Waxing from ankle to knee.",
         price: 45,
-        durationMinutes: 35,
+        durationMinutes: 30,
       },
       {
         id: "wax-back",
@@ -579,7 +576,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Full or partial back waxing. Pricing starts at $50 and varies with coverage.",
         price: 50,
-        durationMinutes: 40,
+        durationMinutes: 30,
         priceFrom: true,
       },
       {
@@ -604,7 +601,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Beautiful, natural-looking eyelash extensions applied with care for added length and volume. Final price is confirmed at your visit based on style and volume.",
         price: 40,
-        durationMinutes: 15,
+        durationMinutes: 60,
         priceFrom: true,
         priceNote: "Starting price. Final amount depends on style and volume.",
       },
