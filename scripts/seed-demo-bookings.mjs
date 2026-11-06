@@ -110,8 +110,8 @@ const TECH = {
 };
 
 const SVC = {
-  pediVolcanic: { id: "pedi-volcanic", name: "Volcanic Spa Pedicure", price: 65, mins: 60 },
-  pediOrganic: { id: "pedi-organic", name: "Organic Spa Pedicure", price: 55, mins: 60 },
+  pediVolcanic: { id: "pedi-volcanic", name: "Volcanic Spa Pedicure", price: 55, mins: 60 },
+  pediOrganic: { id: "pedi-organic", name: "Organic Spa Pedicure", price: 45, mins: 60 },
   pediLuxury: { id: "pedi-luxury", name: "Luxury Spa Pedicure", price: 35, mins: 40 },
   pediClassic: { id: "pedi-classic", name: "Classic Pedicure", price: 25, mins: 30 },
   maniClassic: { id: "mani-classic", name: "Classic Manicure", price: 15, mins: 30 },

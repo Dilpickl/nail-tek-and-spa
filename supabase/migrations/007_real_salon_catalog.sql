@@ -45,8 +45,8 @@ on conflict (technician_id, day_of_week) do update
 
 -- Services ------------------------------------------------------------------
 insert into public.services (id, category_id, name, description, price, duration_minutes, is_active) values
-  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 65, 75, true),
-  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 55, 70, true),
+  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 55, 75, true),
+  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 45, 70, true),
   ('pedi-deluxe',    'pedicures', 'Deluxe Spa Pedicure',    'Sea scrub, hydrating massage cream, hot stones, and paraffin.', 45, 60, true),
   ('pedi-luxury',    'pedicures', 'Luxury Spa Pedicure',    'Sugar or sea salt scrub with hot stone and leg massage.', 35, 55, true),
   ('pedi-princess',  'pedicures', 'Princess Spa Pedicure',  'Classic pedicure plus exfoliation and paraffin for dry skin.', 35, 55, true),

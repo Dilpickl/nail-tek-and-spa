@@ -275,7 +275,7 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Volcanic Spa Pedicure",
         description:
           "A bubbling volcanic soak that's more fun than it sounds. Sugar scrub, collagen mask, hot stones, and paraffin. Your feet will feel brand new.",
-        price: 65,
+        price: 55,
         durationMinutes: 60,
         featured: true,
       },
@@ -284,7 +284,7 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Organic Spa Pedicure",
         description:
           "Our go-to for dry, tired feet. Organic lavender scrub, green tea mask, cream massage, hot stones, and paraffin.",
-        price: 55,
+        price: 45,
         durationMinutes: 60,
         featured: true,
       },
