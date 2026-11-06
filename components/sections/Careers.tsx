@@ -1,5 +1,6 @@
 import { Briefcase, ArrowRight } from "lucide-react";
 
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { careers, business } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
@@ -48,18 +49,21 @@ export function Careers() {
                     </p>
                   </div>
                 </div>
-                <a
-                  href={
-                    business.email
-                      ? `mailto:${business.email}?subject=Application: ${job.title}`
-                      : `tel:${business.phoneRaw}`
-                  }
-                >
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    {business.email ? "Apply" : "Call to Apply"}
-                    <ArrowRight className="size-4" />
-                  </Button>
-                </a>
+                {business.email ? (
+                  <a href={`mailto:${business.email}?subject=Application: ${job.title}`}>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      Apply
+                      <ArrowRight className="size-4" />
+                    </Button>
+                  </a>
+                ) : (
+                  <PhoneLink placement="careers">
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      Call to Apply
+                      <ArrowRight className="size-4" />
+                    </Button>
+                  </PhoneLink>
+                )}
               </div>
             </Reveal>
           ))}

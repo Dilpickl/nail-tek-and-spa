@@ -16,6 +16,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { getTrackingIds, trackBookingStep } from "@/lib/analytics/visitor";
 import {
   computeBookingTotals,
   formatBookingTotalLabel,
@@ -73,6 +74,14 @@ interface BookingFlowProps {
 }
 
 const stepLabels = ["Services", "Technician", "Date & Time", "Details", "Confirm"];
+
+const BOOKING_STEP_NAME = {
+  1: "services",
+  2: "technician",
+  3: "time",
+  4: "details",
+  5: "confirm",
+} as const;
 
 export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowProps) {
   const [step, setStep] = useState<Step>(1);
@@ -222,6 +231,10 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
     if (!highlightedField) return;
     scrollToBookingField(highlightedField);
   }, [highlightedField]);
+
+  useEffect(() => {
+    trackBookingStep(BOOKING_STEP_NAME[step]);
+  }, [step]);
 
   // After Continue/Back, jump to the top so mobile doesn't stay at the old footer.
   const skipInitialStepScroll = useRef(true);
@@ -1444,6 +1457,7 @@ async function submitBooking({
         time: selectedTime,
         customer: details,
         smsConsent: true,
+        ...getTrackingIds(),
       }),
     });
     const body = (await response.json()) as

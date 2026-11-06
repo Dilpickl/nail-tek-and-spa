@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
 import { NAIL_ART_SERVICE_ID } from "@/components/home/Hero";
@@ -50,12 +50,13 @@ export function NailArt() {
             ))}
           </ol>
           <div data-reveal className="mt-9">
-            <Link
+            <TrackedLink
               href={`/book?service=${NAIL_ART_SERVICE_ID}`}
+              placement="nailart_book"
               className="inline-flex h-[52px] items-center justify-center rounded-sm bg-[#F5EFE8] px-7 text-sm font-bold tracking-[0.02em] text-ink transition-colors hover:bg-white"
             >
               Book a nail art visit
-            </Link>
+            </TrackedLink>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 import { serviceCategories } from "@/lib/config/salonData";
 import { formatServiceDisplayPrice } from "@/lib/booking/pricing";
@@ -78,9 +78,9 @@ export function ServiceList() {
                     <span className="font-serif text-2xl font-semibold text-ink">
                       {formatServiceDisplayPrice(service)}
                     </span>
-                    <Link href={`/book?service=${bookId}`}>
+                    <TrackedLink href={`/book?service=${bookId}`} placement={`service:${bookId}`}>
                       <Button size="sm">Book This</Button>
-                    </Link>
+                    </TrackedLink>
                   </div>
                 </div>
               );

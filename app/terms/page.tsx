@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { business, legal } from "@/lib/config/salonData";
 
 export const metadata: Metadata = {
@@ -54,9 +55,9 @@ export default function TermsPage() {
             {business.email}
           </a>
           , call{" "}
-          <a className="underline" href={`tel:${business.phoneRaw}`}>
+          <PhoneLink placement="terms" className="underline">
             {business.phone}
-          </a>
+          </PhoneLink>
           , or visit us at {business.address.line1}, {business.address.city},{" "}
           {business.address.state} {business.address.zip}.
         </Section>

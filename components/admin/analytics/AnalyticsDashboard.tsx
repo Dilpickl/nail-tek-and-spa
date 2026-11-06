@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { AnalyticsDatePicker } from "@/components/admin/analytics/AnalyticsDatePicker";
+import { ConversionCard } from "@/components/admin/analytics/ConversionCard";
+import { SiteInsights } from "@/components/admin/analytics/SiteInsights";
 import { FullReportSection } from "@/components/admin/analytics/FullReportSection";
 import { HeroStats } from "@/components/admin/analytics/HeroStats";
 import { NeedsAttention } from "@/components/admin/analytics/NeedsAttention";
@@ -90,6 +92,18 @@ export function AnalyticsDashboard() {
 
       {data && !loading && (
         <div className="mt-8 space-y-6">
+          <ConversionCard conversion={data.conversion} rangeTo={data.range.to} />
+          {data.conversion.insights ? (
+            <SiteInsights insights={data.conversion.insights} />
+          ) : data.conversion.available ? (
+            <p className="rounded-3xl bg-offwhite px-6 py-5 text-sm leading-relaxed text-ink-muted ring-1 ring-ink/5">
+              Run{" "}
+              <span className="font-medium text-ink">supabase/migrations/014_site_engagement.sql</span>{" "}
+              in the Supabase SQL editor to see where visits start, which pages and buttons
+              get used, and where people drop out of booking.
+            </p>
+          ) : null}
+
           <HeroStats
             kpis={data.kpis}
             periodLabel={data.range.label}
