@@ -30,7 +30,7 @@ from (values
   ('tech-travis'), ('tech-daisy'), ('tech-adam'), ('tech-vickie')
 ) as t(id)
 cross join (values
-  (0, '11:00', '17:00'),
+  (0, '10:00', '16:00'),
   (1, '09:00', '20:00'),
   (2, '09:00', '20:00'),
   (3, '09:00', '20:00'),

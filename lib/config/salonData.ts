@@ -156,7 +156,7 @@ export const hours: BusinessHours[] = [
   { day: "Thursday", hours: "9:00 AM – 8:00 PM", open: "09:00", close: "20:00" },
   { day: "Friday", hours: "9:00 AM – 8:00 PM", open: "09:00", close: "20:00" },
   { day: "Saturday", hours: "9:00 AM – 6:00 PM", open: "09:00", close: "18:00" },
-  { day: "Sunday", hours: "11:00 AM – 5:00 PM", open: "11:00", close: "17:00" },
+  { day: "Sunday", hours: "10:00 AM – 4:00 PM", open: "10:00", close: "16:00" },
 ];
 
 /* ------------------------------------------------------------------ */
