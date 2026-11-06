@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
 import { business, galleryImages, getServiceById } from "@/lib/config/salonData";
 import { cn } from "@/lib/utils";
@@ -85,12 +86,13 @@ export function Hero() {
             className="nt-fi mt-6 flex flex-col items-stretch gap-3.5 sm:flex-row sm:items-center sm:gap-7 lg:mt-9"
             style={delay(780)}
           >
-            <Link
+            <TrackedLink
               href="/book"
+              placement="hero_book"
               className="inline-flex h-[52px] items-center justify-center rounded-sm bg-ink px-7 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft"
             >
               Book a visit
-            </Link>
+            </TrackedLink>
             <Link
               href="/gallery"
               className="self-center border-b-[1.5px] border-ink py-1 text-sm font-bold tracking-[0.02em] text-ink sm:self-auto"

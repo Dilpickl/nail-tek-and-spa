@@ -13,6 +13,25 @@ export const CALL_PLACEMENTS = [
 
 export type CallPlacement = (typeof CALL_PLACEMENTS)[number];
 
+export const CTA_PLACEMENTS = [
+  "header_book",
+  "menu_book",
+  "hero_book",
+  "mobile_book",
+  "gallery_book",
+  "nailart_book",
+] as const;
+
+export type CtaPlacement = (typeof CTA_PLACEMENTS)[number] | `service:${string}`;
+
+export const BOOKING_STEPS = ["services", "technician", "time", "details", "confirm"] as const;
+
+export type BookingStep = (typeof BOOKING_STEPS)[number];
+
+export const DEVICES = ["phone", "tablet", "desktop"] as const;
+
+export type DeviceKind = (typeof DEVICES)[number];
+
 const BOT_USER_AGENT =
   /bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|telegrambot|headless|lighthouse/i;
 
@@ -22,6 +41,29 @@ export function isTrackingId(value: unknown): value is string {
 
 export function isCallPlacement(value: unknown): value is CallPlacement {
   return typeof value === "string" && (CALL_PLACEMENTS as readonly string[]).includes(value);
+}
+
+export function isCtaPlacement(value: unknown): value is CtaPlacement {
+  if (typeof value !== "string") return false;
+  if ((CTA_PLACEMENTS as readonly string[]).includes(value)) return true;
+  return /^service:[a-z0-9-]{1,40}$/.test(value);
+}
+
+export function isBookingStep(value: unknown): value is BookingStep {
+  return typeof value === "string" && (BOOKING_STEPS as readonly string[]).includes(value);
+}
+
+export function isDeviceKind(value: unknown): value is DeviceKind {
+  return typeof value === "string" && (DEVICES as readonly string[]).includes(value);
+}
+
+/** Hostname only, so referral links cannot carry names, phones, or search queries. */
+export function sanitizeReferrerHost(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const host = value.trim().toLowerCase().replace(/^www\./, "");
+  if (!host || host.length > 80) return null;
+  if (!/^[a-z0-9.-]+$/.test(host)) return null;
+  return host;
 }
 
 /** Public paths only. Query strings are dropped so booking details never land here. */

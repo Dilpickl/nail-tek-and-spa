@@ -7,6 +7,7 @@ import { Menu, Phone, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { business } from "@/lib/config/salonData";
 import { cn } from "@/lib/utils";
 
@@ -69,12 +70,13 @@ export function Header() {
             <Phone className="hidden size-3.5 sm:block" />
             {business.phone}
           </PhoneLink>
-          <Link
+          <TrackedLink
             href="/book"
+            placement="header_book"
             className="hidden h-11 items-center justify-center rounded-sm bg-ink px-6 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft lg:inline-flex"
           >
             Book a visit
-          </Link>
+          </TrackedLink>
           <button
             type="button"
             className="inline-flex size-10 items-center justify-center rounded-full text-ink lg:hidden"
@@ -109,13 +111,14 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Link
+              <TrackedLink
                 href="/book"
+                placement="menu_book"
                 onClick={() => setMenuOpen(false)}
                 className="mt-3 inline-flex h-12 items-center justify-center rounded-sm bg-ink text-sm font-bold text-white"
               >
                 Book a visit
-              </Link>
+              </TrackedLink>
             </nav>
           </motion.div>
         )}

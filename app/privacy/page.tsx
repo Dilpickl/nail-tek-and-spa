@@ -35,11 +35,13 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="Website Measurement">
-          We count visits, taps on our phone number, and finished online bookings
-          so we can see how many visitors book or call. A random id is stored in
-          your browser for that count. It is not your name, we do not sell it,
-          and it is kept in our own database. Our host, Vercel, may also collect
-          its own short-term usage statistics.
+          We count visits, the pages you open, taps on our phone number and booking
+          buttons, and how far you get in the booking steps. We also store whether
+          you are on a phone, tablet, or computer, and the website that linked you
+          here, such as Google or Instagram. A random id is stored in your browser
+          for that count. It is not your name, we do not store the full link you
+          came from, we do not sell it, and it is kept in our own database. Our
+          host, Vercel, may also collect its own short-term usage statistics.
         </Section>
 
         <Section title="How We Use Your Information">

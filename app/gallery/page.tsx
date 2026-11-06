@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Calendar } from "lucide-react";
 
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { business, galleryImages } from "@/lib/config/salonData";
 import { Button } from "@/components/ui/button";
 
@@ -26,12 +27,12 @@ export default function GalleryPage() {
             Travis, Daisy, and the team. Here&apos;s the full collection.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/book">
+            <TrackedLink href="/book" placement="gallery_book">
               <Button size="lg">
                 <Calendar className="size-5" />
                 Book Your Appointment
               </Button>
-            </Link>
+            </TrackedLink>
             <Link href="/services">
               <Button size="lg" variant="outline">
                 View services

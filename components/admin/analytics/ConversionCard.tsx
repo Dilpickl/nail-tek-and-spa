@@ -32,9 +32,9 @@ export function ConversionCard({ conversion, rangeTo }: ConversionCardProps) {
         </h2>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">
           Run the one-time update in{" "}
-          <span className="font-medium text-ink">supabase/migrations/013_website_conversion.sql</span>{" "}
-          in the Supabase SQL editor. After that, visitors, online bookings, and
-          taps on the phone number are saved here for any date range — not just
+          <span className="font-medium text-ink">supabase/migrations/014_site_engagement.sql</span>{" "}
+          in the Supabase SQL editor. After that, visitors, bookings, calls, and how
+          people move through the site are saved here for any date range — not just
           the last 30 days Vercel keeps.
         </p>
       </article>

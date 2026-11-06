@@ -1,3 +1,11 @@
+import {
+  type EngagementRaw,
+  type SiteInsights,
+  buildSiteInsights,
+  emptyEngagement,
+  parseEngagement,
+} from "./engagement";
+
 export interface ConversionDay {
   date: string;
   visitors: number;
@@ -18,6 +26,9 @@ export interface WebsiteConversionStats {
   onlineBookings: number;
   phoneAppointments: number;
   daily: ConversionDay[];
+  /** True after migration 014. Older databases still return conversion totals. */
+  engagementReady: boolean;
+  engagement: EngagementRaw;
 }
 
 export interface WebsiteConversion {
@@ -48,6 +59,8 @@ export interface WebsiteConversion {
   /** Phone appointments typed in at the front desk since tracking started. */
   phoneAppointments: number;
   trend: ConversionDay[];
+  /** Null until migration 014 is applied. */
+  insights: SiteInsights | null;
 }
 
 export function unavailableWebsiteConversion(): WebsiteConversion {
@@ -66,6 +79,7 @@ export function unavailableWebsiteConversion(): WebsiteConversion {
     conversionRate: 0,
     phoneAppointments: 0,
     trend: [],
+    insights: null,
   };
 }
 
@@ -115,6 +129,8 @@ export function parseWebsiteConversionStats(raw: unknown): WebsiteConversionStat
     onlineBookings: num(row.onlineBookings),
     phoneAppointments: num(row.phoneAppointments),
     daily,
+    engagementReady: row.engagementReady === true,
+    engagement: row.engagementReady === true ? parseEngagement(row.engagement) : emptyEngagement(),
   };
 }
 
@@ -155,5 +171,8 @@ export function buildWebsiteConversion(
       calls: byDate.get(date)?.calls ?? 0,
       bookings: byDate.get(date)?.bookings ?? 0,
     })),
+    insights: stats.engagementReady
+      ? buildSiteInsights(stats.engagement, stats.pageviews, stats.sessions)
+      : null,
   };
 }

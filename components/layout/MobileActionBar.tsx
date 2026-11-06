@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Phone } from "lucide-react";
 
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { OpenStatus } from "@/components/home/OpenStatus";
 
 /** Sticky Call / Book bar on phones and tablets (hidden on the booking page). */
@@ -23,12 +23,13 @@ export function MobileActionBar() {
           <Phone className="size-4" />
           Call
         </PhoneLink>
-        <Link
+        <TrackedLink
           href="/book"
+          placement="mobile_book"
           className="inline-flex h-12 items-center justify-center rounded-sm bg-[#F5EFE8] text-sm font-bold text-ink"
         >
           Book a visit
-        </Link>
+        </TrackedLink>
       </div>
     </div>
   );
