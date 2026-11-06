@@ -27,6 +27,7 @@ import {
 } from "@/lib/booking/technicians";
 import { isSlotInPast, toLocalDateTime } from "@/lib/booking/time-utils";
 import { notifyNewBooking } from "@/lib/admin/push";
+import { isTrackingId } from "@/lib/analytics/collect";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface AppointmentRequest {
@@ -40,6 +41,8 @@ interface AppointmentRequest {
     email?: string;
   };
   smsConsent?: boolean;
+  visitorId?: string;
+  sessionId?: string;
 }
 
 export async function POST(request: Request) {
@@ -241,6 +244,21 @@ export async function POST(request: Request) {
         "Assigned technician";
     const maxDuration = Math.max(...assignments.map((item) => getMemberDurationMinutes(item.member)));
     const endsAt = new Date(startsAt.getTime() + maxDuration * 60_000);
+
+    const visitorId = isTrackingId(payload.visitorId) ? payload.visitorId : null;
+    const sessionId = isTrackingId(payload.sessionId) ? payload.sessionId : visitorId;
+    if (visitorId && sessionId && createdIds[0]) {
+      const { error: trackingError } = await supabase.from("site_events").insert({
+        visitor_id: visitorId,
+        session_id: sessionId,
+        event_type: "booking",
+        path: "/book",
+        appointment_id: createdIds[0],
+      });
+      if (trackingError) {
+        console.error("Booking conversion event failed", trackingError.message);
+      }
+    }
 
     // Await push before returning — Vercel freezes the function after the
     // response, so fire-and-forget often never reaches Apple's push service.

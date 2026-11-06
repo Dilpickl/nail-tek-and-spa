@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { AnalyticsDatePicker } from "@/components/admin/analytics/AnalyticsDatePicker";
+import { ConversionCard } from "@/components/admin/analytics/ConversionCard";
 import { FullReportSection } from "@/components/admin/analytics/FullReportSection";
 import { HeroStats } from "@/components/admin/analytics/HeroStats";
 import { NeedsAttention } from "@/components/admin/analytics/NeedsAttention";
@@ -90,6 +91,8 @@ export function AnalyticsDashboard() {
 
       {data && !loading && (
         <div className="mt-8 space-y-6">
+          <ConversionCard conversion={data.conversion} rangeTo={data.range.to} />
+
           <HeroStats
             kpis={data.kpis}
             periodLabel={data.range.label}

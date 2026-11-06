@@ -806,4 +806,5 @@ export const careers: JobPosting[] = [
 export const legal = {
   businessLegalName: "Nail Tek & Spa INC",
   lastUpdated: "July 9, 2026",
+  privacyUpdated: "November 6, 2026",
 } as const;

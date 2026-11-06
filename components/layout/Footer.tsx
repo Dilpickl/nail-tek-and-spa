@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Clock, Facebook, Instagram } from "lucide-react";
 
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { business, hours, socials } from "@/lib/config/salonData";
 
 export function Footer() {
@@ -18,13 +19,13 @@ export function Footer() {
             </p>
 
             <div className="mt-6 space-y-3 text-sm">
-              <a
-                href={`tel:${business.phoneRaw}`}
+              <PhoneLink
+                placement="footer"
                 className="flex items-center gap-3 hover:text-offwhite transition-colors"
               >
                 <Phone className="size-4 shrink-0" />
                 {business.phone}
-              </a>
+              </PhoneLink>
               {business.email ? (
                 <a
                   href={`mailto:${business.email}`}

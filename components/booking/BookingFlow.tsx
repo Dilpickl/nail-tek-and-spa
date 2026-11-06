@@ -16,6 +16,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { getTrackingIds } from "@/lib/analytics/visitor";
 import {
   computeBookingTotals,
   formatBookingTotalLabel,
@@ -1444,6 +1445,7 @@ async function submitBooking({
         time: selectedTime,
         customer: details,
         smsConsent: true,
+        ...getTrackingIds(),
       }),
     });
     const body = (await response.json()) as

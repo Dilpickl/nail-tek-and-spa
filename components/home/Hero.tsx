@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
 import { business, galleryImages, getServiceById } from "@/lib/config/salonData";
 import { cn } from "@/lib/utils";
@@ -100,12 +101,12 @@ export function Hero() {
 
           <p className="nt-fi mt-[18px] hidden text-sm text-ink-muted lg:block" style={delay(860)}>
             Prefer to call?{" "}
-            <a
-              href={`tel:${business.phoneRaw}`}
+            <PhoneLink
+              placement="hero"
               className="border-b-[1.5px] border-rose font-bold text-ink"
             >
               {business.phone}
-            </a>{" "}
+            </PhoneLink>{" "}
             · walk-ins welcome
           </p>
 
