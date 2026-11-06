@@ -32,8 +32,8 @@ where id in ('tech-linh', 'tech-maria', 'tech-james', 'tech-amy');
 -- Services ------------------------------------------------------------------
 insert into public.services (id, category_id, name, description, price, duration_minutes, is_active) values
   -- Pedicures
-  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 65, 60, true),
-  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 55, 60, true),
+  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 55, 60, true),
+  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 45, 60, true),
   ('pedi-luxury',    'pedicures', 'Luxury Spa Pedicure',    'Sugar or sea salt scrub with hot stone and leg massage.', 35, 40, true),
   ('pedi-classic',   'pedicures', 'Classic Pedicure',       'Nail shaping, cuticle care, moisturizing massage, and polish.', 25, 30, true),
 

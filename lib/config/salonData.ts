@@ -156,7 +156,7 @@ export const hours: BusinessHours[] = [
   { day: "Thursday", hours: "9:00 AM – 8:00 PM", open: "09:00", close: "20:00" },
   { day: "Friday", hours: "9:00 AM – 8:00 PM", open: "09:00", close: "20:00" },
   { day: "Saturday", hours: "9:00 AM – 6:00 PM", open: "09:00", close: "18:00" },
-  { day: "Sunday", hours: "11:00 AM – 5:00 PM", open: "11:00", close: "17:00" },
+  { day: "Sunday", hours: "10:00 AM – 4:00 PM", open: "10:00", close: "16:00" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -275,7 +275,7 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Volcanic Spa Pedicure",
         description:
           "A bubbling volcanic soak that's more fun than it sounds. Sugar scrub, collagen mask, hot stones, and paraffin. Your feet will feel brand new.",
-        price: 65,
+        price: 55,
         durationMinutes: 60,
         featured: true,
       },
@@ -284,7 +284,7 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Organic Spa Pedicure",
         description:
           "Our go-to for dry, tired feet. Organic lavender scrub, green tea mask, cream massage, hot stones, and paraffin.",
-        price: 55,
+        price: 45,
         durationMinutes: 60,
         featured: true,
       },
