@@ -90,6 +90,8 @@ const TAP_LABELS: Record<string, string> = {
   mobile_book: "Book on the bottom bar",
   gallery_book: "Book from the lookbook",
   nailart_book: "Book a nail art visit",
+  look_book: "Book this look (homepage photos)",
+  addon_book: "Add to booking (beyond nails)",
 };
 
 const DEVICE_LABELS: Record<string, string> = {

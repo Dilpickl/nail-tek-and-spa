@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:unit": "node --experimental-strip-types --test lib/analytics/*.test.mts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "seed:demo": "node scripts/seed-demo-bookings.mjs",

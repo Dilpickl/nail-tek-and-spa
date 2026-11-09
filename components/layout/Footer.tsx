@@ -3,12 +3,21 @@ import { Phone, Mail, MapPin, Clock, Facebook, Instagram } from "lucide-react";
 
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { business, hours, socials } from "@/lib/config/salonData";
+import { cn } from "@/lib/utils";
 
-export function Footer() {
+export function Footer({
+  reserveActionBarSpace = false,
+}: {
+  /** Leave room under the footer for the phone/tablet Call / Book bar. */
+  reserveActionBarSpace?: boolean;
+}) {
   const { address } = business;
 
   return (
-    <footer id="contact" className="scroll-mt-20 bg-ink pb-28 text-beige-100 lg:pb-0">
+    <footer
+      id="contact"
+      className={cn("scroll-mt-20 bg-ink text-beige-100", reserveActionBarSpace && "pb-28 lg:pb-0")}
+    >
       <div className="container py-16 md:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr_1fr]">
           {/* Brand + contact */}

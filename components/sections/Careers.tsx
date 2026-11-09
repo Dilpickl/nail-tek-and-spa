@@ -50,7 +50,7 @@ export function Careers() {
                   </div>
                 </div>
                 {business.email ? (
-                  <a href={`mailto:${business.email}?subject=Application: ${job.title}`}>
+                  <a href={`mailto:${business.email}?subject=${encodeURIComponent(`Application: ${job.title}`)}`}>
                     <Button variant="outline" className="w-full sm:w-auto">
                       Apply
                       <ArrowRight className="size-4" />

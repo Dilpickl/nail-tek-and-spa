@@ -189,7 +189,6 @@ function BoardTile({
         src={item.src}
         alt={item.alt}
         fill
-        priority={index < 3}
         sizes="(min-width: 1024px) 260px, 62vw"
         className="object-cover"
       />
@@ -203,13 +202,14 @@ function BoardTile({
         </span>
       ) : null}
       {item.chip ? (
-        <Link
+        <TrackedLink
           href={href}
+          placement="look_book"
           className="nt-after absolute bottom-2.5 left-2.5 flex items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-xs font-bold text-ink shadow-sm transition-colors hover:bg-white"
           style={delay(start + 900)}
         >
           Book this look <span className="font-medium text-ink-muted">{item.chip}</span>
-        </Link>
+        </TrackedLink>
       ) : null}
     </figure>
   );

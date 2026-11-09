@@ -4,7 +4,7 @@ import {
   buildSiteInsights,
   emptyEngagement,
   parseEngagement,
-} from "./engagement";
+} from "./engagement.ts";
 
 export interface ConversionDay {
   date: string;

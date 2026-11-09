@@ -20,6 +20,8 @@ export const CTA_PLACEMENTS = [
   "mobile_book",
   "gallery_book",
   "nailart_book",
+  "look_book",
+  "addon_book",
 ] as const;
 
 export type CtaPlacement = (typeof CTA_PLACEMENTS)[number] | `service:${string}`;

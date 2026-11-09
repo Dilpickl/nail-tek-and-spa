@@ -224,7 +224,6 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-43.png", alt: "Glitter and accent nail art designs" },
   { src: "/gallery/nail-44.png", alt: "Artistic manicure with fine detail work" },
   { src: "/gallery/nail-45.png", alt: "Luxury nail enhancements with sparkle" },
-  { src: "/gallery/nail-46.png", alt: "Holiday nails with candy-cane stripes, hand-painted snowmen, and green bow accents" },
   { src: "/gallery/nail-47.png", alt: "Classic and creative manicure styles" },
   { src: "/gallery/nail-48.png", alt: "Hand-painted nail art with glossy finish" },
   { src: "/gallery/nail-49.png", alt: "Minnie Mouse–inspired nails with red polka dots, a matte black finish, and a rhinestone bow" },
@@ -256,7 +255,6 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-75.png", alt: "Festive nail art with glitter and fine details" },
   { src: "/gallery/nail-76.png", alt: "Patriotic stars-and-stripes nail art in red, white, and blue" },
   { src: "/gallery/nail-77.png", alt: "Hand-painted seasonal nails with polished shine" },
-  { src: "/gallery/nail-78.png", alt: "Artistic manicure showcasing salon craftsmanship" },
 ];
 
 /* ------------------------------------------------------------------ */
