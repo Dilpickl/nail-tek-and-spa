@@ -25,9 +25,9 @@ import {
 import {
   getSelectedServiceVariantIds,
   getServiceById,
-  getServiceCategoryId,
   serviceCategories,
 } from "@/lib/config/salonData";
+import { isNailBaseService, needsNailArtBase } from "@/lib/booking/service-utils";
 import type { BookingTechnicianOption } from "@/lib/technicians/types";
 import { formatDuration, formatPrice, cn } from "@/lib/utils";
 import {
@@ -511,9 +511,27 @@ function ServiceStep({
         {party.map((member, memberIndex) => {
           const guestNameFieldId = `booking-guest-name-${member.id}`;
           const servicesFieldId = memberServicesFieldId(member.id);
+          const nailArtFieldId = nailArtBaseFieldId(member.id);
           const sectionHighlight =
             highlightedField === guestNameFieldId ||
             highlightedField === servicesFieldId;
+
+          function toggleMemberService(serviceId: string) {
+            onFieldEdit(servicesFieldId);
+            onFieldEdit(nailArtFieldId);
+            setParty((current) =>
+              current.map((item) =>
+                item.id !== member.id
+                  ? item
+                  : {
+                      ...item,
+                      serviceIds: item.serviceIds.includes(serviceId)
+                        ? item.serviceIds.filter((id) => id !== serviceId)
+                        : [...item.serviceIds, serviceId],
+                    }
+              )
+            );
+          }
 
           return (
           <div
@@ -575,24 +593,14 @@ function ServiceStep({
               </p>
             )}
 
-            <AddOnSuggestion
+            <NailArtBasePrompt
+              id={nailArtFieldId}
               serviceIds={member.serviceIds}
-              onToggle={(serviceId) => {
-                onFieldEdit(servicesFieldId);
-                setParty((current) =>
-                  current.map((item) =>
-                    item.id !== member.id
-                      ? item
-                      : {
-                          ...item,
-                          serviceIds: item.serviceIds.includes(serviceId)
-                            ? item.serviceIds.filter((id) => id !== serviceId)
-                            : [...item.serviceIds, serviceId],
-                        }
-                  )
-                );
-              }}
+              highlighted={highlightedField === nailArtFieldId}
+              onToggle={toggleMemberService}
             />
+
+            <AddOnSuggestion serviceIds={member.serviceIds} onToggle={toggleMemberService} />
 
             <div className="mt-4 space-y-5">
               {serviceCategories.map((category) => (
@@ -763,12 +771,71 @@ function ServiceStep({
 }
 
 /** Nail services that prompt the quick brow / lash add-on suggestion. */
-const ADD_ON_TRIGGER_CATEGORIES = new Set(["pedicures", "manicures", "enhancements"]);
 const SUGGESTED_ADD_ON_IDS = ["wax-eyebrows", "lash-tinting"];
 const ADD_ON_LABELS: Record<string, string> = {
   "wax-eyebrows": "Eyebrow wax",
   "lash-tinting": "Lash tinting",
 };
+
+/** Common bases offered when nail art is picked on its own. */
+const NAIL_ART_BASE_IDS = ["mani-no-chip", "mani-classic", "enh-gel-full", "enh-acrylic-full"];
+const NAIL_ART_BASE_LABELS: Record<string, string> = {
+  "enh-gel-full": "Gel Full Set",
+  "enh-acrylic-full": "Acrylic Full Set",
+};
+
+/**
+ * Nail art is painted on top of a manicure, pedicure or set. When it is
+ * selected alone, ask for the base so the visit reserves the right time.
+ */
+function NailArtBasePrompt({
+  id,
+  serviceIds,
+  highlighted,
+  onToggle,
+}: {
+  id: string;
+  serviceIds: string[];
+  highlighted: boolean;
+  onToggle: (serviceId: string) => void;
+}) {
+  if (!needsNailArtBase(serviceIds)) return null;
+
+  const bases = NAIL_ART_BASE_IDS.map((serviceId) => getServiceById(serviceId)).filter(
+    (service): service is NonNullable<typeof service> => Boolean(service)
+  );
+
+  return (
+    <div
+      id={id}
+      className={cn(
+        "mt-4 rounded-xl border bg-offwhite p-4 transition-shadow",
+        highlighted ? "border-red-500 ring-2 ring-red-500" : "border-ink/10"
+      )}
+    >
+      <p className="font-serif text-lg text-ink">What should we paint the art on?</p>
+      <p className={cn("mt-0.5 text-sm", highlighted ? "font-medium text-red-700" : "text-ink-muted")}>
+        Nail art goes on a manicure, pedicure or set. Pick one here or from the menu below.
+      </p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {bases.map((service) => (
+          <button
+            key={service.id}
+            type="button"
+            onClick={() => onToggle(service.id)}
+            className="flex min-h-12 items-center justify-between gap-3 rounded-lg border-[1.5px] border-border bg-background px-3 py-2.5 text-left text-sm transition-colors hover:border-ink/40"
+          >
+            <span>
+              <span className="font-medium text-ink">{NAIL_ART_BASE_LABELS[service.id] ?? service.name}</span>
+              <span className="ml-1.5 text-ink-muted">{formatDuration(service.durationMinutes)}</span>
+            </span>
+            <span className="font-semibold text-ink">{formatServicePriceLabel(service.id)}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function AddOnSuggestion({
   serviceIds,
@@ -778,7 +845,7 @@ function AddOnSuggestion({
   onToggle: (serviceId: string) => void;
 }) {
   const hasNailService = serviceIds.some((id) =>
-    ADD_ON_TRIGGER_CATEGORIES.has(getServiceCategoryId(id) ?? "")
+    isNailBaseService(id)
   );
   if (!hasNailService) return null;
 
@@ -1523,6 +1590,9 @@ function getStepValidationError(
       return memberServicesFieldId(party[0]?.id ?? "primary");
     }
 
+    const missingBase = party.find((member) => needsNailArtBase(member.serviceIds));
+    if (missingBase) return nailArtBaseFieldId(missingBase.id);
+
     return null;
   }
 
@@ -1536,6 +1606,10 @@ function getStepValidationError(
   }
 
   return null;
+}
+
+function nailArtBaseFieldId(memberId: string) {
+  return `booking-nail-art-base-${memberId}`;
 }
 
 function memberServicesFieldId(memberId: string) {

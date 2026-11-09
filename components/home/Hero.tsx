@@ -5,11 +5,10 @@ import Link from "next/link";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
+import { NAIL_ART_SERVICE_ID } from "@/lib/booking/service-utils";
 import { business, galleryImages, getServiceById } from "@/lib/config/salonData";
 import { cn } from "@/lib/utils";
 
-/** Custom nail art service; "Book this look" and nail-art CTAs preselect it. */
-export const NAIL_ART_SERVICE_ID = "addon-art";
 
 interface BoardPhoto {
   src: string;
