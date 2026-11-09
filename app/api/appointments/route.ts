@@ -25,6 +25,7 @@ import {
   getSchedulesForDate,
   getTechnicianByIdFromDb,
 } from "@/lib/booking/technicians";
+import { needsNailArtBase } from "@/lib/booking/service-utils";
 import { isSlotInPast, toLocalDateTime } from "@/lib/booking/time-utils";
 import { notifyNewBooking } from "@/lib/admin/push";
 import { isTrackingId } from "@/lib/analytics/collect";
@@ -66,6 +67,12 @@ export async function POST(request: Request) {
   }));
 
   const party = getPartyMembersWithServices(normalizedParty);
+  if (party.some((member) => needsNailArtBase(member.serviceIds))) {
+    return NextResponse.json(
+      { error: "Nail art goes on a manicure, pedicure or set. Please add one to your booking." },
+      { status: 400 }
+    );
+  }
   if (findDuplicateSpecificTechnicianPreference(party)) {
     return NextResponse.json(
       {

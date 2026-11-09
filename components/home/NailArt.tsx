@@ -3,7 +3,7 @@ import Image from "next/image";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
-import { NAIL_ART_SERVICE_ID } from "@/components/home/Hero";
+import { NAIL_ART_SERVICE_ID } from "@/lib/booking/service-utils";
 import { galleryImages } from "@/lib/config/salonData";
 
 const WAYS = [

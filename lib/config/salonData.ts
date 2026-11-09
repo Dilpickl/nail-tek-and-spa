@@ -516,7 +516,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Show us a photo. Our techs specialize in custom designs. Pricing depends on complexity and is confirmed at your visit.",
         price: 0,
-        durationMinutes: 30,
+        durationMinutes: 15,
         pricingTbd: true,
       },
     ],

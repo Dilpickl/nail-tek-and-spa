@@ -64,7 +64,7 @@ insert into public.services (id, category_id, name, description, price, duration
   ('addon-paraffin',       'polish-addons', 'Paraffin Treatment',     'Warm paraffin dip for hands or feet.', 10, 15, true),
   ('addon-repair',         'polish-addons', 'Nail Repair',            'Broken nail repair (from $5).', 5, 15, true),
   ('addon-removal',        'polish-addons', 'Nails Removal',          'Artificial nail or gel removal (from $5).', 5, 20, true),
-  ('addon-art',            'polish-addons', 'Custom Nail Art',        'Custom nail art — priced at visit.', 0, 20, true),
+  ('addon-art',            'polish-addons', 'Custom Nail Art',        'Custom nail art — priced at visit.', 0, 15, true),
 
   -- Waxing
   ('wax-eyebrows',   'waxing', 'Eyebrows',        'Precise eyebrow wax.', 10, 15, true),
