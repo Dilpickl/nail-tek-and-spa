@@ -7,10 +7,15 @@ import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { OpenStatus } from "@/components/home/OpenStatus";
 
+/** Pages that show the sticky bar; the footer reserves space for it on these. */
+export function showsMobileActionBar(pathname: string): boolean {
+  return !pathname.startsWith("/book");
+}
+
 /** Sticky Call / Book bar on phones and tablets (hidden on the booking page). */
 export function MobileActionBar() {
   const pathname = usePathname();
-  if (pathname.startsWith("/book")) return null;
+  if (!showsMobileActionBar(pathname)) return null;
 
   return (
     <div className="nt-bar fixed inset-x-0 bottom-0 z-40 flex flex-col gap-2 bg-ink px-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5 text-white lg:hidden">

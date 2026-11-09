@@ -1,34 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ComponentProps } from "react";
 
 import type { CtaPlacement } from "@/lib/analytics/collect";
 import { trackCta } from "@/lib/analytics/visitor";
 
+/** next/link that records a booking-button tap before navigating. */
 export function TrackedLink({
-  href,
   placement,
-  className,
-  children,
   onClick,
-}: {
-  href: string;
-  placement: CtaPlacement;
-  className?: string;
-  children: ReactNode;
-  onClick?: () => void;
-}) {
+  ...props
+}: ComponentProps<typeof Link> & { placement: CtaPlacement }) {
   return (
     <Link
-      href={href}
-      className={className}
-      onClick={() => {
+      {...props}
+      onClick={(event) => {
         trackCta(placement);
-        onClick?.();
+        onClick?.(event);
       }}
-    >
-      {children}
-    </Link>
+    />
   );
 }
