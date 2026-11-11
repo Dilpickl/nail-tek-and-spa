@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Bodoni_Moda, Cormorant_Garamond, Inter, Manrope } from "next/font/google";
 
+import { SiteTracker } from "@/components/analytics/SiteTracker";
 import { business } from "@/lib/config/salonData";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import "./globals.css";
@@ -78,6 +79,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col">
+        <SiteTracker />
         <SiteChrome>
           <main className="flex-1">{children}</main>
         </SiteChrome>

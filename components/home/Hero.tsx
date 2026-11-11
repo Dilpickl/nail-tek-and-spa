@@ -2,12 +2,13 @@ import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
+import { NAIL_ART_SERVICE_ID } from "@/lib/booking/service-utils";
 import { business, galleryImages, getServiceById } from "@/lib/config/salonData";
 import { cn } from "@/lib/utils";
 
-/** Custom nail art service; "Book this look" and nail-art CTAs preselect it. */
-export const NAIL_ART_SERVICE_ID = "addon-art";
 
 interface BoardPhoto {
   src: string;
@@ -26,9 +27,9 @@ function photo(n: string, height: number, chip?: string): BoardPhoto {
 
 // Three staggered columns on desktop.
 const COLUMNS: { offset: number; photos: BoardPhoto[] }[] = [
-  { offset: 0, photos: [photo("14", 300, "Hearts"), photo("01", 220)] },
-  { offset: 56, photos: [photo("63", 360, "Hand-painted"), photo("47", 220)] },
-  { offset: 18, photos: [photo("03", 250), photo("54", 300, "Sunflower")] },
+  { offset: 0, photos: [photo("28", 300, "Floral"), photo("01", 220)] },
+  { offset: 56, photos: [photo("29", 360, "Holiday"), photo("34", 220)] },
+  { offset: 18, photos: [photo("03", 250), photo("31", 300, "Graphic lines")] },
 ];
 
 // Phone / tablet: one swipeable row, chips first.
@@ -84,12 +85,13 @@ export function Hero() {
             className="nt-fi mt-6 flex flex-col items-stretch gap-3.5 sm:flex-row sm:items-center sm:gap-7 lg:mt-9"
             style={delay(780)}
           >
-            <Link
+            <TrackedLink
               href="/book"
+              placement="hero_book"
               className="inline-flex h-[52px] items-center justify-center rounded-sm bg-ink px-7 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft"
             >
               Book a visit
-            </Link>
+            </TrackedLink>
             <Link
               href="/gallery"
               className="self-center border-b-[1.5px] border-ink py-1 text-sm font-bold tracking-[0.02em] text-ink sm:self-auto"
@@ -100,12 +102,12 @@ export function Hero() {
 
           <p className="nt-fi mt-[18px] hidden text-sm text-ink-muted lg:block" style={delay(860)}>
             Prefer to call?{" "}
-            <a
-              href={`tel:${business.phoneRaw}`}
+            <PhoneLink
+              placement="hero"
               className="border-b-[1.5px] border-rose font-bold text-ink"
             >
               {business.phone}
-            </a>{" "}
+            </PhoneLink>{" "}
             · walk-ins welcome
           </p>
 
@@ -186,7 +188,6 @@ function BoardTile({
         src={item.src}
         alt={item.alt}
         fill
-        priority={index < 3}
         sizes="(min-width: 1024px) 260px, 62vw"
         className="object-cover"
       />
@@ -200,13 +201,14 @@ function BoardTile({
         </span>
       ) : null}
       {item.chip ? (
-        <Link
+        <TrackedLink
           href={href}
+          placement="look_book"
           className="nt-after absolute bottom-2.5 left-2.5 flex items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-xs font-bold text-ink shadow-sm transition-colors hover:bg-white"
           style={delay(start + 900)}
         >
           Book this look <span className="font-medium text-ink-muted">{item.chip}</span>
-        </Link>
+        </TrackedLink>
       ) : null}
     </figure>
   );

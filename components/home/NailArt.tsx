@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
-import { NAIL_ART_SERVICE_ID } from "@/components/home/Hero";
+import { NAIL_ART_SERVICE_ID } from "@/lib/booking/service-utils";
 import { galleryImages } from "@/lib/config/salonData";
 
 const WAYS = [
@@ -13,9 +13,9 @@ const WAYS = [
 ];
 
 const EXAMPLES = [
-  { n: "38", kicker: "From a photo", quote: "“this, but almond”" },
-  { n: "12", kicker: "From an idea", quote: "“lemons, summery, a little sparkle”" },
-  { n: "45", kicker: "Freestyle", quote: "“something wintry, surprise me”" },
+  { n: "09", kicker: "From a photo", quote: "“this one, for the holidays”", position: "50% 50%" },
+  { n: "49", kicker: "From an idea", quote: "“Minnie Mouse, but make it chic”", position: "28% 50%" },
+  { n: "45", kicker: "Freestyle", quote: "“something wintry, surprise me”", position: "50% 50%" },
 ];
 
 const stagger = (i: number) => ({ "--rd": `${i * 110}ms` }) as CSSProperties;
@@ -49,16 +49,14 @@ export function NailArt() {
               </li>
             ))}
           </ol>
-          <p data-reveal className="mt-6 text-[13px] text-[#9C9186]">
-            Custom art is priced in the chair, before we start.
-          </p>
-          <div data-reveal className="mt-6">
-            <Link
+          <div data-reveal className="mt-9">
+            <TrackedLink
               href={`/book?service=${NAIL_ART_SERVICE_ID}`}
+              placement="nailart_book"
               className="inline-flex h-[52px] items-center justify-center rounded-sm bg-[#F5EFE8] px-7 text-sm font-bold tracking-[0.02em] text-ink transition-colors hover:bg-white"
             >
               Book a nail art visit
-            </Link>
+            </TrackedLink>
           </div>
         </div>
 
@@ -74,7 +72,9 @@ export function NailArt() {
                 className={`m-0 ${i === 1 ? "mt-6 lg:mt-12" : ""}`}
               >
                 <div className="relative h-[170px] overflow-hidden bg-[#2a2725] sm:h-[260px] lg:h-[330px]">
-                  <Image src={src} alt={alt} fill sizes="(min-width: 1024px) 220px, 30vw" className="object-cover" />
+                  <Image src={src} alt={alt} fill sizes="(min-width: 1024px) 220px, 30vw" className="object-cover"
+                    style={{ objectPosition: example.position }}
+                  />
                 </div>
                 <figcaption className="mt-3 font-serif text-[13px] italic leading-snug text-[#E9DED3] lg:text-[17px]">
                   <span className="mb-1.5 block font-sans text-[9px] font-bold not-italic uppercase tracking-[0.14em] text-rose-light lg:text-[11px] lg:tracking-[0.18em]">

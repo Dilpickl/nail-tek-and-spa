@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  buildWebsiteConversion,
+  parseWebsiteConversionStats,
+  unavailableWebsiteConversion,
+} from "@/lib/analytics/conversion";
 import type { DateRange } from "@/lib/analytics/date-ranges";
 import { eachDayInRange, toIsoDateString } from "@/lib/analytics/date-ranges";
 import type {
@@ -135,6 +140,7 @@ export async function fetchAnalytics(
     { data: clients },
     { data: upcomingRows },
     { data: technicianRows },
+    conversionResult,
   ] = await Promise.all([
     supabase
       .from("appointments")
@@ -176,6 +182,10 @@ export async function fetchAnalytics(
       .from("technicians")
       .select("id, name, is_active, display_order")
       .order("display_order", { ascending: true }),
+    supabase.rpc("website_conversion", {
+      range_from: fromIso,
+      range_to: toIso,
+    }),
   ]);
 
   const technicians = (technicianRows ?? []) as TechnicianRow[];
@@ -224,6 +234,7 @@ export async function fetchAnalytics(
   const scheduleUtilization = computeScheduleUtilization(appointments, range, technicians);
   const upcoming = mapUpcoming((upcomingRows ?? []) as AppointmentRow[], technicianNameById);
   const alerts = buildAlerts(transactions);
+  const conversion = resolveConversion(conversionResult, range);
 
   const totalAppointments = appointments.length;
 
@@ -275,7 +286,22 @@ export async function fetchAnalytics(
     scheduleUtilization,
     upcoming,
     alerts,
+    conversion,
   };
+}
+
+function resolveConversion(
+  result: { data: unknown; error: { message?: string } | null },
+  range: DateRange
+) {
+  if (result.error) {
+    console.error("Website conversion unavailable", result.error.message);
+    return unavailableWebsiteConversion();
+  }
+
+  const stats = parseWebsiteConversionStats(result.data);
+  if (!stats) return unavailableWebsiteConversion();
+  return buildWebsiteConversion(stats, eachDayInRange(range.from, range.to));
 }
 
 function phaseOf(appt: { status: string; starts_at: string; ends_at: string }, now: number) {

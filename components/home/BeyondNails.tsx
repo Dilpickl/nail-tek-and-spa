@@ -1,6 +1,7 @@
-import type { CSSProperties } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 import Link from "next/link";
 
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
 import { getServiceById, type Service } from "@/lib/config/salonData";
 import { formatDuration } from "@/lib/utils";
@@ -73,7 +74,7 @@ export function BeyondNails() {
 
         <div className="grid gap-2 md:grid-cols-3 md:gap-3.5 lg:grid-cols-[1fr_1fr_1fr_1.25fr]">
           {tiles.map((tile, i) => (
-            <Link
+            <TileLink
               key={tile.kicker}
               href={tile.href}
               data-reveal
@@ -88,7 +89,7 @@ export function BeyondNails() {
               <span className="col-span-2 mt-1.5 self-start border-b-[1.5px] border-ink pb-0.5 text-[13px] font-bold text-ink md:mt-auto md:text-sm">
                 {tile.cta}
               </span>
-            </Link>
+            </TileLink>
           ))}
 
           {/* Illustration of the add-on prompt in online booking. */}
@@ -120,6 +121,12 @@ export function BeyondNails() {
       </div>
     </section>
   );
+}
+
+/** Tiles that open booking count as a booking tap; the waxing-menu tile is a plain link. */
+function TileLink(props: ComponentProps<typeof Link>) {
+  const href = typeof props.href === "string" ? props.href : "";
+  return href.startsWith("/book") ? <TrackedLink {...props} placement="addon_book" /> : <Link {...props} />;
 }
 
 function AddonRow({

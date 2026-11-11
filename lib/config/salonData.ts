@@ -156,7 +156,7 @@ export const hours: BusinessHours[] = [
   { day: "Thursday", hours: "9:00 AM – 8:00 PM", open: "09:00", close: "20:00" },
   { day: "Friday", hours: "9:00 AM – 8:00 PM", open: "09:00", close: "20:00" },
   { day: "Saturday", hours: "9:00 AM – 6:00 PM", open: "09:00", close: "18:00" },
-  { day: "Sunday", hours: "11:00 AM – 5:00 PM", open: "11:00", close: "17:00" },
+  { day: "Sunday", hours: "10:00 AM – 4:00 PM", open: "10:00", close: "16:00" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -188,7 +188,7 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-06.png", alt: "Creative nail designs with mixed patterns" },
   { src: "/gallery/nail-07.png", alt: "Luxury manicure with crystal and glitter details" },
   { src: "/gallery/nail-08.png", alt: "Custom nail enhancements with artistic finishes" },
-  { src: "/gallery/nail-09.png", alt: "Food-themed custom nail art with playful details" },
+  { src: "/gallery/nail-09.png", alt: "Holiday nails with candy-cane stripes, hand-painted snowmen, and green bow accents" },
   { src: "/gallery/nail-10.png", alt: "Hot pink manicure with tropical palm tree accent" },
   { src: "/gallery/nail-11.png", alt: "St. Patrick's Day green and gold glitter manicure" },
   { src: "/gallery/nail-12.png", alt: "Winter holiday nails with candy cane and snowflake art" },
@@ -206,13 +206,13 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-25.png", alt: "Custom nail art showcase from Nail Tek & Spa" },
   { src: "/gallery/nail-26.png", alt: "Detailed salon manicure with glossy finish" },
   { src: "/gallery/nail-27.png", alt: "Artistic nail designs with seasonal inspiration" },
-  { src: "/gallery/nail-28.png", alt: "Premium nail enhancements with creative details" },
-  { src: "/gallery/nail-29.png", alt: "Hand-painted nail art with glitter accents" },
+  { src: "/gallery/nail-28.png", alt: "Hot pink nails with hand-painted yellow flowers and silver leaf accents" },
+  { src: "/gallery/nail-29.png", alt: "Holiday nails with hand-painted poinsettias, snowy trees, and red and green accents" },
   { src: "/gallery/nail-30.png", alt: "Elegant manicure featuring custom salon designs" },
-  { src: "/gallery/nail-31.png", alt: "Bold nail art with polished professional finish" },
+  { src: "/gallery/nail-31.png", alt: "Nude nails with purple and white graphic lines and rhinestone accents" },
   { src: "/gallery/nail-32.png", alt: "Signature Nail Tek & Spa custom nail work" },
   { src: "/gallery/nail-33.png", alt: "Custom nail art with creative color and detail" },
-  { src: "/gallery/nail-34.png", alt: "Glossy manicure with hand-painted accents" },
+  { src: "/gallery/nail-34.png", alt: "Almond nails with hand-painted clown faces, stars, and silver swirls" },
   { src: "/gallery/nail-35.png", alt: "Seasonal nail designs with glitter finishes" },
   { src: "/gallery/nail-36.png", alt: "Detailed salon manicure with artistic flair" },
   { src: "/gallery/nail-37.png", alt: "Bold color manicure with custom nail art" },
@@ -224,10 +224,9 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-43.png", alt: "Glitter and accent nail art designs" },
   { src: "/gallery/nail-44.png", alt: "Artistic manicure with fine detail work" },
   { src: "/gallery/nail-45.png", alt: "Luxury nail enhancements with sparkle" },
-  { src: "/gallery/nail-46.png", alt: "Colorful custom nail art designs" },
   { src: "/gallery/nail-47.png", alt: "Classic and creative manicure styles" },
   { src: "/gallery/nail-48.png", alt: "Hand-painted nail art with glossy finish" },
-  { src: "/gallery/nail-49.png", alt: "Statement nails with custom salon designs" },
+  { src: "/gallery/nail-49.png", alt: "Minnie Mouse–inspired nails with red polka dots, a matte black finish, and a rhinestone bow" },
   { src: "/gallery/nail-50.png", alt: "Breakfast-themed egg and bacon nail art" },
   { src: "/gallery/nail-51.png", alt: "Coral French tips with silver glitter accents" },
   { src: "/gallery/nail-52.png", alt: "St. Patrick's Day green glitter and shamrock nails" },
@@ -239,7 +238,7 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-58.png", alt: "White and glitter statement nails with bling" },
   { src: "/gallery/nail-59.png", alt: "Orange manicure with silver glitter floral accents" },
   { src: "/gallery/nail-60.png", alt: "Christmas lights and glitter holiday nail art" },
-  { src: "/gallery/nail-61.png", alt: "Tropical sunset ombre nails with palm silhouettes" },
+  { src: "/gallery/nail-61.png", alt: "Hot pink nails with hand-painted flamingo and palm-leaf accents on sky blue" },
   { src: "/gallery/nail-62.png", alt: "Red glitter Christmas nails with candy cane art" },
   { src: "/gallery/nail-63.png", alt: "American flag inspired red white and blue nails" },
   { src: "/gallery/nail-64.png", alt: "Pastel geometric color-block coffin nail art" },
@@ -254,9 +253,8 @@ export const galleryImages: GalleryImage[] = [
   { src: "/gallery/nail-73.png", alt: "Premium manicure with artistic hand-painted work" },
   { src: "/gallery/nail-74.png", alt: "Colorful custom nail designs with glossy finish" },
   { src: "/gallery/nail-75.png", alt: "Festive nail art with glitter and fine details" },
-  { src: "/gallery/nail-76.png", alt: "Signature Nail Tek & Spa custom nail enhancements" },
+  { src: "/gallery/nail-76.png", alt: "Patriotic stars-and-stripes nail art in red, white, and blue" },
   { src: "/gallery/nail-77.png", alt: "Hand-painted seasonal nails with polished shine" },
-  { src: "/gallery/nail-78.png", alt: "Artistic manicure showcasing salon craftsmanship" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -275,7 +273,7 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Volcanic Spa Pedicure",
         description:
           "A bubbling volcanic soak that's more fun than it sounds. Sugar scrub, collagen mask, hot stones, and paraffin. Your feet will feel brand new.",
-        price: 65,
+        price: 55,
         durationMinutes: 60,
         featured: true,
       },
@@ -284,7 +282,7 @@ export const serviceCategories: ServiceCategory[] = [
         name: "Organic Spa Pedicure",
         description:
           "Our go-to for dry, tired feet. Organic lavender scrub, green tea mask, cream massage, hot stones, and paraffin.",
-        price: 55,
+        price: 45,
         durationMinutes: 60,
         featured: true,
       },
@@ -518,7 +516,7 @@ export const serviceCategories: ServiceCategory[] = [
         description:
           "Show us a photo. Our techs specialize in custom designs. Pricing depends on complexity and is confirmed at your visit.",
         price: 0,
-        durationMinutes: 30,
+        durationMinutes: 15,
         pricingTbd: true,
       },
     ],
@@ -806,4 +804,5 @@ export const careers: JobPosting[] = [
 export const legal = {
   businessLegalName: "Nail Tek & Spa INC",
   lastUpdated: "July 9, 2026",
+  privacyUpdated: "November 6, 2026",
 } as const;

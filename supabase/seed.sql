@@ -32,8 +32,8 @@ where id in ('tech-linh', 'tech-maria', 'tech-james', 'tech-amy');
 -- Services ------------------------------------------------------------------
 insert into public.services (id, category_id, name, description, price, duration_minutes, is_active) values
   -- Pedicures
-  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 65, 60, true),
-  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 55, 60, true),
+  ('pedi-volcanic',  'pedicures', 'Volcanic Spa Pedicure',  'Bubbling volcanic treatment with sugar scrub, collagen mask, hot stones, and paraffin.', 55, 60, true),
+  ('pedi-organic',   'pedicures', 'Organic Spa Pedicure',   'Lavender scrub, green tea mask, cream massage, hot stones, and paraffin.', 45, 60, true),
   ('pedi-luxury',    'pedicures', 'Luxury Spa Pedicure',    'Sugar or sea salt scrub with hot stone and leg massage.', 35, 40, true),
   ('pedi-classic',   'pedicures', 'Classic Pedicure',       'Nail shaping, cuticle care, moisturizing massage, and polish.', 25, 30, true),
 
@@ -64,7 +64,7 @@ insert into public.services (id, category_id, name, description, price, duration
   ('addon-paraffin',       'polish-addons', 'Paraffin Treatment',     'Warm paraffin dip for hands or feet.', 10, 15, true),
   ('addon-repair',         'polish-addons', 'Nail Repair',            'Broken nail repair (from $5).', 5, 15, true),
   ('addon-removal',        'polish-addons', 'Nails Removal',          'Artificial nail or gel removal (from $5).', 5, 20, true),
-  ('addon-art',            'polish-addons', 'Custom Nail Art',        'Custom nail art — priced at visit.', 0, 20, true),
+  ('addon-art',            'polish-addons', 'Custom Nail Art',        'Custom nail art — priced at visit.', 0, 15, true),
 
   -- Waxing
   ('wax-eyebrows',   'waxing', 'Eyebrows',        'Precise eyebrow wax.', 10, 15, true),

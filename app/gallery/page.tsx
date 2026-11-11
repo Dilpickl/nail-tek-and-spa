@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { NAIL_ART_SERVICE_ID } from "@/components/home/Hero";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
+import { NAIL_ART_SERVICE_ID } from "@/lib/booking/service-utils";
 import { business, galleryImages } from "@/lib/config/salonData";
 
 export const metadata: Metadata = {
@@ -29,12 +30,13 @@ export default function GalleryPage() {
             the chair.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row sm:gap-7">
-            <Link
+            <TrackedLink
               href={bookLook}
+              placement="gallery_book"
               className="inline-flex h-[52px] items-center justify-center rounded-sm bg-ink px-7 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft"
             >
               Book a nail art visit
-            </Link>
+            </TrackedLink>
             <Link
               href="/services"
               className="border-b-[1.5px] border-ink py-1 text-sm font-bold tracking-[0.02em] text-ink"
@@ -80,12 +82,13 @@ export default function GalleryPage() {
               the chair, before we start.
             </p>
           </div>
-          <Link
+          <TrackedLink
             href={bookLook}
+            placement="gallery_book"
             className="inline-flex h-[52px] shrink-0 items-center justify-center rounded-sm bg-[#F5EFE8] px-7 text-sm font-bold tracking-[0.02em] text-ink transition-colors hover:bg-white"
           >
             Book a nail art visit
-          </Link>
+          </TrackedLink>
         </div>
       </section>
     </>

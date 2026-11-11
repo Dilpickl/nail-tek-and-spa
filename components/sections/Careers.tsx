@@ -1,5 +1,9 @@
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
 import { careers, business } from "@/lib/config/salonData";
+
+const APPLY_BUTTON =
+  "inline-flex h-12 shrink-0 items-center justify-center rounded-sm border-[1.5px] border-ink px-6 text-sm font-bold tracking-[0.02em] text-ink transition-colors hover:bg-ink hover:text-white";
 
 /** Homepage careers block. Relies on the page's <MotionObserver> for reveals. */
 export function Careers() {
@@ -43,16 +47,18 @@ export function Careers() {
                   {job.description}
                 </p>
               </div>
-              <a
-                href={
-                  business.email
-                    ? `mailto:${business.email}?subject=${encodeURIComponent(`Application: ${job.title}`)}`
-                    : `tel:${business.phoneRaw}`
-                }
-                className="inline-flex h-12 shrink-0 items-center justify-center rounded-sm border-[1.5px] border-ink px-6 text-sm font-bold tracking-[0.02em] text-ink transition-colors hover:bg-ink hover:text-white"
-              >
-                {business.email ? "Apply by email" : "Call to apply"}
-              </a>
+              {business.email ? (
+                <a
+                  href={`mailto:${business.email}?subject=${encodeURIComponent(`Application: ${job.title}`)}`}
+                  className={APPLY_BUTTON}
+                >
+                  Apply by email
+                </a>
+              ) : (
+                <PhoneLink placement="careers" className={APPLY_BUTTON}>
+                  Call to apply
+                </PhoneLink>
+              )}
             </div>
           ))}
         </div>

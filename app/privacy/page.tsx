@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { business, legal } from "@/lib/config/salonData";
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export default function PrivacyPage() {
     <article className="container max-w-3xl py-16 md:py-20">
       <h1 className="text-4xl font-semibold text-ink">Privacy Policy</h1>
       <p className="mt-2 text-sm text-ink-muted">
-        Last updated: {legal.lastUpdated}
+        Last updated: {legal.privacyUpdated}
       </p>
 
       <div className="mt-8 space-y-6 text-ink-soft leading-relaxed">
@@ -33,6 +34,16 @@ export default function PrivacyPage() {
           any time by replying STOP.
         </Section>
 
+        <Section title="Website Measurement">
+          We count visits, the pages you open, taps on our phone number and booking
+          buttons, and how far you get in the booking steps. We also store whether
+          you are on a phone, tablet, or computer, and the website that linked you
+          here, such as Google or Instagram. A random id is stored in your browser
+          for that count. It is not your name, we do not store the full link you
+          came from, we do not sell it, and it is kept in our own database. Our
+          host, Vercel, may also collect its own short-term usage statistics.
+        </Section>
+
         <Section title="How We Use Your Information">
           Your information is used to manage your bookings, communicate with you,
           and improve our services. We do not sell or rent your personal
@@ -51,9 +62,9 @@ export default function PrivacyPage() {
             {business.email}
           </a>
           , call{" "}
-          <a className="underline" href={`tel:${business.phoneRaw}`}>
+          <PhoneLink placement="privacy" className="underline">
             {business.phone}
-          </a>
+          </PhoneLink>
           , or visit us at {business.address.line1}, {business.address.city},{" "}
           {business.address.state} {business.address.zip}.
         </Section>

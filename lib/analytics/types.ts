@@ -1,3 +1,7 @@
+import type { WebsiteConversion } from "@/lib/analytics/conversion";
+
+export type { WebsiteConversion };
+
 export interface AnalyticsKpis {
   totalAppointments: number;
   completedAppointments: number;
@@ -131,4 +135,5 @@ export interface AnalyticsResponse {
   scheduleUtilization: ScheduleUtilization;
   upcoming: UpcomingAppointment[];
   alerts: AnalyticsAlert[];
+  conversion: WebsiteConversion;
 }
