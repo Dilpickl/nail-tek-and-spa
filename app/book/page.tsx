@@ -20,14 +20,14 @@ export default async function BookPage({
   const technicians = await getActiveTechnicians();
 
   return (
-    <section className="section-padding">
+    <section className="py-12 md:py-20">
       <div className="container">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
+          <p className="flex items-center justify-center gap-3.5 text-xs uppercase tracking-[0.3em] text-ink-muted before:h-px before:w-9 before:bg-ink before:content-['']">
             Booking
           </p>
-          <h1 className="mt-3 text-4xl font-semibold text-ink sm:text-5xl">
-            Reserve your appointment
+          <h1 className="mt-4 text-[2.5rem] font-normal leading-none text-ink sm:text-6xl">
+            Reserve your <i className="font-normal text-rose">visit.</i>
           </h1>
 
           {preselected && (
@@ -38,9 +38,10 @@ export default async function BookPage({
           )}
         </div>
 
-        <div className="mt-12">
+        <div className="mt-8 md:mt-12">
           <BookingFlow
-            preselectedServiceId={preselected?.id}
+            // Parents with variants aren't bookable themselves; start on the first variant.
+            preselectedServiceId={preselected?.variants?.[0]?.id ?? preselected?.id}
             technicians={technicians.map((technician) => ({
               id: technician.id,
               name: technician.name,

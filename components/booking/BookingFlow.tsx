@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
+import Link from "next/link";
 import {
   Calendar,
   Check,
@@ -22,6 +23,7 @@ import {
   formatServicePriceLabel,
 } from "@/lib/booking/pricing";
 import {
+  business,
   getSelectedServiceVariantIds,
   getServiceById,
   getServiceCategoryId,
@@ -88,6 +90,8 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
   const [selectedTime, setSelectedTime] = useState("");
   const [slots, setSlots] = useState<BookingSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  /** Date the current `slots` were loaded for ("" until a fetch finishes). */
+  const [slotsDate, setSlotsDate] = useState("");
   const [slotError, setSlotError] = useState("");
   const [details, setDetails] = useState({ name: "", phone: "", email: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -147,6 +151,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
   useEffect(() => {
     if (selectedServiceIds.length === 0 || step < 3) {
       setSlots([]);
+      setSlotsDate("");
       return;
     }
 
@@ -175,6 +180,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
         }
 
         setSlots(filterPastSlots(selectedDate, body.slots ?? []));
+        setSlotsDate(selectedDate);
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           setSlots([]);
@@ -202,7 +208,8 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
       return;
     }
 
-    if (loadingSlots || slotError || slots.length > 0) return;
+    // Wait for this date's slots: the fetch effect above runs in the same pass.
+    if (loadingSlots || slotError || slots.length > 0 || slotsDate !== selectedDate) return;
 
     const today = toIsoDate(new Date());
     if (selectedDate !== today || autoDateAdjusted.current) return;
@@ -212,7 +219,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
       autoDateAdjusted.current = true;
       setSelectedDate(next);
     }
-  }, [step, loadingSlots, slotError, slots.length, selectedDate]);
+  }, [step, loadingSlots, slotError, slots.length, slotsDate, selectedDate]);
 
   function clearFieldHighlight(fieldId: string) {
     setHighlightedField((current) => (current === fieldId ? null : current));
@@ -240,6 +247,9 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
   return (
     <div className="mx-auto max-w-5xl">
       <BookingSteps step={step} />
+      <p className="mt-3 text-center text-sm font-semibold text-ink sm:hidden">
+        Step {step} of 5 · {stepLabels[step - 1]}
+      </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_340px]">
         <div className="rounded-2xl bg-offwhite p-5 ring-1 ring-ink/5 sm:p-8">
@@ -368,7 +378,7 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-ink text-offwhite">
           <Check className="size-7" />
         </div>
-        <h1 className="mt-6 text-3xl font-semibold text-ink">Appointment requested</h1>
+        <h2 className="mt-6 text-3xl font-semibold text-ink">Appointment requested</h2>
         <p className="mt-2 text-ink-muted">
           Please review your booking details below.
         </p>
@@ -440,18 +450,28 @@ function BookingConfirmationView({ confirmation }: { confirmation: BookingConfir
       </section>
 
       <p className="mt-6 text-center text-sm text-ink-muted">
-        We&apos;ll send reminders to the phone number you provided.
+        We&apos;ll call the number you provided if anything changes.
       </p>
       <p className="mt-3 text-center text-xs text-ink-muted">
         Reference {confirmation.appointmentId.slice(0, 8).toUpperCase()}
       </p>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <a href={business.googleMapsUrl} target="_blank" rel="noopener noreferrer">
+          <Button type="button" className="w-full sm:w-auto">Get directions</Button>
+        </a>
+        <Link href="/gallery">
+          <Button type="button" variant="outline" className="w-full sm:w-auto">
+            Browse nail art ideas
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
 
 function BookingSteps({ step }: { step: Step }) {
   return (
-    <ol className="grid gap-2 sm:grid-cols-5">
+    <ol className="grid grid-cols-5 gap-1.5 sm:gap-2">
       {stepLabels.map((label, index) => {
         const number = (index + 1) as Step;
         const active = step === number;
@@ -459,7 +479,8 @@ function BookingSteps({ step }: { step: Step }) {
         return (
           <li
             key={label}
-            className={`rounded-full px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.16em] ${
+            aria-current={active ? "step" : undefined}
+            className={`rounded-full px-1 py-2 text-center text-xs font-semibold uppercase tracking-[0.16em] sm:px-4 ${
               active
                 ? "bg-ink text-offwhite"
                 : complete
@@ -467,7 +488,8 @@ function BookingSteps({ step }: { step: Step }) {
                   : "bg-offwhite text-ink-muted"
             }`}
           >
-            {label}
+            <span className="sm:hidden">{number}</span>
+            <span className="sr-only sm:not-sr-only">{label}</span>
           </li>
         );
       })}
@@ -1141,7 +1163,7 @@ function DetailsStep({
       <StepHeading
         icon={<UsersRound className="size-5" />}
         title="Your details"
-        description="We will use this to confirm your appointment and send reminders."
+        description="We only use this to reach you about your appointment."
       />
 
       <div className="mt-6 grid gap-4">
@@ -1165,6 +1187,7 @@ function DetailsStep({
             onFieldEdit("booking-details-phone");
             setDetails((current) => ({ ...current, phone: value }));
           }}
+          type="tel"
           autoComplete="tel"
           required
           highlighted={highlightedField === "booking-details-phone"}
@@ -1443,7 +1466,6 @@ async function submitBooking({
         date: selectedDate,
         time: selectedTime,
         customer: details,
-        smsConsent: true,
       }),
     });
     const body = (await response.json()) as

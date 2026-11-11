@@ -39,7 +39,6 @@ interface AppointmentRequest {
     phone?: string;
     email?: string;
   };
-  smsConsent?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -191,7 +190,6 @@ export async function POST(request: Request) {
             ends_at: memberEndsAt.toISOString(),
             status: "booked",
             source: "online",
-            sms_consent: true,
             notes:
               partySize > 1
                 ? isPrimary
@@ -320,10 +318,6 @@ function validatePayload(payload: AppointmentRequest): string | null {
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.customer.email)
   ) {
     return "Please enter a valid email address.";
-  }
-
-  if (!payload.smsConsent) {
-    return "SMS consent is required to book online.";
   }
 
   return null;
