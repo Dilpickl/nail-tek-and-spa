@@ -803,6 +803,6 @@ export const careers: JobPosting[] = [
 /** Legal page metadata (TOS / Privacy are auto-generated from business info). */
 export const legal = {
   businessLegalName: "Nail Tek & Spa INC",
-  lastUpdated: "July 9, 2026",
-  privacyUpdated: "November 6, 2026",
+  lastUpdated: "November 10, 2026",
+  privacyUpdated: "November 10, 2026",
 } as const;
