@@ -30,13 +30,6 @@ export default function TermsPage() {
           bookings.
         </Section>
 
-        <Section title="Messaging Consent">
-          By creating an appointment, you agree to receive automated
-          transactional and booking reminder text messages from {business.name}.
-          Message and data rates may apply. You can opt out at any time by
-          replying STOP.
-        </Section>
-
         <Section title="Services & Pricing">
           Prices listed are starting points and may vary based on nail length,
           design complexity, and product selection. Final pricing will be

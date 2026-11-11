@@ -46,7 +46,7 @@ export function ReviewCard({
         {open ? "Show less" : "Read full review"}
       </button>
       <figcaption className="mt-3 text-[13px] text-ink-muted">
-        {name} · {source} <span aria-label="5 stars">★★★★★</span>
+        {name} · {source} <span role="img" aria-label="5 stars">★★★★★</span>
       </figcaption>
     </figure>
   );
