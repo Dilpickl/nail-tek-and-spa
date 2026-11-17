@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { getServiceById } from "@/lib/config/salonData";
+import { needsNailArtBase } from "@/lib/booking/service-utils";
 import { getActiveTechnicians } from "@/lib/booking/technicians";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 
@@ -13,9 +14,13 @@ export default async function BookPage({
 }: {
   searchParams: { service?: string };
 }) {
-  const preselected = searchParams.service
+  const requested = searchParams.service
     ? getServiceById(searchParams.service)
     : undefined;
+  // Parents with variants aren't bookable themselves; start on the first variant.
+  const firstVariantId = requested?.variants?.[0]?.id;
+  const preselected = firstVariantId ? getServiceById(firstVariantId) : requested;
+  const needsBase = preselected ? needsNailArtBase([preselected.id]) : false;
 
   const technicians = await getActiveTechnicians();
 
@@ -32,16 +37,19 @@ export default async function BookPage({
 
           {preselected && (
             <p className="mt-4 text-lg text-ink-muted">
-              You selected <strong className="text-ink">{preselected.name}</strong>.
-              We&apos;ll carry this into your booking.
+              You selected <strong className="text-ink">{preselected.name}</strong>.{" "}
+              {needsBase
+                ? "Pick a manicure, pedicure or set below for it to go on."
+                : firstVariantId
+                  ? "You can switch options below."
+                  : "We'll carry this into your booking."}
             </p>
           )}
         </div>
 
         <div className="mt-8 md:mt-12">
           <BookingFlow
-            // Parents with variants aren't bookable themselves; start on the first variant.
-            preselectedServiceId={preselected?.variants?.[0]?.id ?? preselected?.id}
+            preselectedServiceId={preselected?.id}
             technicians={technicians.map((technician) => ({
               id: technician.id,
               name: technician.name,

@@ -161,6 +161,7 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
     if (selectedServiceIds.length === 0 || step < 3) {
       setSlots([]);
       setSlotsDate("");
+      setLoadingSlots(false);
       return;
     }
 
@@ -196,7 +197,8 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
           setSlotError((error as Error).message);
         }
       } finally {
-        setLoadingSlots(false);
+        // An aborted request has been replaced; the new one owns the loading flag.
+        if (!controller.signal.aborted) setLoadingSlots(false);
       }
     };
 
@@ -289,7 +291,8 @@ export function BookingFlow({ preselectedServiceId, technicians }: BookingFlowPr
               setSelectedDate={setSelectedDate}
               selectedTime={selectedTime}
               setSelectedTime={setSelectedTime}
-              slots={slots}
+              // Never offer another date's times while this date's are loading.
+              slots={slotsDate === selectedDate ? slots : []}
               loadingSlots={loadingSlots}
               slotError={slotError}
               party={party}
