@@ -24,14 +24,9 @@ export default function PrivacyPage() {
 
         <Section title="Information We Collect">
           When you book an appointment, we collect your name, phone number, and
-          email address. We use this information solely to schedule, confirm, and
-          remind you about your appointments.
-        </Section>
-
-        <Section title="Text Messages">
-          With your consent, we send automated transactional and booking reminder
-          text messages. We never sell your phone number, and you may opt out at
-          any time by replying STOP.
+          email address. We use this information solely to schedule your
+          appointments and to contact you about them. We never sell your phone
+          number.
         </Section>
 
         <Section title="Website Measurement">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { getServiceById } from "@/lib/config/salonData";
+import { needsNailArtBase } from "@/lib/booking/service-utils";
 import { getActiveTechnicians } from "@/lib/booking/technicians";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 
@@ -13,32 +14,40 @@ export default async function BookPage({
 }: {
   searchParams: { service?: string };
 }) {
-  const preselected = searchParams.service
+  const requested = searchParams.service
     ? getServiceById(searchParams.service)
     : undefined;
+  // Parents with variants aren't bookable themselves; start on the first variant.
+  const firstVariantId = requested?.variants?.[0]?.id;
+  const preselected = firstVariantId ? getServiceById(firstVariantId) : requested;
+  const needsBase = preselected ? needsNailArtBase([preselected.id]) : false;
 
   const technicians = await getActiveTechnicians();
 
   return (
-    <section className="section-padding">
+    <section className="py-12 md:py-20">
       <div className="container">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-muted">
+          <p className="flex items-center justify-center gap-3.5 text-xs uppercase tracking-[0.3em] text-ink-muted before:h-px before:w-9 before:bg-ink before:content-['']">
             Booking
           </p>
-          <h1 className="mt-3 text-4xl font-semibold text-ink sm:text-5xl">
-            Reserve your appointment
+          <h1 className="mt-4 text-[2.5rem] font-normal leading-none text-ink sm:text-6xl">
+            Reserve your <i className="font-normal text-rose">visit.</i>
           </h1>
 
           {preselected && (
             <p className="mt-4 text-lg text-ink-muted">
-              You selected <strong className="text-ink">{preselected.name}</strong>.
-              We&apos;ll carry this into your booking.
+              You selected <strong className="text-ink">{preselected.name}</strong>.{" "}
+              {needsBase
+                ? "Pick a manicure, pedicure or set below for it to go on."
+                : firstVariantId
+                  ? "You can switch options below."
+                  : "We'll carry this into your booking."}
             </p>
           )}
         </div>
 
-        <div className="mt-12">
+        <div className="mt-8 md:mt-12">
           <BookingFlow
             preselectedServiceId={preselected?.id}
             technicians={technicians.map((technician) => ({

@@ -92,7 +92,6 @@ test.describe("Online booking", () => {
         date,
         time: "10:00",
         customer: { name: "Test", phone: "5551234567" },
-        smsConsent: true,
       },
     });
 

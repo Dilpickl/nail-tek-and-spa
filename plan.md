@@ -133,7 +133,7 @@ Redeploy after adding/changing env vars.
 **Admin**
 - Walk-in Start Time: compact overlay picker; full half-column width (iPad alignment)
 - Walk-in / phone booking services default to empty selection
-- Demo seed: `npm run seed:demo` (`scripts/seed-demo-bookings.mjs`)
+- Wipe booking data (appointments, clients, transactions): `npm run clear:bookings -- --yes` (`scripts/clear-booking-data.mjs`; dry run without `--yes`)
 - **iOS Home Screen web push** (PR #12): new-booking + 5-min-before reminders
   - PWA manifest + icons + `public/sw.js`
   - Admin banner: Enable alerts (`AdminPushPrompt`)
@@ -328,7 +328,7 @@ supabase/migrations/
 
 scripts/
   generate-vapid-keys.mjs           # npm run generate:vapid
-  seed-demo-bookings.mjs            # npm run seed:demo
+  clear-booking-data.mjs            # npm run clear:bookings
   run-reminder-cron.mjs             # optional local reminder poller
 ```
 
