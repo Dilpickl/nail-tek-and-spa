@@ -73,9 +73,13 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Lets scroll-reveal styles hide content only when JS can reveal it again. */}
+        {/* Lets scroll-reveal styles hide content only when JS can reveal it again.
+            Also turns on holiday decorations Nov 1 – Jan 31 (months 10, 11, 0). */}
         <script
-          dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.js='1'" }}
+          dangerouslySetInnerHTML={{
+            __html:
+              "var d=document.documentElement,m=new Date().getMonth();d.dataset.js='1';if(m>9||m<1)d.dataset.holiday='1'",
+          }}
         />
       </head>
       <body className="min-h-screen flex flex-col">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { AnimatedTitle } from "@/components/home/AnimatedTitle";
+import { Snowfall, WreathFrame } from "@/components/layout/Holiday";
 import { NAIL_ART_SERVICE_ID } from "@/lib/booking/service-utils";
 import { business, galleryImages, getServiceById } from "@/lib/config/salonData";
 import { cn } from "@/lib/utils";
@@ -47,11 +48,13 @@ export function Hero() {
   const bookLook = `/book?service=${NAIL_ART_SERVICE_ID}`;
 
   return (
-    <section className="bg-cream">
-      <div className="container grid gap-10 pb-16 pt-8 md:pt-12 lg:grid-cols-[400px_1fr] lg:gap-14 lg:pb-20 lg:pt-14">
+    <section className="relative overflow-hidden bg-cream">
+      <Snowfall />
+      <div className="container relative z-[2] grid gap-10 pb-16 pt-8 md:pt-12 lg:grid-cols-[400px_1fr] lg:gap-14 lg:pb-20 lg:pt-14">
         <div>
-          <p className="nt-fi nt-line flex items-center gap-3.5 text-xs uppercase tracking-[0.3em] text-ink-muted before:h-px before:w-9 before:bg-ink before:content-['']">
-            The Lookbook · Randall Road
+          <p className="nt-fi nt-line flex items-center gap-3.5 text-xs uppercase tracking-[0.16em] text-ink-muted before:h-px before:w-9 before:bg-ink before:content-[''] min-[420px]:tracking-[0.3em]">
+            <span className="holiday-hide">The Lookbook · Randall Road</span>
+            <span className="holiday-only">Book your next holiday look!</span>
           </p>
 
           <AnimatedTitle
@@ -88,9 +91,10 @@ export function Hero() {
             <TrackedLink
               href="/book"
               placement="hero_book"
-              className="inline-flex h-[52px] items-center justify-center rounded-sm bg-ink px-7 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft"
+              className="relative inline-flex h-[52px] items-center justify-center rounded-sm bg-ink px-7 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft"
             >
               Book a visit
+              <WreathFrame />
             </TrackedLink>
             <Link
               href="/gallery"
