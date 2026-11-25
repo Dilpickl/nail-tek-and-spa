@@ -218,3 +218,35 @@
     clip-path: inset(0 0 100% 0);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Holiday decorations (components/layout/Holiday.tsx)                */
+/*  <html data-holiday> is set Nov 1 – Jan 31 by app/layout.tsx.       */
+/* ------------------------------------------------------------------ */
+html:not([data-holiday]) .holiday-only,
+html[data-holiday] .holiday-hide {
+  display: none;
+}
+.holiday-twinkle {
+  animation: holiday-twinkle 2.8s ease-in-out infinite;
+}
+@keyframes holiday-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.holiday-flake {
+  animation: holiday-fall linear infinite;
+}
+@keyframes holiday-fall {
+  from { transform: translate(0, -40px) rotate(0); }
+  50% { transform: translate(18px, 55vh) rotate(90deg); }
+  to { transform: translate(0, 115vh) rotate(180deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .holiday-twinkle {
+    animation: none;
+  }
+  .holiday-flake {
+    display: none;
+  }
+}

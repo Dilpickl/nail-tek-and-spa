@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Phone, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { HolidayLights, WreathFrame } from "@/components/layout/Holiday";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { business } from "@/lib/config/salonData";
@@ -73,9 +74,10 @@ export function Header() {
           <TrackedLink
             href="/book"
             placement="header_book"
-            className="hidden h-11 items-center justify-center rounded-sm bg-ink px-6 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft lg:inline-flex"
+            className="relative hidden h-11 items-center justify-center rounded-sm bg-ink px-6 text-sm font-bold tracking-[0.02em] text-white transition-colors hover:bg-ink-soft lg:inline-flex"
           >
             Book a visit
+            <WreathFrame />
           </TrackedLink>
           <button
             type="button"
@@ -89,6 +91,8 @@ export function Header() {
           </button>
         </div>
       </div>
+
+      {!menuOpen && <HolidayLights />}
 
       <AnimatePresence>
         {menuOpen && (
